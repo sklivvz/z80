@@ -37,109 +37,338 @@ namespace z80
             const int realTicksPerTick = 250; // 4MHz
             var ticks = t*realTicksPerTick;
             var sleep = _clock + new TimeSpan(ticks) - DateTime.UtcNow;
-            if (sleep.Ticks > 0) Thread.Sleep(sleep);
-            _clock = _clock + new TimeSpan(ticks);
+            if (sleep.Ticks > 0)
+            {
+                Thread.Sleep(sleep);
+                _clock = _clock + new TimeSpan(ticks);
+            }
+            else
+            {
+                Console.WriteLine("*");
+                _clock = DateTime.UtcNow;
+            }
         }
 
         public static void Parse()
         {
             if (Halted) return;
             var mc = Fetch();
-            byte mode = 0;
-            if (mc == 0xDD || mc == 0xFD) // IX mode, IX mode
+            if (mc == 0xDD) // IX mode
             {
-                mode = mc;
-                mc = Fetch();
+                ParseDD();
+                return;
+            }
+            if (mc == 0xFD) // IY mode
+            {
+                ParseFD();
+                return;
             }
             var hi = (byte) (mc >> 6);
             var lo = (byte) (mc & 0x07);
             var r = (byte) ((mc >> 3) & 0x07);
-            switch (hi)
+
+            switch (mc)
             {
-                case 0:
-                    if (mode != 0) break;
-                    switch (lo)
-                    {
-                        case 6:
-                            // LD r,n
-                            var n = Fetch();
-                            registers[r] = n;
-                            Log("LD {0}, {1}", RName(r), n, mc);
-                            Wait(7);
-                            return;
-                        case 0:
-                            if (mc == 0)
-                            {
-                                // NOP
-                                Log("NOP");
-                                return;
-                            }
-                            break;
-                    }
-                    break;
-                case 1:
-                    if (lo == 6)
-                    {
-                        if (r == 6)
-                        {
-                            if (mode != 0) break;
-                            //HALT
-                            Log("HALT");
-                            Halted = true;
-                            return;
-                        }
-                        switch (mode)
-                        {
-                            case 0x00:
-                            {
-                                // LD r, (HL)
-                                Log("LD {0}, (HL)", RName(r));
-                                var addr = (registers[H] << 8) + registers[L];
-                                registers[r] = _ram[addr];
-                                Wait(7);
-                                return;
-                            }
-                            case 0xDD:
-                            {
-                                // LD r, (IX+d)
-                                var d = (sbyte) Fetch();
-                                Log("LD {0}, (IX{1:+#;-#})", RName(r), d);
-                                var addr = (registers[IX] << 8) + registers[IX + 1] + d;
-                                registers[r] = _ram[addr];
-                                Wait(19);
-                                return;
-                            }
-                            case 0xED:
-                            {
-                                // LD r, (IY+d)
-                                var d = (sbyte) Fetch();
-                                Log("LD {0}, (IY{1:+#;-#})", RName(r), d);
-                                var addr = (registers[IY] << 8) + registers[IY + 1] + d;
-                                registers[r] = _ram[addr];
-                                Wait(19);
-                                return;
-                            }
-                        }
-                    }
-                    else if (r != 6)
-                    {
-                        
-                        // LD r, r'
-                        Log("LD {0}, {1}", RName(r), RName(lo));
-                        registers[r] = registers[lo];
-                        Wait(4);
-                        return;
-                    }
-                break;
+                case 0x00:
+                    // NOP
+                    Log("NOP");
+                    return;
+                case 0x40:
+                case 0x41:
+                case 0x42:
+                case 0x43:
+                case 0x44:
+                case 0x45:
+                case 0x47:
+                case 0x48:
+                case 0x49:
+                case 0x4a:
+                case 0x4b:
+                case 0x4c:
+                case 0x4d:
+                case 0x4f:
+                case 0x50:
+                case 0x51:
+                case 0x52:
+                case 0x53:
+                case 0x54:
+                case 0x55:
+                case 0x57:
+                case 0x58:
+                case 0x59:
+                case 0x5a:
+                case 0x5b:
+                case 0x5c:
+                case 0x5d:
+                case 0x5f:
+                case 0x60:
+                case 0x61:
+                case 0x62:
+                case 0x63:
+                case 0x64:
+                case 0x65:
+                case 0x67:
+                case 0x68:
+                case 0x69:
+                case 0x6a:
+                case 0x6b:
+                case 0x6c:
+                case 0x6d:
+                case 0x6f:
+                case 0x78:
+                case 0x79:
+                case 0x7a:
+                case 0x7b:
+                case 0x7c:
+                case 0x7d:
+                case 0x7f:
+                {
+                    // LD r, r'
+                    Log("LD {0}, {1}", RName(r), RName(lo));
+                    registers[r] = registers[lo];
+                    Wait(4);
+                    return;
+                }
+                case 0x06:
+                case 0x0e:
+                case 0x16:
+                case 0x1e:
+                case 0x26:
+                case 0x2e:
+                case 0x3e:
+                {
+                    // LD r,n
+                    var n = Fetch();
+                    registers[r] = n;
+                    Log("LD {0}, {1}", RName(r), n, mc);
+                    Wait(7);
+                    return;
+                }
+                case 0x46:
+                case 0x4e:
+                case 0x56:
+                case 0x5e:
+                case 0x66:
+                case 0x6e:
+                case 0x7e:
+                {
+                    // LD r, (HL)
+                    Log("LD {0}, (HL)", RName(r));
+                    var addr = (registers[H] << 8) + registers[L];
+                    registers[r] = _ram[addr];
+                    Wait(7);
+                    return;
+                }
+                case 0x70:
+                case 0x71:
+                case 0x72:
+                case 0x73:
+                case 0x74:
+                case 0x75:
+                case 0x77:
+                {
+                    // LD (HL), r
+                    Log("LD (HL), {0}", RName(r));
+                    var addr = (registers[H] << 8) + registers[L];
+                    _ram[addr] = registers[r];
+                    Wait(7);
+                    return;
+                }
+                case 0x36:
+                {
+                    // LD (HL), n
+                    var n = Fetch();
+                    Log("LD (HL), {0}", n);
+                    var addr = (registers[H] << 8) + registers[L];
+                    _ram[addr] = n;
+                    Wait(10);
+                    return;
+                }
+                case 0x76:
+                    //HALT
+                    Log("HALT");
+                    Halted = true;
+                    return;
+                case 0x0A:
+                {
+                    // LD A, (BC)
+                    var addr = (registers[B] << 8) + registers[C];
+                    registers[A] = _ram[addr];
+                    Log("LD A, (BC)");
+                    Wait(7);
+                    return;
+                }
+                case 0x1A:
+                {
+                    // LD A, (DE)
+                    var addr = (registers[D] << 8) + registers[E];
+                    registers[A] = _ram[addr];
+                    Log("LD A, (DE)");
+                    Wait(7);
+                    return;
+                }
+                case 0x3A:
+                {
+                    // LD A, (nn)
+                    var addr = (Fetch() << 8) + Fetch();
+                    registers[A] = _ram[addr];
+                    Log("LD A, ({0:x4})", addr);
+                    Wait(13);
+                    return;
+                }
+                case 0x02:
+                {
+                    // LD (BC), A
+                    var addr = (registers[B] << 8) + registers[C];
+                    _ram[addr] = registers[A] ;
+                    Log("LD (BC), A");
+                    Wait(7);
+                    return;
+                }
+                case 0x12:
+                {
+                    // LD (DE), A
+                    var addr = (registers[D] << 8) + registers[E];
+                    _ram[addr] = registers[A];
+                    Log("LD (DE), A");
+                    Wait(7);
+                    return;
+                }
+                case 0x32:
+                {
+                    // LD (nn), A 
+                    var addr = (Fetch() << 8) + Fetch();
+                    _ram[addr] = registers[A];
+                    Log("LD ({0:x4}),A", addr);
+                    Wait(13);
+                    return;
+                }
             }
-            Log("[{4:X2}] {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc, mode);
+
+            Log("{3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
+            Halted = true;
+        }
+
+        private static void ParseDD()
+        {
+            if (Halted) return;
+            var mc = Fetch();
+            var hi = (byte) (mc >> 6);
+            var lo = (byte) (mc & 0x07);
+            var r = (byte) ((mc >> 3) & 0x07);
+
+            switch (mc)
+            {
+                case 0x46:
+                case 0x4e:
+                case 0x56:
+                case 0x5e:
+                case 0x66:
+                case 0x6e:
+                case 0x7e:
+                {
+                    // LD r, (IX+d)
+                    var d = (sbyte) Fetch();
+                    Log("LD {0}, (IX{1:+#;-#})", RName(r), d);
+                    var addr = (registers[IX] << 8) + registers[IX + 1] + d;
+                    registers[r] = _ram[addr];
+                    Wait(19);
+                    return;
+                }
+                case 0x70:
+                case 0x71:
+                case 0x72:
+                case 0x73:
+                case 0x74:
+                case 0x75:
+                case 0x77:
+                {
+                    // LD (IX+d), r
+                    var d = (sbyte) Fetch();
+                    Log("LD (IX{1:+#;-#}), {0}", RName(r), d);
+                    var addr = (registers[IX] << 8) + registers[IX + 1] + d;
+                    _ram[addr] = registers[r];
+                    Wait(19);
+                    return;
+                }
+                case 0x36:
+                {
+                    // LD (IX+d), n
+                    var d = (sbyte) Fetch();
+                    var n = Fetch();
+                    Log("LD (IX{1:+#;-#}), {0}", n, d);
+                    var addr = (registers[IX] << 8) + registers[IX + 1] + d;
+                    _ram[addr] = n;
+                    Wait(19);
+                    return;
+                }
+            }
+            Log("{3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
+            Halted = true;
+        }
+
+        private static void ParseFD()
+        {
+            if (Halted) return;
+            var mc = Fetch();
+            var hi = (byte) (mc >> 6);
+            var lo = (byte) (mc & 0x07);
+            var r = (byte) ((mc >> 3) & 0x07);
+
+            switch (mc)
+            {
+                case 0x46:
+                case 0x4e:
+                case 0x56:
+                case 0x5e:
+                case 0x66:
+                case 0x6e:
+                case 0x7e:
+                {
+                    // LD r, (IY+d)
+                    var d = (sbyte) Fetch();
+                    Log("LD {0}, (IY{1:+#;-#})", RName(r), d);
+                    var addr = (registers[IY] << 8) + registers[IY + 1] + d;
+                    registers[r] = _ram[addr];
+                    Wait(19);
+                    return;
+                }
+                case 0x70:
+                case 0x71:
+                case 0x72:
+                case 0x73:
+                case 0x74:
+                case 0x75:
+                case 0x77:
+                {
+                    // LD (IY+d), r
+                    var d = (sbyte) Fetch();
+                    Log("LD (IY{1:+#;-#}), {0}", RName(r), d);
+                    var addr = (registers[IY] << 8) + registers[IY + 1] + d;
+                    _ram[addr] = registers[r];
+                    Wait(19);
+                    return;
+                }
+                case 0x36:
+                {
+                    // LD (IY+d), n
+                    var d = (sbyte) Fetch();
+                    var n = Fetch();
+                    Log("LD (IY{1:+#;-#}), {0}", n, d);
+                    var addr = (registers[IY] << 8) + registers[IY + 1] + d;
+                    _ram[addr] = n;
+                    Wait(19);
+                    return;
+                }
+            }
+            Log("{3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
             Halted = true;
         }
 
         private static void Log(string format, params object[] vals)
         {
 #if(DEBUG)
-            Console.WriteLine(format, vals);
+            //Console.WriteLine(format, vals);
 #endif
         }
 
