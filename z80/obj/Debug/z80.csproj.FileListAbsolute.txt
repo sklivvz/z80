@@ -1,6 +1,0 @@
-c:\src\z80\z80\bin\Debug\z80.exe.config
-c:\src\z80\z80\obj\Debug\z80.csprojResolveAssemblyReference.cache
-c:\src\z80\z80\bin\Debug\z80.exe
-c:\src\z80\z80\bin\Debug\z80.pdb
-c:\src\z80\z80\obj\Debug\z80.exe
-c:\src\z80\z80\obj\Debug\z80.pdb
