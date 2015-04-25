@@ -62,9 +62,9 @@ namespace z80
                 ParseFD();
                 return;
             }
-            var hi = (byte) (mc >> 6);
-            var lo = (byte) (mc & 0x07);
-            var r = (byte) ((mc >> 3) & 0x07);
+            var hi = (byte)(mc >> 6);
+            var lo = (byte)(mc & 0x07);
+            var r = (byte)((mc >> 3) & 0x07);
 
             switch (mc)
             {
@@ -74,6 +74,30 @@ namespace z80
                     Log("NOP");
 #endif
                     return;
+                case 0x01:
+                case 0x11:
+                case 0x21:
+                    {
+                        // LD dd, nn
+#if(DEBUG)
+                        Log("LD {0}{1}, nn", RName(r), RName((byte)(r + 1)));
+#endif
+                        registers[r + 1] = Fetch();
+                        registers[r] = Fetch();
+                        Wait(10);
+                        return;
+                    }
+                case 0x31:
+                    {
+                        // LD SP, nn
+#if(DEBUG)
+                        Log("LD SP, nn");
+#endif
+                        registers[SP + 1] = Fetch();
+                        registers[SP] = Fetch();
+                        Wait(10);
+                        return;
+                    }
                 case 0x40:
                 case 0x41:
                 case 0x42:
@@ -123,15 +147,15 @@ namespace z80
                 case 0x7c:
                 case 0x7d:
                 case 0x7f:
-                {
-                    // LD r, r'
+                    {
+                        // LD r, r'
 #if(DEBUG)
-                    Log("LD {0}, {1}", RName(r), RName(lo));
+                        Log("LD {0}, {1}", RName(r), RName(lo));
 #endif
-                    registers[r] = registers[lo];
-                    Wait(4);
-                    return;
-                }
+                        registers[r] = registers[lo];
+                        Wait(4);
+                        return;
+                    }
                 case 0x06:
                 case 0x0e:
                 case 0x16:
@@ -139,16 +163,16 @@ namespace z80
                 case 0x26:
                 case 0x2e:
                 case 0x3e:
-                {
-                    // LD r,n
-                    var n = Fetch();
-                    registers[r] = n;
+                    {
+                        // LD r,n
+                        var n = Fetch();
+                        registers[r] = n;
 #if(DEBUG)
-                    Log("LD {0}, {1}", RName(r), n, mc);
+                        Log("LD {0}, {1}", RName(r), n, mc);
 #endif
-                    Wait(7);
-                    return;
-                }
+                        Wait(7);
+                        return;
+                    }
                 case 0x46:
                 case 0x4e:
                 case 0x56:
@@ -156,16 +180,16 @@ namespace z80
                 case 0x66:
                 case 0x6e:
                 case 0x7e:
-                {
-                    // LD r, (HL)
+                    {
+                        // LD r, (HL)
 #if(DEBUG)
-                    Log("LD {0}, (HL)", RName(r));
+                        Log("LD {0}, (HL)", RName(r));
 #endif
-                    var addr = (registers[H] << 8) + registers[L];
-                    registers[r] = _ram[addr];
-                    Wait(7);
-                    return;
-                }
+                        var addr = (registers[H] << 8) + registers[L];
+                        registers[r] = _ram[addr];
+                        Wait(7);
+                        return;
+                    }
                 case 0x70:
                 case 0x71:
                 case 0x72:
@@ -173,28 +197,28 @@ namespace z80
                 case 0x74:
                 case 0x75:
                 case 0x77:
-                {
-                    // LD (HL), r
+                    {
+                        // LD (HL), r
 #if(DEBUG)
-                    Log("LD (HL), {0}", RName(r));
+                        Log("LD (HL), {0}", RName(r));
 #endif
-                    var addr = (registers[H] << 8) + registers[L];
-                    _ram[addr] = registers[r];
-                    Wait(7);
-                    return;
-                }
+                        var addr = (registers[H] << 8) + registers[L];
+                        _ram[addr] = registers[r];
+                        Wait(7);
+                        return;
+                    }
                 case 0x36:
-                {
-                    // LD (HL), n
-                    var n = Fetch();
+                    {
+                        // LD (HL), n
+                        var n = Fetch();
 #if(DEBUG)
-                    Log("LD (HL), {0}", n);
+                        Log("LD (HL), {0}", n);
 #endif
-                    var addr = (registers[H] << 8) + registers[L];
-                    _ram[addr] = n;
-                    Wait(10);
-                    return;
-                }
+                        var addr = (registers[H] << 8) + registers[L];
+                        _ram[addr] = n;
+                        Wait(10);
+                        return;
+                    }
                 case 0x76:
                     //HALT
 #if(DEBUG)
@@ -203,71 +227,71 @@ namespace z80
                     Halted = true;
                     return;
                 case 0x0A:
-                {
-                    // LD A, (BC)
-                    var addr = (registers[B] << 8) + registers[C];
-                    registers[A] = _ram[addr];
+                    {
+                        // LD A, (BC)
+                        var addr = (registers[B] << 8) + registers[C];
+                        registers[A] = _ram[addr];
 #if(DEBUG)
-                    Log("LD A, (BC)");
+                        Log("LD A, (BC)");
 #endif
-                    Wait(7);
-                    return;
-                }
+                        Wait(7);
+                        return;
+                    }
                 case 0x1A:
-                {
-                    // LD A, (DE)
-                    var addr = (registers[D] << 8) + registers[E];
-                    registers[A] = _ram[addr];
+                    {
+                        // LD A, (DE)
+                        var addr = (registers[D] << 8) + registers[E];
+                        registers[A] = _ram[addr];
 #if(DEBUG)
-                    Log("LD A, (DE)");
+                        Log("LD A, (DE)");
 #endif
-                    Wait(7);
-                    return;
-                }
+                        Wait(7);
+                        return;
+                    }
                 case 0x3A:
-                {
-                    // LD A, (nn)
-                    var addr = (Fetch() << 8) + Fetch();
-                    registers[A] = _ram[addr];
+                    {
+                        // LD A, (nn)
+                        var addr = (Fetch() << 8) + Fetch();
+                        registers[A] = _ram[addr];
 #if(DEBUG)
-                    Log("LD A, ({0:x4})", addr);
+                        Log("LD A, ({0:x4})", addr);
 #endif
-                    Wait(13);
-                    return;
-                }
+                        Wait(13);
+                        return;
+                    }
                 case 0x02:
-                {
-                    // LD (BC), A
-                    var addr = (registers[B] << 8) + registers[C];
-                    _ram[addr] = registers[A];
+                    {
+                        // LD (BC), A
+                        var addr = (registers[B] << 8) + registers[C];
+                        _ram[addr] = registers[A];
 #if(DEBUG)
-                    Log("LD (BC), A");
+                        Log("LD (BC), A");
 #endif
-                    Wait(7);
-                    return;
-                }
+                        Wait(7);
+                        return;
+                    }
                 case 0x12:
-                {
-                    // LD (DE), A
-                    var addr = (registers[D] << 8) + registers[E];
-                    _ram[addr] = registers[A];
+                    {
+                        // LD (DE), A
+                        var addr = (registers[D] << 8) + registers[E];
+                        _ram[addr] = registers[A];
 #if(DEBUG)
-                    Log("LD (DE), A");
+                        Log("LD (DE), A");
 #endif
-                    Wait(7);
-                    return;
-                }
+                        Wait(7);
+                        return;
+                    }
                 case 0x32:
-                {
-                    // LD (nn), A 
-                    var addr = (Fetch() << 8) + Fetch();
-                    _ram[addr] = registers[A];
+                    {
+                        // LD (nn), A 
+                        var addr = (Fetch() << 8) + Fetch();
+                        _ram[addr] = registers[A];
 #if(DEBUG)
-                    Log("LD ({0:x4}),A", addr);
+                        Log("LD ({0:x4}),A", addr);
 #endif
-                    Wait(13);
-                    return;
-                }
+                        Wait(13);
+                        return;
+                    }
             }
 
 #if(DEBUG)
@@ -280,9 +304,9 @@ namespace z80
         {
             if (Halted) return;
             var mc = Fetch();
-            var hi = (byte) (mc >> 6);
-            var lo = (byte) (mc & 0x07);
-            var r = (byte) ((mc >> 3) & 0x07);
+            var hi = (byte)(mc >> 6);
+            var lo = (byte)(mc & 0x07);
+            var r = (byte)((mc >> 3) & 0x07);
 
             switch (mc)
             {
@@ -343,41 +367,41 @@ namespace z80
                         return;
                     }
                 case 0x5F:
-                {
-                    // LD A, R
+                    {
+                        // LD A, R
 
-                    /*
-                         * Condition Bits Affected
-                         * S is set if, R-Register is negative; otherwise, it is reset.
-                         * Z is set if the R Register is 0; otherwise, it is reset.
-                         * H is reset.
-                         * P/V contains contents of IFF2.
-                         * N is reset.
-                         * C is not affected.
-                         * If an interrupt occurs during execution of this instruction, the parity flag contains a 0. 
-                         */
-                    var reg = registers[R];
-                    registers[A] = reg;
-                    var f = (byte) (registers[F] & (~(byte) (Fl.H | Fl.PV | Fl.N)));
-                    if (reg >= 0x80)
-                    {
-                        f = (byte) (f & (byte) Fl.S);
-                    }
-                    else if (reg == 0x00)
-                    {
-                        f = (byte) (f & (byte) Fl.Z);
-                    }
-                    if (IFF2)
-                    {
-                        f = (byte) (f & (byte) Fl.PV);
-                    }
-                    registers[F] = f;
+                        /*
+                             * Condition Bits Affected
+                             * S is set if, R-Register is negative; otherwise, it is reset.
+                             * Z is set if the R Register is 0; otherwise, it is reset.
+                             * H is reset.
+                             * P/V contains contents of IFF2.
+                             * N is reset.
+                             * C is not affected.
+                             * If an interrupt occurs during execution of this instruction, the parity flag contains a 0. 
+                             */
+                        var reg = registers[R];
+                        registers[A] = reg;
+                        var f = (byte)(registers[F] & (~(byte)(Fl.H | Fl.PV | Fl.N)));
+                        if (reg >= 0x80)
+                        {
+                            f = (byte)(f & (byte)Fl.S);
+                        }
+                        else if (reg == 0x00)
+                        {
+                            f = (byte)(f & (byte)Fl.Z);
+                        }
+                        if (IFF2)
+                        {
+                            f = (byte)(f & (byte)Fl.PV);
+                        }
+                        registers[F] = f;
 #if(DEBUG)
-                    Log("LD A, R");
+                        Log("LD A, R");
 #endif
-                    Wait(9);
-                    return;
-                }
+                        Wait(9);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("ED {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -389,12 +413,23 @@ namespace z80
         {
             if (Halted) return;
             var mc = Fetch();
-            var hi = (byte) (mc >> 6);
-            var lo = (byte) (mc & 0x07);
-            var r = (byte) ((mc >> 3) & 0x07);
+            var hi = (byte)(mc >> 6);
+            var lo = (byte)(mc & 0x07);
+            var r = (byte)((mc >> 3) & 0x07);
 
             switch (mc)
             {
+                case 0x21:
+                    {
+                        // LD IX, nn
+#if(DEBUG)
+                        Log("LD IX, nn");
+#endif
+                        registers[IX + 1] = Fetch();
+                        registers[IX] = Fetch();
+                        Wait(14);
+                        return;
+                    }
                 case 0x46:
                 case 0x4e:
                 case 0x56:
@@ -402,17 +437,17 @@ namespace z80
                 case 0x66:
                 case 0x6e:
                 case 0x7e:
-                {
-                    // LD r, (IX+d)
-                    var d = (sbyte) Fetch();
+                    {
+                        // LD r, (IX+d)
+                        var d = (sbyte)Fetch();
 #if(DEBUG)
-                    Log("LD {0}, (IX{1:+#;-#})", RName(r), d);
+                        Log("LD {0}, (IX{1:+#;-#})", RName(r), d);
 #endif
-                    var addr = (registers[IX] << 8) + registers[IX + 1] + d;
-                    registers[r] = _ram[addr];
-                    Wait(19);
-                    return;
-                }
+                        var addr = (registers[IX] << 8) + registers[IX + 1] + d;
+                        registers[r] = _ram[addr];
+                        Wait(19);
+                        return;
+                    }
                 case 0x70:
                 case 0x71:
                 case 0x72:
@@ -420,30 +455,30 @@ namespace z80
                 case 0x74:
                 case 0x75:
                 case 0x77:
-                {
-                    // LD (IX+d), r
-                    var d = (sbyte) Fetch();
+                    {
+                        // LD (IX+d), r
+                        var d = (sbyte)Fetch();
 #if(DEBUG)
-                    Log("LD (IX{1:+#;-#}), {0}", RName(r), d);
+                        Log("LD (IX{1:+#;-#}), {0}", RName(r), d);
 #endif
-                    var addr = (registers[IX] << 8) + registers[IX + 1] + d;
-                    _ram[addr] = registers[r];
-                    Wait(19);
-                    return;
-                }
+                        var addr = (registers[IX] << 8) + registers[IX + 1] + d;
+                        _ram[addr] = registers[r];
+                        Wait(19);
+                        return;
+                    }
                 case 0x36:
-                {
-                    // LD (IX+d), n
-                    var d = (sbyte) Fetch();
-                    var n = Fetch();
+                    {
+                        // LD (IX+d), n
+                        var d = (sbyte)Fetch();
+                        var n = Fetch();
 #if(DEBUG)
-                    Log("LD (IX{1:+#;-#}), {0}", n, d);
+                        Log("LD (IX{1:+#;-#}), {0}", n, d);
 #endif
-                    var addr = (registers[IX] << 8) + registers[IX + 1] + d;
-                    _ram[addr] = n;
-                    Wait(19);
-                    return;
-                }
+                        var addr = (registers[IX] << 8) + registers[IX + 1] + d;
+                        _ram[addr] = n;
+                        Wait(19);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("DD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -455,12 +490,24 @@ namespace z80
         {
             if (Halted) return;
             var mc = Fetch();
-            var hi = (byte) (mc >> 6);
-            var lo = (byte) (mc & 0x07);
-            var r = (byte) ((mc >> 3) & 0x07);
+            var hi = (byte)(mc >> 6);
+            var lo = (byte)(mc & 0x07);
+            var r = (byte)((mc >> 3) & 0x07);
 
             switch (mc)
             {
+                case 0x21:
+                    {
+                        // LD IY, nn
+#if(DEBUG)
+                        Log("LD IY, nn");
+#endif
+                        registers[IX + 1] = Fetch();
+                        registers[IX] = Fetch();
+                        Wait(14);
+                        return;
+                    }
+
                 case 0x46:
                 case 0x4e:
                 case 0x56:
@@ -468,17 +515,17 @@ namespace z80
                 case 0x66:
                 case 0x6e:
                 case 0x7e:
-                {
-                    // LD r, (IY+d)
-                    var d = (sbyte) Fetch();
+                    {
+                        // LD r, (IY+d)
+                        var d = (sbyte)Fetch();
 #if(DEBUG)
-                    Log("LD {0}, (IY{1:+#;-#})", RName(r), d);
+                        Log("LD {0}, (IY{1:+#;-#})", RName(r), d);
 #endif
-                    var addr = (registers[IY] << 8) + registers[IY + 1] + d;
-                    registers[r] = _ram[addr];
-                    Wait(19);
-                    return;
-                }
+                        var addr = (registers[IY] << 8) + registers[IY + 1] + d;
+                        registers[r] = _ram[addr];
+                        Wait(19);
+                        return;
+                    }
                 case 0x70:
                 case 0x71:
                 case 0x72:
@@ -486,30 +533,30 @@ namespace z80
                 case 0x74:
                 case 0x75:
                 case 0x77:
-                {
-                    // LD (IY+d), r
-                    var d = (sbyte) Fetch();
+                    {
+                        // LD (IY+d), r
+                        var d = (sbyte)Fetch();
 #if(DEBUG)
-                    Log("LD (IY{1:+#;-#}), {0}", RName(r), d);
+                        Log("LD (IY{1:+#;-#}), {0}", RName(r), d);
 #endif
-                    var addr = (registers[IY] << 8) + registers[IY + 1] + d;
-                    _ram[addr] = registers[r];
-                    Wait(19);
-                    return;
-                }
+                        var addr = (registers[IY] << 8) + registers[IY + 1] + d;
+                        _ram[addr] = registers[r];
+                        Wait(19);
+                        return;
+                    }
                 case 0x36:
-                {
-                    // LD (IY+d), n
-                    var d = (sbyte) Fetch();
-                    var n = Fetch();
+                    {
+                        // LD (IY+d), n
+                        var d = (sbyte)Fetch();
+                        var n = Fetch();
 #if(DEBUG)
-                    Log("LD (IY{1:+#;-#}), {0}", n, d);
+                        Log("LD (IY{1:+#;-#}), {0}", n, d);
 #endif
-                    var addr = (registers[IY] << 8) + registers[IY + 1] + d;
-                    _ram[addr] = n;
-                    Wait(19);
-                    return;
-                }
+                        var addr = (registers[IY] << 8) + registers[IY + 1] + d;
+                        _ram[addr] = n;
+                        Wait(19);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("FD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -523,11 +570,11 @@ namespace z80
         /// <returns></returns>
         private byte Fetch()
         {
-            var pc = (ushort) ((registers[PC] << 8) + registers[PC + 1]);
+            var pc = (ushort)((registers[PC] << 8) + registers[PC + 1]);
             var ret = _ram[pc];
             pc++;
-            registers[PC] = (byte) (pc >> 8);
-            registers[PC + 1] = (byte) (pc & 0xFF);
+            registers[PC] = (byte)(pc >> 8);
+            registers[PC + 1] = (byte)(pc & 0xFF);
             return ret;
         }
 
@@ -544,13 +591,55 @@ namespace z80
 
         public string DumpState()
         {
-            var ret = "BC    DE    HL    F  A" + Environment.NewLine;
-            var i = 0;
-            for (; i < 8; i++) ret += string.Format("{0:X2} ", registers[i]);
-            ret += Environment.NewLine + "BC'   DE'   HL'   F' A'" + Environment.NewLine;
-            for (; i < 16; i++) ret += string.Format("{0:X2} ", registers[i]);
-            ret += Environment.NewLine + "I  R  IX    IY    SP    PC    " + Environment.NewLine;
-            for (; i < registers.Length; i++) ret += string.Format("{0:X2} ", registers[i]);
+            var ret = " BC   DE   HL  SZ-HXP-C A" + Environment.NewLine;
+            ret += string.Format("{0:X2}{1:X2} {2:X2}{3:X2} {4:X2}{5:X2} {6}{7}{8}{9}{10}{11}{12}{13} {14:X2}",
+                registers[B],
+                registers[C],
+                registers[D],
+                registers[E],
+                registers[H],
+                registers[L],
+                registers[F] & 0x80 >> 7,
+                registers[F] & 0x40 >> 7,
+                registers[F] & 0x20 >> 7,
+                registers[F] & 0x10 >> 7,
+                registers[F] & 0x08 >> 7,
+                registers[F] & 0x03 >> 7,
+                registers[F] & 0x02 >> 7,
+                registers[F] & 0x01 >> 7,
+                registers[A]
+            );
+            ret += string.Format("\n{0:X2}{1:X2} {2:X2}{3:X2} {4:X2}{5:X2} {6}{7}{8}{9}{10}{11}{12}{13} {14:X2}",
+                registers[Bp],
+                registers[Cp],
+                registers[Dp],
+                registers[Ep],
+                registers[Hp],
+                registers[Lp],
+                registers[Fp] & 0x80 >> 7,
+                registers[Fp] & 0x40 >> 7,
+                registers[Fp] & 0x20 >> 7,
+                registers[Fp] & 0x10 >> 7,
+                registers[Fp] & 0x08 >> 7,
+                registers[Fp] & 0x03 >> 7,
+                registers[Fp] & 0x02 >> 7,
+                registers[Fp] & 0x01 >> 7,
+                registers[Ap]
+            );
+            ret += Environment.NewLine + Environment.NewLine + "I  R   IX   IY   SP   PC" + Environment.NewLine;
+            ret += string.Format("{0:X2} {1:X2} {2:X2}{3:X2} {4:X2}{5:X2} {6:X2}{7:X2} {8:X2}{9:X2} ",
+                registers[I],
+                registers[R],
+                registers[IX],
+                registers[IX+1],
+                registers[IY],
+                registers[IY+1],
+                registers[SP],
+                registers[SP+1],
+                registers[PC],
+                registers[PC+1]
+            );
+            
             ret += Environment.NewLine;
             return ret;
         }
