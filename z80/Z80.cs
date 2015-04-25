@@ -284,12 +284,24 @@ namespace z80
                 case 0x32:
                     {
                         // LD (nn), A 
-                        var addr = (Fetch() << 8) + Fetch();
+                        var addr = Fetch() + (Fetch() << 8);
                         _ram[addr] = registers[A];
 #if(DEBUG)
                         Log("LD ({0:x4}),A", addr);
 #endif
                         Wait(13);
+                        return;
+                    }
+                case 0x2A:
+                    {
+                        // LD HL, (nn) 
+                        var addr = Fetch() + (Fetch() << 8);
+                        registers[H] = _ram[addr + 1];
+                        registers[L] = _ram[addr];
+#if(DEBUG)
+                        Log("LD HL, ({0:x4})", addr);
+#endif
+                        Wait(16);
                         return;
                     }
             }
@@ -591,7 +603,7 @@ namespace z80
 
         public string DumpState()
         {
-            var ret = " BC   DE   HL  SZ-HXP-C A" + Environment.NewLine;
+            var ret = " BC   DE   HL  SZ-H-PNC A" + Environment.NewLine;
             ret += string.Format("{0:X2}{1:X2} {2:X2}{3:X2} {4:X2}{5:X2} {6}{7}{8}{9}{10}{11}{12}{13} {14:X2}",
                 registers[B],
                 registers[C],
@@ -600,13 +612,13 @@ namespace z80
                 registers[H],
                 registers[L],
                 registers[F] & 0x80 >> 7,
-                registers[F] & 0x40 >> 7,
-                registers[F] & 0x20 >> 7,
-                registers[F] & 0x10 >> 7,
-                registers[F] & 0x08 >> 7,
-                registers[F] & 0x03 >> 7,
-                registers[F] & 0x02 >> 7,
-                registers[F] & 0x01 >> 7,
+                registers[F] & 0x40 >> 6,
+                registers[F] & 0x20 >> 5,
+                registers[F] & 0x10 >> 4,
+                registers[F] & 0x08 >> 3,
+                registers[F] & 0x03 >> 2,
+                registers[F] & 0x02 >> 1,
+                registers[F] & 0x01,
                 registers[A]
             );
             ret += string.Format("\n{0:X2}{1:X2} {2:X2}{3:X2} {4:X2}{5:X2} {6}{7}{8}{9}{10}{11}{12}{13} {14:X2}",
@@ -617,13 +629,13 @@ namespace z80
                 registers[Hp],
                 registers[Lp],
                 registers[Fp] & 0x80 >> 7,
-                registers[Fp] & 0x40 >> 7,
-                registers[Fp] & 0x20 >> 7,
-                registers[Fp] & 0x10 >> 7,
-                registers[Fp] & 0x08 >> 7,
-                registers[Fp] & 0x03 >> 7,
-                registers[Fp] & 0x02 >> 7,
-                registers[Fp] & 0x01 >> 7,
+                registers[Fp] & 0x40 >> 6,
+                registers[Fp] & 0x20 >> 5,
+                registers[Fp] & 0x10 >> 4,
+                registers[Fp] & 0x08 >> 3,
+                registers[Fp] & 0x03 >> 2,
+                registers[Fp] & 0x02 >> 1,
+                registers[Fp] & 0x01,
                 registers[Ap]
             );
             ret += Environment.NewLine + Environment.NewLine + "I  R   IX   IY   SP   PC" + Environment.NewLine;
@@ -631,15 +643,15 @@ namespace z80
                 registers[I],
                 registers[R],
                 registers[IX],
-                registers[IX+1],
+                registers[IX + 1],
                 registers[IY],
-                registers[IY+1],
+                registers[IY + 1],
                 registers[SP],
-                registers[SP+1],
+                registers[SP + 1],
                 registers[PC],
-                registers[PC+1]
+                registers[PC + 1]
             );
-            
+
             ret += Environment.NewLine;
             return ret;
         }
