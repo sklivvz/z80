@@ -1028,6 +1028,14 @@ namespace z80
             _clock = DateTime.UtcNow;
         }
 
+        public byte[] GetState()
+        {
+            var length = registers.Length;
+            var ret = new byte[length];
+            Array.Copy(registers,ret, length);
+            return ret;
+        }
+
         public string DumpState()
         {
             var ret = " BC   DE   HL  SZ-H-PNC A" + Environment.NewLine;
