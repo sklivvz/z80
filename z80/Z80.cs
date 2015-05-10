@@ -414,6 +414,58 @@ namespace z80
                         Wait(9);
                         return;
                     }
+                case 0x4B:
+                    {
+                        // LD BC, (nn)
+                        var addr = Fetch() + (Fetch() << 8);
+                        registers[B] = _ram[addr + 1];
+                        registers[C] = _ram[addr];
+#if(DEBUG)
+                        Log("LD BC, ({0:x4})", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+                case 0x5B:
+                    {
+                        // LD DE, (nn)
+                        var addr = Fetch() + (Fetch() << 8);
+                        registers[D] = _ram[addr + 1];
+                        registers[E] = _ram[addr];
+#if(DEBUG)
+                        Log("LD DE, ({0:x4})", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+                case 0x6B:
+                    {
+                        // LD HL, (nn)
+                        var addr = Fetch() + (Fetch() << 8);
+                        registers[H] = _ram[addr + 1];
+                        registers[L] = _ram[addr];
+#if(DEBUG)
+                        Log("LD HL, ({0:x4})*", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+                case 0x7B:
+                    {
+                        // LD SP, (nn)
+                        var addr = Fetch() + (Fetch() << 8);
+                        registers[SP] = _ram[addr + 1];
+                        registers[SP + 1] = _ram[addr];
+#if(DEBUG)
+                        Log("LD SP, ({0:x4})", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
             }
 #if(DEBUG)
             Log("ED {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -491,6 +543,20 @@ namespace z80
                         Wait(19);
                         return;
                     }
+                case 0x2A:
+                    {
+                        // LD IX, (nn)
+                        var addr = Fetch() + (Fetch() << 8);
+                        registers[IX] = _ram[addr + 1];
+                        registers[IX + 1] = _ram[addr];
+#if(DEBUG)
+                        Log("LD IX, ({0:x4})*", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+
             }
 #if(DEBUG)
             Log("DD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -569,6 +635,20 @@ namespace z80
                         Wait(19);
                         return;
                     }
+                case 0x2A:
+                    {
+                        // LD IY, (nn)
+                        var addr = Fetch() + (Fetch() << 8);
+                        registers[IY] = _ram[addr + 1];
+                        registers[IY + 1] = _ram[addr];
+#if(DEBUG)
+                        Log("LD IY, ({0:x4})*", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+
             }
 #if(DEBUG)
             Log("FD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
