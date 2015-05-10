@@ -1,4 +1,5 @@
 using System;
+using System.Net.Sockets;
 using System.Threading;
 
 // ReSharper disable InconsistentNaming
@@ -304,6 +305,158 @@ namespace z80
                         Wait(16);
                         return;
                     }
+                case 0x22:
+                    {
+                        // LD (nn), HL
+                        var addr = Fetch() + (Fetch() << 8);
+                        _ram[addr] = registers[L];
+                        _ram[addr + 1] = registers[H];
+#if(DEBUG)
+                        Log("LD ({0:x4}), HL", addr);
+#endif
+                        Wait(16);
+                        return;
+                    }
+                case 0xF9:
+                {
+                    // LD SP, HL
+                    registers[SP+1] = registers[L];
+                    registers[SP] = registers[H];
+#if(DEBUG)
+                    Log("LD SP, HL");
+#endif
+                    Wait(6);
+                    return;
+                }
+
+                case 0xC5:
+                {
+                    // PUSH BC
+                    var addr = registers[SP + 1] + (registers[SP] << 8);
+                    addr--;
+                    _ram[addr] = registers[B];
+                    addr--;
+                    _ram[addr] = registers[C];
+                    registers[SP + 1] = (byte)(addr & 0xFF);
+                    registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                    Log("PUSH BC");
+#endif
+                    Wait(11);
+                    return;
+                }
+                case 0xD5:
+                {
+                    // PUSH DE
+                    var addr = registers[SP + 1] + (registers[SP] << 8);
+                    addr--;
+                    _ram[addr] = registers[D];
+                    addr--;
+                    _ram[addr] = registers[E];
+                    registers[SP + 1] = (byte)(addr & 0xFF);
+                    registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                    Log("PUSH DE");
+#endif
+                    Wait(11);
+                    return;
+                }
+                case 0xE5:
+                {
+                    // PUSH HL
+                    var addr = registers[SP + 1] + (registers[SP] << 8);
+                    addr--;
+                    _ram[addr] = registers[H];
+                    addr--;
+                    _ram[addr] = registers[L];
+                    registers[SP + 1] = (byte)(addr & 0xFF);
+                    registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                    Log("PUSH HL");
+#endif
+                    Wait(11);
+                    return;
+                }
+                case 0xF5:
+                {
+                    // PUSH AF
+                    var addr = registers[SP + 1] + (registers[SP] << 8);
+                    addr--;
+                    _ram[addr] = registers[A];
+                    addr--;
+                    _ram[addr] = registers[F];
+                    registers[SP + 1] = (byte) (addr & 0xFF);
+                    registers[SP] = (byte) (addr >> 8);
+#if(DEBUG)
+                    Log("PUSH AF");
+#endif
+                    Wait(11);
+                    return;
+                }
+                case 0xC1:
+                {
+                    // POP BC
+                    var addr = registers[SP + 1] + (registers[SP] << 8);
+                    registers[C] = _ram[addr];
+                    addr++;
+                    registers[B] = _ram[addr];
+                    addr++;
+                    registers[SP + 1] = (byte)(addr & 0xFF);
+                    registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                    Log("POP BC");
+#endif
+                    Wait(10);
+                    return;
+                }
+                case 0xD1:
+                {
+                    // POP DE
+                    var addr = registers[SP + 1] + (registers[SP] << 8);
+                    registers[E] = _ram[addr];
+                    addr++;
+                    registers[D] = _ram[addr];
+                    addr++;
+                    registers[SP + 1] = (byte)(addr & 0xFF);
+                    registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                    Log("POP DE");
+#endif
+                    Wait(10);
+                    return;
+                }
+                case 0xE1:
+                {
+                    // POP HL
+                    var addr = registers[SP + 1] + (registers[SP] << 8);
+                    registers[L] = _ram[addr];
+                    addr++;
+                    registers[H] = _ram[addr];
+                    addr++;
+                    registers[SP + 1] = (byte)(addr & 0xFF);
+                    registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                    Log("POP HL");
+#endif
+                    Wait(10);
+                    return;
+                }
+                case 0xF1:
+                {
+                    // POP AF
+                    var addr = registers[SP+1] + (registers[SP] << 8);
+                    registers[F] = _ram[addr];
+                    addr++;
+                    registers[A] = _ram[addr];
+                    addr++;
+                    registers[SP + 1] = (byte)(addr & 0xFF);
+                    registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                    Log("POP AF");
+#endif
+                    Wait(10);
+                    return;
+                }
             }
 
 #if(DEBUG)
@@ -466,6 +619,58 @@ namespace z80
                         return;
 
                     }
+                case 0x43:
+                    {
+                        // LD (nn), BC
+                        var addr = Fetch() + (Fetch() << 8);
+                        _ram[addr + 1] = registers[B];
+                        _ram[addr] = registers[C];
+#if(DEBUG)
+                        Log("LD ({0:x4}), BC", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+                case 0x53:
+                    {
+                        // LD (nn), DE
+                        var addr = Fetch() + (Fetch() << 8);
+                        _ram[addr + 1] = registers[D];
+                        _ram[addr] = registers[E];
+#if(DEBUG)
+                        Log("LD ({0:x4}), DE", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+                case 0x63:
+                    {
+                        // LD (nn), HL
+                        var addr = Fetch() + (Fetch() << 8);
+                        _ram[addr + 1] = registers[H];
+                        _ram[addr] = registers[L];
+#if(DEBUG)
+                        Log("LD ({0:x4})*, HL", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
+                case 0x73:
+                    {
+                        // LD (nn), SP
+                        var addr = Fetch() + (Fetch() << 8);
+                        _ram[addr + 1] = registers[SP];
+                        _ram[addr] = registers[SP + 1];
+#if(DEBUG)
+                        Log("LD ({0:x4}), SP", addr);
+#endif
+                        Wait(20);
+                        return;
+
+                    }
             }
 #if(DEBUG)
             Log("ED {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -556,6 +761,63 @@ namespace z80
                         return;
 
                     }
+                case 0x22:
+                    {
+                        // LD (nn), IX
+                        var addr = Fetch() + (Fetch() << 8);
+                        _ram[addr] = registers[IX+1];
+                        _ram[addr + 1] = registers[IX];
+#if(DEBUG)
+                        Log("LD ({0:x4}), IX", addr);
+#endif
+                        Wait(20);
+                        return;
+                    }
+
+                case 0xF9:
+                    {
+                        // LD SP, IX
+                        registers[SP] = registers[IX];
+                        registers[SP + 1] = registers[IX + 1];
+#if(DEBUG)
+                        Log("LD SP, IX");
+#endif
+                        Wait(10);
+                        return;
+                    }
+                case 0xE5:
+                    {
+                        // PUSH IX
+                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        addr--;
+                        _ram[addr] = registers[IX];
+                        addr--;
+                        _ram[addr] = registers[IX+1];
+                        registers[SP + 1] = (byte)(addr & 0xFF);
+                        registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                        Log("PUSH IX");
+#endif
+                        Wait(15);
+                        return;
+                    }
+                case 0xE1:
+                    {
+                        // POP IX
+                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        registers[IX+1] = _ram[addr];
+                        addr++;
+                        registers[IX] = _ram[addr];
+                        addr++;
+                        registers[SP + 1] = (byte)(addr & 0xFF);
+                        registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                        Log("POP IX");
+#endif
+                        Wait(14);
+                        return;
+                    }
+
 
             }
 #if(DEBUG)
@@ -649,6 +911,61 @@ namespace z80
 
                     }
 
+                case 0x22:
+                    {
+                        // LD (nn), IY
+                        var addr = Fetch() + (Fetch() << 8);
+                        _ram[addr] = registers[IY + 1];
+                        _ram[addr + 1] = registers[IY];
+#if(DEBUG)
+                        Log("LD ({0:x4}), IY", addr);
+#endif
+                        Wait(20);
+                        return;
+                    }
+                case 0xF9:
+                    {
+                        // LD SP, IY
+                        registers[SP] = registers[IY];
+                        registers[SP + 1] = registers[IY + 1];
+#if(DEBUG)
+                        Log("LD SP, IY");
+#endif
+                        Wait(10);
+                        return;
+                    }
+                case 0xE5:
+                    {
+                        // PUSH IY
+                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        addr--;
+                        _ram[addr] = registers[IY];
+                        addr--;
+                        _ram[addr] = registers[IY + 1];
+                        registers[SP + 1] = (byte)(addr & 0xFF);
+                        registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                        Log("PUSH IY");
+#endif
+                        Wait(15);
+                        return;
+                    }
+                case 0xE1:
+                    {
+                        // POP IY
+                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        registers[IY + 1] = _ram[addr];
+                        addr++;
+                        registers[IY] = _ram[addr];
+                        addr++;
+                        registers[SP + 1] = (byte)(addr & 0xFF);
+                        registers[SP] = (byte)(addr >> 8);
+#if(DEBUG)
+                        Log("POP IY");
+#endif
+                        Wait(14);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("FD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
