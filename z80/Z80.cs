@@ -457,6 +457,36 @@ namespace z80
                     Wait(10);
                     return;
                 }
+                case 0xEB:
+                {
+                    // EX DE, HL
+                    byte reg = registers[D];
+                    registers[D] = registers[H];
+                    registers[H] = reg;
+                    reg = registers[E];
+                    registers[E] = registers[L];
+                    registers[L] = reg;
+#if(DEBUG)
+                    Log("EX DE, HL");
+#endif
+                    Wait(4);
+                    return;
+                }
+                case 0x08:
+                {
+                    // EX AF, AFp
+                    byte reg = registers[Ap];
+                    registers[Ap] = registers[A];
+                    registers[A] = reg;
+                    reg = registers[F];
+                    registers[F] = registers[Fp];
+                    registers[Fp] = reg;
+#if(DEBUG)
+                    Log("EX DE, HL");
+#endif
+                    Wait(4);
+                    return;
+                }
             }
 
 #if(DEBUG)
