@@ -1,4 +1,5 @@
 ﻿using System;
+// ReSharper disable InconsistentNaming
 
 namespace z80.Tests
 {
@@ -70,6 +71,41 @@ namespace z80.Tests
         public void Data(byte value)
         {
             WriteByte(value);
+        }
+
+        public void LdRIxD(int register, byte displacement)
+        {
+            WriteByte(0xDD);
+            WriteByte(70+register*8);
+            WriteByte(displacement);
+        }
+
+        public void LdIx(int value)
+        {
+            WriteByte(0xDD);
+            WriteByte(33);
+            WriteByte(value & 0xFF);
+            WriteByte(value >> 8);
+        }
+
+        public void LdRIyD(int register, byte displacement)
+        {
+            WriteByte(0xFD);
+            WriteByte(70 + register * 8);
+            WriteByte(displacement);
+        }
+
+        public void LdIy(int value)
+        {
+            WriteByte(0xFD);
+            WriteByte(33);
+            WriteByte(value & 0xFF);
+            WriteByte(value >> 8);
+        }
+
+        public void LdHLR(byte register)
+        {
+            WriteByte(0x70+register);
         }
     }
 }

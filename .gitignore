@@ -238,3 +238,4 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+z80.Tests/z80.Tests.v2.ncrunchproject

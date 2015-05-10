@@ -30,6 +30,7 @@ namespace z80.Tests
         private readonly byte[] _ram;
         private byte[] dumpedState;
         private bool hasDump;
+        private readonly Z80 _myZ80;
 
         public ushort PC { get { return Reg16(_PC); } }
 
@@ -48,25 +49,56 @@ namespace z80.Tests
         public System(byte[] ram)
         {
             _ram = ram;
+            _myZ80 = new Z80(_ram);
         }
 
         public void Run()
         {
-            int bailout = 10000;
+            int bailout = 1000;
 
-            var myZ80 = new Z80(_ram);
-            while (!myZ80.Halted & --bailout>0)
+            while (!_myZ80.Halted && bailout > 0)
             {
-                myZ80.Parse();
+                _myZ80.Parse();
+                bailout--;
+                //Console.WriteLine(_myZ80.DumpState());
+                //DumpRam();
             }
-            dumpedState = myZ80.GetState();
+            dumpedState = _myZ80.GetState();
             hasDump = true;
+            if (!_myZ80.Halted) Console.WriteLine("BAILOUT!");
         }
 
         public void Reset()
         {
             dumpedState = null;
             hasDump = false;
+            _myZ80.Reset();
+        }
+
+        public void DumpCpu()
+        {
+            Console.WriteLine(_myZ80.DumpState());
+        }
+
+        public void DumpRam()
+        {
+
+            for (var i = 0; i < 0x80; i++)
+            {
+                if (i % 16 == 0) Console.Write("{0:X4} | ", i);
+                Console.Write("{0:x2} ", _ram[i]);
+                if (i % 8 == 7) Console.Write("  ");
+                if (i % 16 == 15) Console.WriteLine();
+            }
+            Console.WriteLine();
+            for (var i = 0x8080; i < 0x80A0; i++)
+            {
+                if (i % 16 == 0) Console.Write("{0:X4} | ", i);
+                Console.Write("{0:x2} ", _ram[i]);
+                if (i % 8 == 7) Console.Write("  ");
+                if (i % 16 == 15) Console.WriteLine();
+            }
+
         }
     }
 }
