@@ -474,7 +474,7 @@ namespace z80
                 }
                 case 0x08:
                 {
-                    // EX AF, AFp
+                    // EX AF, AF'
                     byte reg = registers[Ap];
                     registers[Ap] = registers[A];
                     registers[A] = reg;
@@ -482,7 +482,7 @@ namespace z80
                     registers[F] = registers[Fp];
                     registers[Fp] = reg;
 #if(DEBUG)
-                    Log("EX DE, HL");
+                    Log("EX AF, AF'");
 #endif
                     Wait(4);
                     return;
