@@ -750,10 +750,10 @@ namespace z80
                         // LD (IX+d), r
                         var d = (sbyte)Fetch();
 #if(DEBUG)
-                        Log("LD (IX{1:+0;-#}), {0}", RName(r), d);
+                        Log("LD (IX{1:+0;-#}), {0}", RName(lo), d);
 #endif
                         var addr = (registers[IX] << 8) + registers[IX + 1] + d;
-                        _ram[addr] = registers[r];
+                        _ram[addr] = registers[lo];
                         Wait(19);
                         return;
                     }
@@ -899,10 +899,10 @@ namespace z80
                         // LD (IY+d), r
                         var d = (sbyte)Fetch();
 #if(DEBUG)
-                        Log("LD (IY{1:+0;-#}), {0}", RName(r), d);
+                        Log("LD (IY{1:+0;-#}), {0}", RName(lo), d);
 #endif
                         var addr = (registers[IY] << 8) + registers[IY + 1] + d;
-                        _ram[addr] = registers[r];
+                        _ram[addr] = registers[lo];
                         Wait(19);
                         return;
                     }

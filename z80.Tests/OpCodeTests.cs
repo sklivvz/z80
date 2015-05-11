@@ -166,7 +166,7 @@ namespace z80.Tests
         [TestCase(5, 2)]
         [TestCase(7, 2)]
         #endregion
-        public void Test_LD_R_IX_D(byte r, byte d)
+        public void Test_LD_R_IX_D(byte r, sbyte d)
         {
             asm.LdIx(8);
             asm.LdRIxD(r,d);
@@ -205,7 +205,7 @@ namespace z80.Tests
         [TestCase(5, 2)]
         [TestCase(7, 2)]
         #endregion
-        public void Test_LD_R_IY_D(byte r, byte d)
+        public void Test_LD_R_IY_D(byte r, sbyte d)
         {
             asm.LdIy(8);
             asm.LdRIyD(r, d);
@@ -231,8 +231,8 @@ namespace z80.Tests
         #endregion
         public void Test_LD_HL_r(byte r)
         {
-            asm.LdR16(2,8);
-            asm.LdR(r,66);
+            asm.LdR16(2, 8);
+            asm.LdR(r, 66);
             asm.LdHLR(r);
             asm.Noop();
             asm.Halt();
@@ -244,12 +244,186 @@ namespace z80.Tests
             Assert.AreEqual(66, _ram[8]);
         }
 
+        [Test]
+        #region testcase
+        [TestCase(0, -2)]
+        [TestCase(1, -2)]
+        [TestCase(2, -2)]
+        [TestCase(3, -2)]
+        [TestCase(4, -2)]
+        [TestCase(5, -2)]
+        [TestCase(7, -2)]
+        [TestCase(0, -1)]
+        [TestCase(1, -1)]
+        [TestCase(2, -1)]
+        [TestCase(3, -1)]
+        [TestCase(4, -1)]
+        [TestCase(5, -1)]
+        [TestCase(7, -1)]
+        [TestCase(0, 0)]
+        [TestCase(1, 0)]
+        [TestCase(2, 0)]
+        [TestCase(3, 0)]
+        [TestCase(4, 0)]
+        [TestCase(5, 0)]
+        [TestCase(7, 0)]
+        [TestCase(0, 1)]
+        [TestCase(1, 1)]
+        [TestCase(2, 1)]
+        [TestCase(3, 1)]
+        [TestCase(4, 1)]
+        [TestCase(5, 1)]
+        [TestCase(7, 1)]
+        [TestCase(0, 2)]
+        [TestCase(1, 2)]
+        [TestCase(2, 2)]
+        [TestCase(3, 2)]
+        [TestCase(4, 2)]
+        [TestCase(5, 2)]
+        [TestCase(7, 2)]
+        #endregion
+        public void Test_LD_IX_d_r(byte r, sbyte d)
+        {
+            asm.LdIx(11);
+            asm.LdR(r, 201);
+            asm.LdIxDR(r,d);
+            asm.Halt();
+            asm.Data(0x11);
+            asm.Data(0x22);
+            asm.Data(0x33);
+            asm.Data(0x44);
+            asm.Data(0x55);
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer - 5, en.PC);
+            Assert.AreEqual(201, _ram[11+d]);
+        }
+
+        [Test]
+        #region testcase
+        [TestCase(0, -2)]
+        [TestCase(1, -2)]
+        [TestCase(2, -2)]
+        [TestCase(3, -2)]
+        [TestCase(4, -2)]
+        [TestCase(5, -2)]
+        [TestCase(7, -2)]
+        [TestCase(0, -1)]
+        [TestCase(1, -1)]
+        [TestCase(2, -1)]
+        [TestCase(3, -1)]
+        [TestCase(4, -1)]
+        [TestCase(5, -1)]
+        [TestCase(7, -1)]
+        [TestCase(0, 0)]
+        [TestCase(1, 0)]
+        [TestCase(2, 0)]
+        [TestCase(3, 0)]
+        [TestCase(4, 0)]
+        [TestCase(5, 0)]
+        [TestCase(7, 0)]
+        [TestCase(0, 1)]
+        [TestCase(1, 1)]
+        [TestCase(2, 1)]
+        [TestCase(3, 1)]
+        [TestCase(4, 1)]
+        [TestCase(5, 1)]
+        [TestCase(7, 1)]
+        [TestCase(0, 2)]
+        [TestCase(1, 2)]
+        [TestCase(2, 2)]
+        [TestCase(3, 2)]
+        [TestCase(4, 2)]
+        [TestCase(5, 2)]
+        [TestCase(7, 2)]
+        #endregion
+        public void Test_LD_IY_d_r(byte r, sbyte d)
+        {
+            asm.LdIy(11);
+            asm.LdR(r, 201);
+            asm.LdIyDR(r, d);
+            asm.Halt();
+            asm.Data(0x11);
+            asm.Data(0x22);
+            asm.Data(0x33);
+            asm.Data(0x44);
+            asm.Data(0x55);
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer - 5, en.PC);
+            Assert.AreEqual(201, _ram[11 + d]);
+        }
+
+
+        [Test]
+        public void Test_LD_HL_n()
+        {
+            asm.LdR16(2, 8);
+            asm.LdHLN(201);
+            asm.Halt();
+            asm.Data(123);
+
+            en.Run();
+
+            en.DumpRam();
+
+            Assert.AreEqual(asm.WritePointer - 1, en.PC);
+            Assert.AreEqual(201, _ram[8]);
+        }
+
+        [Test]
+        #region testcase
+        [TestCase(-2)]
+        [TestCase(-1)]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        #endregion
+        public void Test_LD_IX_d_n(sbyte d)
+        {
+            asm.LdIx(11);
+            asm.LdIxDN(d, 201);
+            asm.Halt();
+            asm.Data(0x11);
+            asm.Data(0x22);
+            asm.Data(0x33);
+            asm.Data(0x44);
+            asm.Data(0x55);
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer - 5, en.PC);
+            Assert.AreEqual(201, _ram[11 + d]);
+        }
+
+        [Test]
+        #region testcase
+        [TestCase(-2)]
+        [TestCase(-1)]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        #endregion
+        public void Test_LD_IY_d_n(sbyte d)
+        {
+            asm.LdIy(11);
+            asm.LdIyDN(d, 201);
+            asm.Halt();
+            asm.Data(0x11);
+            asm.Data(0x22);
+            asm.Data(0x33);
+            asm.Data(0x44);
+            asm.Data(0x55);
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer - 5, en.PC);
+            Assert.AreEqual(201, _ram[11 + d]);
+        }
 
         //////////////////////////
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
-        {
-        }
         [SetUp]
         public void TestSetup()
         {

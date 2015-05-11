@@ -45,25 +45,25 @@ namespace z80.Tests
             WriteByte(0x00);
         }
 
-        public void LdR(int register, byte value)
+        public void LdR(byte register, byte value)
         {
             WriteByte(register * 8 + 6);
             WriteByte(value);
         }
 
-        public void LdRR(int register, int register2)
+        public void LdRR(byte register, byte register2)
         {
             WriteByte(register * 8 + register2 + 64);
         }
 
-        public void LdR16(int register16, int value)
+        public void LdR16(byte register16, ushort value)
         {
             WriteByte(1+register16*16);
             WriteByte(value & 0xFF);
             WriteByte(value >> 8);
         }
 
-        public void LdRHl(int register)
+        public void LdRHl(byte register)
         {
             WriteByte(70+register*8);
         }
@@ -73,7 +73,7 @@ namespace z80.Tests
             WriteByte(value);
         }
 
-        public void LdRIxD(int register, byte displacement)
+        public void LdRIxD(byte register, sbyte displacement)
         {
             WriteByte(0xDD);
             WriteByte(70+register*8);
@@ -88,7 +88,7 @@ namespace z80.Tests
             WriteByte(value >> 8);
         }
 
-        public void LdRIyD(int register, byte displacement)
+        public void LdRIyD(byte register, sbyte displacement)
         {
             WriteByte(0xFD);
             WriteByte(70 + register * 8);
@@ -106,6 +106,42 @@ namespace z80.Tests
         public void LdHLR(byte register)
         {
             WriteByte(0x70+register);
+        }
+
+        public void LdIxDR(byte register, sbyte displacement)
+        {
+            WriteByte(0xDD);
+            WriteByte(0x70 + register);
+            WriteByte(displacement);
+        }
+
+        public void LdIyDR(byte register, sbyte displacement)
+        {
+            WriteByte(0xFD);
+            WriteByte(0x70 + register);
+            WriteByte(displacement);
+        }
+
+        public void LdHLN(byte value)
+        {
+            WriteByte(0x36);
+            WriteByte(value);
+        }
+
+        public void LdIxDN(sbyte displacement, byte value)
+        {
+            WriteByte(0xDD);
+            WriteByte(0x36);
+            WriteByte(displacement);
+            WriteByte(value);
+        }
+
+        public void LdIyDN(sbyte displacement, byte value)
+        {
+            WriteByte(0xFD);
+            WriteByte(0x36);
+            WriteByte(displacement);
+            WriteByte(value);
         }
     }
 }
