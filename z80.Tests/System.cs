@@ -33,8 +33,14 @@ namespace z80.Tests
         private readonly Z80 _myZ80;
 
         public ushort PC { get { return Reg16(_PC); } }
+        public ushort SP { get { return Reg16(_SP); } }
         public byte A { get { return Reg8(_A); } }
         public byte B { get { return Reg8(_B); } }
+        public byte C { get { return Reg8(_C); } }
+        public byte D { get { return Reg8(_D); } }
+        public byte E { get { return Reg8(_E); } }
+        public byte H { get { return Reg8(_H); } }
+        public byte L { get { return Reg8(_L); } }
         public byte I { get { return Reg8(_I); } }
         public byte R { get { return Reg8(_R); } }
 

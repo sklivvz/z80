@@ -450,7 +450,7 @@ namespace z80.Tests
         }
 
         [Test]
-        public void Test_LD_A_NN()
+        public void Test_LD_A_nn()
         {
             asm.LdANn(4);
             asm.Halt();
@@ -493,7 +493,7 @@ namespace z80.Tests
         }
 
         [Test]
-        public void Test_LD_NN_A()
+        public void Test_LD_nn_A()
         {
             asm.LdR(7, 0x42);
             asm.LdNnA(0x08);
@@ -575,6 +575,56 @@ namespace z80.Tests
             Assert.AreEqual(false, en.FlagN);
         }
 
+        [Test]
+        public void Test_LD_BC_nn()
+        {
+            asm.LdR16(0, 0x1942);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(0x19, en.B);
+            Assert.AreEqual(0x42, en.C);
+        }
+
+        [Test]
+        public void Test_LD_DE_nn()
+        {
+            asm.LdR16(1, 0x1942);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(0x19, en.D);
+            Assert.AreEqual(0x42, en.E);
+        }
+
+        [Test]
+        public void Test_LD_HL_nn()
+        {
+            asm.LdR16(2, 0x1942);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(0x19, en.H);
+            Assert.AreEqual(0x42, en.L);
+        }
+        
+        [Test]
+        public void Test_LD_SP_nn()
+        {
+            asm.LdR16(3, 0x1942);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(0x1942, en.SP);
+        }
 
 
         //////////////////////////
