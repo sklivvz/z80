@@ -143,5 +143,40 @@ namespace z80.Tests
             WriteByte(displacement);
             WriteByte(value);
         }
+
+        public void LdABc()
+        {
+            WriteByte(0x0A);
+        }
+
+        public void LdADe()
+        {
+            WriteByte(0x1A);
+        }
+
+        public void LdANn(ushort address)
+        {
+            WriteByte(0x3A);
+            WriteByte(address & 0xFF);
+            WriteByte(address >> 8);
+        }
+
+        public void LdBcA()
+        {
+            WriteByte(0x02);
+        }
+
+        public void LdDeA()
+        {
+            WriteByte(0x12);
+        }
+
+        public void LdNnA(ushort address)
+        {
+            WriteByte(0x32);
+            WriteByte(address & 0xFF);
+            WriteByte(address >> 8);
+        }
+
     }
 }

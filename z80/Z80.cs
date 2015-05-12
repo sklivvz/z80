@@ -244,7 +244,7 @@ namespace z80
                 case 0x3A:
                     {
                         // LD A, (nn)
-                        var addr = (Fetch() << 8) + Fetch();
+                        var addr = Fetch() + (Fetch() << 8);
                         registers[A] = _ram[addr];
 #if(DEBUG)
                         Log("LD A, ({0:x4})", addr);

@@ -423,6 +423,91 @@ namespace z80.Tests
             Assert.AreEqual(201, _ram[11 + d]);
         }
 
+        [Test]
+        public void Test_LD_A_BC()
+        {
+            asm.LdR16(0,5);
+            asm.LdABc();
+            asm.Halt();
+            asm.Data(0x42);
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer - 1, en.PC);
+            Assert.AreEqual(66, en.A);
+        }
+
+        [Test]
+        public void Test_LD_A_DE()
+        {
+            asm.LdR16(1, 5);
+            asm.LdADe();
+            asm.Halt();
+            asm.Data(0x42);
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer - 1, en.PC);
+            Assert.AreEqual(66, en.A);
+        }
+
+        [Test]
+        public void Test_LD_A_NN()
+        {
+            asm.LdANn(4);
+            asm.Halt();
+            asm.Data(0x42);
+
+            en.Run();
+
+            en.DumpRam();
+
+            Assert.AreEqual(asm.WritePointer - 1, en.PC);
+            Assert.AreEqual(66, en.A);
+        }
+
+        [Test]
+        public void Test_LD_BC_A()
+        {
+            asm.LdR(7,0x42);
+            asm.LdR16(0, 0x08);
+            asm.LdBcA();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(66, _ram[8]);
+        }
+
+        [Test]
+        public void Test_LD_DE_A()
+        {
+            asm.LdR(7, 0x42);
+            asm.LdR16(1, 0x08);
+            asm.LdDeA();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(66, _ram[8]);
+        }
+
+        [Test]
+        public void Test_LD_NN_A()
+        {
+            asm.LdR(7, 0x42);
+            asm.LdNnA(0x08);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(66, _ram[8]);
+        }
+
+
         //////////////////////////
         [SetUp]
         public void TestSetup()
