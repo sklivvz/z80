@@ -178,5 +178,28 @@ namespace z80.Tests
             WriteByte(address >> 8);
         }
 
+        public void LdAI()
+        {
+            WriteByte(0xED);
+            WriteByte(0x57);
+        }
+
+        public void LdIA()
+        {
+            WriteByte(0xED);
+            WriteByte(0x47);
+        }
+
+        public void LdAR()
+        {
+            WriteByte(0xED);
+            WriteByte(0x5F);
+        }
+
+        public void LdRA()
+        {
+            WriteByte(0xED);
+            WriteByte(0x4F);
+        }
     }
 }

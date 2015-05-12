@@ -46,7 +46,7 @@ namespace z80.Tests
         [TestCase(7)]
         public void Test_LD_R_N(byte r)
         {
-            asm.LdR(r,42);
+            asm.LdR(r, 42);
             asm.Halt();
 
             en.Run();
@@ -110,7 +110,7 @@ namespace z80.Tests
         #endregion
         public void Test_LD_R1_R2(byte r, byte r2)
         {
-            asm.LdR(r,33);
+            asm.LdR(r, 33);
             asm.LdRR(r2, r);
             asm.Halt();
 
@@ -131,14 +131,14 @@ namespace z80.Tests
         [TestCase(7)]
         public void Test_LD_R_HL(byte r)
         {
-            asm.LdR16(2,5);
+            asm.LdR16(2, 5);
             asm.LdRHl(r);
             asm.Halt();
             asm.Data(123);
 
             en.Run();
 
-            Assert.AreEqual(asm.WritePointer-1, en.PC);
+            Assert.AreEqual(asm.WritePointer - 1, en.PC);
             Assert.AreEqual(123, en.Reg8(r));
         }
 
@@ -169,7 +169,7 @@ namespace z80.Tests
         public void Test_LD_R_IX_D(byte r, sbyte d)
         {
             asm.LdIx(8);
-            asm.LdRIxD(r,d);
+            asm.LdRIxD(r, d);
             asm.Halt();
             asm.Data(123);
             asm.Data(42);
@@ -178,7 +178,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.WritePointer - 3, en.PC);
-            Assert.AreEqual(_ram[en.PC+d], en.Reg8(r));
+            Assert.AreEqual(_ram[en.PC + d], en.Reg8(r));
         }
 
         [Test]
@@ -284,9 +284,9 @@ namespace z80.Tests
         #endregion
         public void Test_LD_IX_d_r(byte r, sbyte d)
         {
-            asm.LdIx(11);
+            asm.LdIx(12);
             asm.LdR(r, 201);
-            asm.LdIxDR(r,d);
+            asm.LdIxDR(r, d);
             asm.Halt();
             asm.Data(0x11);
             asm.Data(0x22);
@@ -297,7 +297,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.WritePointer - 5, en.PC);
-            Assert.AreEqual(201, _ram[11+d]);
+            Assert.AreEqual(201, _ram[12 + d]);
         }
 
         [Test]
@@ -340,7 +340,7 @@ namespace z80.Tests
         #endregion
         public void Test_LD_IY_d_r(byte r, sbyte d)
         {
-            asm.LdIy(11);
+            asm.LdIy(12);
             asm.LdR(r, 201);
             asm.LdIyDR(r, d);
             asm.Halt();
@@ -353,7 +353,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.WritePointer - 5, en.PC);
-            Assert.AreEqual(201, _ram[11 + d]);
+            Assert.AreEqual(201, _ram[12 + d]);
         }
 
 
@@ -366,8 +366,6 @@ namespace z80.Tests
             asm.Data(123);
 
             en.Run();
-
-            en.DumpRam();
 
             Assert.AreEqual(asm.WritePointer - 1, en.PC);
             Assert.AreEqual(201, _ram[8]);
@@ -426,7 +424,7 @@ namespace z80.Tests
         [Test]
         public void Test_LD_A_BC()
         {
-            asm.LdR16(0,5);
+            asm.LdR16(0, 5);
             asm.LdABc();
             asm.Halt();
             asm.Data(0x42);
@@ -469,7 +467,7 @@ namespace z80.Tests
         [Test]
         public void Test_LD_BC_A()
         {
-            asm.LdR(7,0x42);
+            asm.LdR(7, 0x42);
             asm.LdR16(0, 0x08);
             asm.LdBcA();
             asm.Halt();
@@ -506,6 +504,77 @@ namespace z80.Tests
             Assert.AreEqual(asm.WritePointer, en.PC);
             Assert.AreEqual(66, _ram[8]);
         }
+
+        [Test]
+        public void Test_LD_I_A()
+        {
+            asm.LdR(7, 0x42);
+            asm.LdIA();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(66, en.I);
+        }
+
+        [Test]
+        [TestCase(23, false, false)]
+        [TestCase(0, false, true)]
+        [TestCase(-1, true, false)]
+        public void Test_LD_A_I(sbyte val, bool sign, bool zero)
+        {
+            asm.LdR(7, (byte)val);
+            asm.LdIA();
+            asm.LdR(7, 0xC9);
+            asm.LdAI();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual((byte)val, en.A);
+            Assert.AreEqual(sign, en.FlagS);
+            Assert.AreEqual(zero, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            Assert.AreEqual(false, en.FlagN);
+        }
+
+        [Test]
+        public void Test_LD_R_A()
+        {
+            asm.LdR(7, 0x42);
+            asm.LdRA();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual(66, en.R);
+        }
+
+        [Test]
+        [TestCase(23, false, false)]
+        [TestCase(0, false, true)]
+        [TestCase(-1, true, false)]
+        public void Test_LD_A_R(sbyte val, bool sign, bool zero)
+        {
+            asm.LdR(7, (byte)val);
+            asm.LdRA();
+            asm.LdR(7, 0xC9);
+            asm.LdAR();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.WritePointer, en.PC);
+            Assert.AreEqual((byte)val, en.A);
+            Assert.AreEqual(sign, en.FlagS);
+            Assert.AreEqual(zero, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            Assert.AreEqual(false, en.FlagN);
+        }
+
 
 
         //////////////////////////

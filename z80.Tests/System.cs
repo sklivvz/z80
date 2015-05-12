@@ -33,20 +33,18 @@ namespace z80.Tests
         private readonly Z80 _myZ80;
 
         public ushort PC { get { return Reg16(_PC); } }
-        public byte A
-        {
-            get
-            {
-                return Reg8(_A);
-            }
-        }
-        public byte B 
-        {
-            get
-            {
-                return Reg8(_B);
-            }
-        }
+        public byte A { get { return Reg8(_A); } }
+        public byte B { get { return Reg8(_B); } }
+        public byte I { get { return Reg8(_I); } }
+        public byte R { get { return Reg8(_R); } }
+
+        // SZ-H-PNC
+        public bool FlagS { get { return (Reg8(_F) & 0x80) > 0; } }
+        public bool FlagZ { get { return (Reg8(_F) & 0x40) > 0; } }
+        public bool FlagH { get { return (Reg8(_F) & 0x10) > 0; } }
+        public bool FlagP { get { return (Reg8(_F) & 0x04) > 0; } }
+        public bool FlagN { get { return (Reg8(_F) & 0x02) > 0; } }
+        public bool FlagC { get { return (Reg8(_F) & 0x01) > 0; } }
 
         public byte Reg8(int reg)
         {

@@ -483,6 +483,7 @@ namespace z80
 
 #if(DEBUG)
             Log("{3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
+            throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
 #endif
             Halted = true;
         }
@@ -533,18 +534,18 @@ namespace z80
                              */
                         var i = registers[I];
                         registers[A] = i;
-                        var f = (byte)(registers[F] & (~(byte)(Fl.H | Fl.PV | Fl.N)));
+                        var f = (byte)(registers[F] & (~(byte)(Fl.H | Fl.PV | Fl.N | Fl.S | Fl.Z | Fl.PV)));
                         if (i >= 0x80)
                         {
-                            f = (byte)(f & (byte)Fl.S);
+                            f = (byte)(f | (byte)Fl.S);
                         }
                         else if (i == 0x00)
                         {
-                            f = (byte)(f & (byte)Fl.Z);
+                            f = (byte)(f | (byte)Fl.Z);
                         }
                         if (IFF2)
                         {
-                            f = (byte)(f & (byte)Fl.PV);
+                            f = (byte)(f | (byte)Fl.PV);
                         }
                         registers[F] = f;
 #if(DEBUG)
@@ -569,18 +570,18 @@ namespace z80
                              */
                         var reg = registers[R];
                         registers[A] = reg;
-                        var f = (byte)(registers[F] & (~(byte)(Fl.H | Fl.PV | Fl.N)));
+                        var f = (byte)(registers[F] & (~(byte)(Fl.H | Fl.PV | Fl.N | Fl.S | Fl.Z | Fl.PV)));
                         if (reg >= 0x80)
                         {
-                            f = (byte)(f & (byte)Fl.S);
+                            f = (byte)(f | (byte)Fl.S);
                         }
                         else if (reg == 0x00)
                         {
-                            f = (byte)(f & (byte)Fl.Z);
+                            f = (byte)(f | (byte)Fl.Z);
                         }
                         if (IFF2)
                         {
-                            f = (byte)(f & (byte)Fl.PV);
+                            f = (byte)(f | (byte)Fl.PV);
                         }
                         registers[F] = f;
 #if(DEBUG)
