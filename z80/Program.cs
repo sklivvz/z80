@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+
 namespace z80
 {
     internal class Program
@@ -7,21 +9,10 @@ namespace z80
         {
             var ram = new byte[65536];
             Array.Clear(ram, 0, ram.Length);
-            ram[0x0000] = 0x26;
-            ram[0x0001] = 0x80; // LD H, 128
-            ram[0x0002] = 0x6C; // LD L, H
-            ram[0x0003] = 0x7E; // LD A, (HL)
-            ram[0x0004] = 0xDD;
-            ram[0x0005] = 0x46;
-            ram[0x0006] = 0x01; // LD B, (IX+1)
-            ram[0x0007] = 0xDD;
-            ram[0x0008] = 0x46;
-            ram[0x0009] = 0x01; // LD B, (IX+1)
-            ram[0x000A] = 0xDD;
-            ram[0x000B] = 0x46;
-            ram[0x000C] = 0x01; // LD B, (IX+1)
-            ram[0x000D] = 0x76; // HALT
-            ram[0x8080] = 0x42; // Data
+            var inp = File.ReadAllBytes("48.rom");
+            if (inp.Length != 16384) throw new InvalidOperationException("Invalid 48.rom file");
+
+            Array.Copy(inp,ram,16384);
 
             var myZ80 = new Z80(ram);
             while (!myZ80.Halted)

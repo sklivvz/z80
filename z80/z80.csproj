@@ -46,6 +46,9 @@
     <Compile Include="Z80.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="48.rom">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

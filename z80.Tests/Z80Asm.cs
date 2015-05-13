@@ -6,11 +6,11 @@ namespace z80.Tests
     public class Z80Asm
     {
         private readonly byte[] _ram;
-        private ushort addr = 0;
+        private ushort _address;
 
-        public ushort WritePointer
+        public ushort Position
         {
-            get { return addr; }
+            get { return _address; }
         }
 
         public Z80Asm(byte[] ram)
@@ -21,185 +21,227 @@ namespace z80.Tests
         public void Reset()
         {
             Array.Clear(_ram, 0, _ram.Length);
-            addr = 0;
+            _address = 0;
         }
 
         public void Halt()
         {
-            WriteByte(0x76);
+            Write(0x76);
         }
 
-        private void WriteByte(int value)
+        private void Write(int value)
         {
-            WriteByte((byte)value);
+            Write((byte)value);
         }
 
-        private void WriteByte(byte value)
+        private void Write(byte value)
         {
-            _ram[addr] = value;
-            addr++;
+            _ram[_address] = value;
+            _address++;
         }
 
         public void Noop()
         {
-            WriteByte(0x00);
+            Write(0x00);
         }
 
-        public void LdR(byte register, byte value)
+        public void LoadRegVal(byte register, byte value)
         {
-            WriteByte(register * 8 + 6);
-            WriteByte(value);
+            Write(register * 8 + 6);
+            Write(value);
         }
 
-        public void LdRR(byte register, byte register2)
+        public void LoadRegReg(byte register, byte register2)
         {
-            WriteByte(register * 8 + register2 + 64);
+            Write(register * 8 + register2 + 64);
         }
 
-        public void LdR16(byte register16, ushort value)
+        public void LoadR16Val(byte register16, ushort value)
         {
-            WriteByte(1+register16*16);
-            WriteByte(value & 0xFF);
-            WriteByte(value >> 8);
+            Write(1 + register16 * 16);
+            Write(value & 0xFF);
+            Write(value >> 8);
         }
 
-        public void LdRHl(byte register)
+        public void LoadRegAtHl(byte register)
         {
-            WriteByte(70+register*8);
+            Write(70 + register * 8);
         }
 
         public void Data(byte value)
         {
-            WriteByte(value);
+            Write(value);
         }
 
-        public void LdRIxD(byte register, sbyte displacement)
+        public void LoadRegAddrIx(byte register, sbyte displacement)
         {
-            WriteByte(0xDD);
-            WriteByte(70+register*8);
-            WriteByte(displacement);
+            Write(0xDD);
+            Write(70 + register * 8);
+            Write(displacement);
         }
 
-        public void LdIx(int value)
+        public void LoadIxVal(ushort value)
         {
-            WriteByte(0xDD);
-            WriteByte(33);
-            WriteByte(value & 0xFF);
-            WriteByte(value >> 8);
+            Write(0xDD);
+            Write(33);
+            Write(value & 0xFF);
+            Write(value >> 8);
         }
 
-        public void LdRIyD(byte register, sbyte displacement)
+        public void LoadRegAddrIy(byte register, sbyte displacement)
         {
-            WriteByte(0xFD);
-            WriteByte(70 + register * 8);
-            WriteByte(displacement);
+            Write(0xFD);
+            Write(70 + register * 8);
+            Write(displacement);
         }
 
-        public void LdIy(int value)
+        public void LoadIyVal(int value)
         {
-            WriteByte(0xFD);
-            WriteByte(33);
-            WriteByte(value & 0xFF);
-            WriteByte(value >> 8);
+            Write(0xFD);
+            Write(33);
+            Write(value & 0xFF);
+            Write(value >> 8);
         }
 
-        public void LdHLR(byte register)
+        public void LoadAtHLReg(byte register)
         {
-            WriteByte(0x70+register);
+            Write(0x70 + register);
         }
 
-        public void LdIxDR(byte register, sbyte displacement)
+        public void LoadIxR(byte register, sbyte displacement)
         {
-            WriteByte(0xDD);
-            WriteByte(0x70 + register);
-            WriteByte(displacement);
+            Write(0xDD);
+            Write(0x70 + register);
+            Write(displacement);
         }
 
-        public void LdIyDR(byte register, sbyte displacement)
+        public void LoadIyReg(byte register, sbyte displacement)
         {
-            WriteByte(0xFD);
-            WriteByte(0x70 + register);
-            WriteByte(displacement);
+            Write(0xFD);
+            Write(0x70 + register);
+            Write(displacement);
         }
 
-        public void LdHLN(byte value)
+        public void LoadAtHLVal(byte value)
         {
-            WriteByte(0x36);
-            WriteByte(value);
+            Write(0x36);
+            Write(value);
         }
 
-        public void LdIxDN(sbyte displacement, byte value)
+        public void LoadAtIxVal(sbyte displacement, byte value)
         {
-            WriteByte(0xDD);
-            WriteByte(0x36);
-            WriteByte(displacement);
-            WriteByte(value);
+            Write(0xDD);
+            Write(0x36);
+            Write(displacement);
+            Write(value);
         }
 
-        public void LdIyDN(sbyte displacement, byte value)
+        public void LoadIyN(sbyte displacement, byte value)
         {
-            WriteByte(0xFD);
-            WriteByte(0x36);
-            WriteByte(displacement);
-            WriteByte(value);
+            Write(0xFD);
+            Write(0x36);
+            Write(displacement);
+            Write(value);
         }
 
-        public void LdABc()
+        public void LoadABc()
         {
-            WriteByte(0x0A);
+            Write(0x0A);
         }
 
-        public void LdADe()
+        public void LoadADe()
         {
-            WriteByte(0x1A);
+            Write(0x1A);
         }
 
-        public void LdANn(ushort address)
+        public void LoadAAddr(ushort address)
         {
-            WriteByte(0x3A);
-            WriteByte(address & 0xFF);
-            WriteByte(address >> 8);
+            Write(0x3A);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
 
-        public void LdBcA()
+        public void LoadBcA()
         {
-            WriteByte(0x02);
+            Write(0x02);
         }
 
-        public void LdDeA()
+        public void LoadDeA()
         {
-            WriteByte(0x12);
+            Write(0x12);
         }
 
-        public void LdNnA(ushort address)
+        public void LoadAddrA(ushort address)
         {
-            WriteByte(0x32);
-            WriteByte(address & 0xFF);
-            WriteByte(address >> 8);
+            Write(0x32);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
 
-        public void LdAI()
+        public void LoadAI()
         {
-            WriteByte(0xED);
-            WriteByte(0x57);
+            Write(0xED);
+            Write(0x57);
         }
 
-        public void LdIA()
+        public void LoadIA()
         {
-            WriteByte(0xED);
-            WriteByte(0x47);
+            Write(0xED);
+            Write(0x47);
         }
 
-        public void LdAR()
+        public void LoadAR()
         {
-            WriteByte(0xED);
-            WriteByte(0x5F);
+            Write(0xED);
+            Write(0x5F);
         }
 
-        public void LdRA()
+        public void LoadRA()
         {
-            WriteByte(0xED);
-            WriteByte(0x4F);
+            Write(0xED);
+            Write(0x4F);
         }
+
+        public void Di()
+        {
+            Write(0xF3);
+        }
+
+        public void Ei()
+        {
+            Write(0xFB);
+        }
+
+        public void LoadHLAddr(ushort address)
+        {
+            Write(0x2A);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void LoadReg16Addr(byte register16, ushort address)
+        {
+            Write(0xED);
+            Write(0x4B + register16 * 16);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void LoadIXAddr(ushort address)
+        {
+            Write(0xDD);
+            Write(0x2A);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void LoadIYAddr(ushort address)
+        {
+            Write(0xFD);
+            Write(0x2A);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
     }
 }

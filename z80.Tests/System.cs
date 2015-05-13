@@ -26,14 +26,18 @@ namespace z80.Tests
         private const byte _IY = 20;
         private const byte _SP = 22;
         private const byte _PC = 24;
+        private const byte _IFF1 = 26;
+        private const byte _IFF2 = 27;
 
         private readonly byte[] _ram;
         private byte[] dumpedState;
         private bool hasDump;
         private readonly Z80 _myZ80;
 
-        public ushort PC { get { return Reg16(_PC); } }
+        public ushort IX { get { return Reg16(_IX); } }
+        public ushort IY { get { return Reg16(_IY); } }
         public ushort SP { get { return Reg16(_SP); } }
+        public ushort PC { get { return Reg16(_PC); } }
         public byte A { get { return Reg8(_A); } }
         public byte B { get { return Reg8(_B); } }
         public byte C { get { return Reg8(_C); } }
@@ -51,6 +55,10 @@ namespace z80.Tests
         public bool FlagP { get { return (Reg8(_F) & 0x04) > 0; } }
         public bool FlagN { get { return (Reg8(_F) & 0x02) > 0; } }
         public bool FlagC { get { return (Reg8(_F) & 0x01) > 0; } }
+
+        public bool Iff1 { get { return Reg8(_IFF1) > 0; } }
+        public bool Iff2 { get { return Reg8(_IFF2) > 0; } }
+
 
         public byte Reg8(int reg)
         {

@@ -479,11 +479,33 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0xF3:
+                    {
+                        // DI
+                        IFF1 = false;
+                        IFF2 = false;
+#if(DEBUG)
+                        Log("DI");
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xFB:
+                    {
+                        // EI
+                        IFF1 = true;
+                        IFF2 = true;
+#if(DEBUG)
+                        Log("EI");
+#endif
+                        Wait(4);
+                        return;
+                    }
             }
 
 #if(DEBUG)
             Log("{3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
-            throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
+            //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
 #endif
             Halted = true;
         }
@@ -1024,8 +1046,10 @@ namespace z80
         public byte[] GetState()
         {
             var length = registers.Length;
-            var ret = new byte[length];
+            var ret = new byte[length + 2];
             Array.Copy(registers, ret, length);
+            ret[length] = (byte)(IFF1 ? 1 : 0);
+            ret[length + 1] = (byte)(IFF2 ? 1 : 0);
             return ret;
         }
 
