@@ -75,7 +75,7 @@ namespace z80
                         registers[r + 1] = Fetch();
                         registers[r] = Fetch();
 #if(DEBUG)
-                        Log("LD {0}{1}, {2}{3}", RName(r), RName((byte)(r + 1)), registers[r], registers[r + 1]);
+                        Log("LD {0}{1}, {2:X2}{3:X2}", RName(r), RName((byte)(r + 1)), registers[r], registers[r + 1]);
 #endif
                         Wait(10);
                         return;
@@ -86,7 +86,7 @@ namespace z80
                         registers[SP + 1] = Fetch();
                         registers[SP] = Fetch();
 #if(DEBUG)
-                        Log("LD SP, {0}{1}", registers[r], registers[r + 1]);
+                        Log("LD SP, {0:X2}{1:X2}", registers[SP], registers[SP + 1]);
 #endif
                         Wait(10);
                         return;
@@ -324,7 +324,7 @@ namespace z80
                 case 0xC5:
                     {
                         // PUSH BC
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
                         addr--;
                         _ram[addr] = registers[B];
                         addr--;
@@ -356,7 +356,7 @@ namespace z80
                 case 0xE5:
                     {
                         // PUSH HL
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
                         addr--;
                         _ram[addr] = registers[H];
                         addr--;
@@ -372,7 +372,7 @@ namespace z80
                 case 0xF5:
                     {
                         // PUSH AF
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
                         addr--;
                         _ram[addr] = registers[A];
                         addr--;
@@ -388,7 +388,7 @@ namespace z80
                 case 0xC1:
                     {
                         // POP BC
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
                         registers[C] = _ram[addr];
                         addr++;
                         registers[B] = _ram[addr];
@@ -404,7 +404,7 @@ namespace z80
                 case 0xD1:
                     {
                         // POP DE
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
                         registers[E] = _ram[addr];
                         addr++;
                         registers[D] = _ram[addr];
@@ -420,7 +420,7 @@ namespace z80
                 case 0xE1:
                     {
                         // POP HL
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
                         registers[L] = _ram[addr];
                         addr++;
                         registers[H] = _ram[addr];
@@ -436,7 +436,7 @@ namespace z80
                 case 0xF1:
                     {
                         // POP AF
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
                         registers[F] = _ram[addr];
                         addr++;
                         registers[A] = _ram[addr];
@@ -1063,14 +1063,14 @@ namespace z80
                 registers[E],
                 registers[H],
                 registers[L],
-                registers[F] & 0x80 >> 7,
-                registers[F] & 0x40 >> 6,
-                registers[F] & 0x20 >> 5,
-                registers[F] & 0x10 >> 4,
-                registers[F] & 0x08 >> 3,
-                registers[F] & 0x03 >> 2,
-                registers[F] & 0x02 >> 1,
-                registers[F] & 0x01,
+                (registers[F] & 0x80) >> 7,
+                (registers[F] & 0x40) >> 6,
+                (registers[F] & 0x20) >> 5,
+                (registers[F] & 0x10) >> 4,
+                (registers[F] & 0x08) >> 3,
+                (registers[F] & 0x04) >> 2,
+                (registers[F] & 0x02) >> 1,
+                (registers[F] & 0x01),
                 registers[A]
             );
             ret += string.Format("\n{0:X2}{1:X2} {2:X2}{3:X2} {4:X2}{5:X2} {6}{7}{8}{9}{10}{11}{12}{13} {14:X2}",
@@ -1080,13 +1080,13 @@ namespace z80
                 registers[Ep],
                 registers[Hp],
                 registers[Lp],
-                registers[Fp] & 0x80 >> 7,
-                registers[Fp] & 0x40 >> 6,
-                registers[Fp] & 0x20 >> 5,
-                registers[Fp] & 0x10 >> 4,
-                registers[Fp] & 0x08 >> 3,
-                registers[Fp] & 0x03 >> 2,
-                registers[Fp] & 0x02 >> 1,
+                (registers[Fp] & 0x80) >> 7,
+                (registers[Fp] & 0x40) >> 6,
+                (registers[Fp] & 0x20) >> 5,
+                (registers[Fp] & 0x10) >> 4,
+                (registers[Fp] & 0x08) >> 3,
+                (registers[Fp] & 0x04) >> 2,
+                (registers[Fp] & 0x02) >> 1,
                 registers[Fp] & 0x01,
                 registers[Ap]
             );

@@ -56,7 +56,7 @@ namespace z80.Tests
             Write(register * 8 + register2 + 64);
         }
 
-        public void LoadR16Val(byte register16, ushort value)
+        public void LoadReg16Val(byte register16, ushort value)
         {
             Write(1 + register16 * 16);
             Write(value & 0xFF);
@@ -243,5 +243,100 @@ namespace z80.Tests
             Write(address >> 8);
         }
 
+        public void LoadAddrHl(ushort address)
+        {
+            Write(0x22);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void LoadAddrReg16(byte register16, ushort address)
+        {
+            Write(0xED);
+            Write(0x43 + register16 * 16);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void LoadAddrIx(ushort address)
+        {
+            Write(0xDD);
+            Write(0x22);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+        public void LoadAddrIy(ushort address)
+        {
+            Write(0xFD);
+            Write(0x22);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void LoadSpHl()
+        {
+            Write(0xF9);
+        }
+
+        public void LoadSpIx()
+        {
+            Write(0xDD);
+            Write(0xF9);
+        }
+
+        public void LoadSpIy()
+        {
+            Write(0xFD);
+            Write(0xF9);
+        }
+
+        public void PushReg16(byte register16)
+        {
+            Write(0xC5 + register16 * 16);
+        }
+
+        public void PushIx()
+        {
+            Write(0xDD);
+            Write(0xE5);
+        }
+
+        public void PushIy()
+        {
+            Write(0xFD);
+            Write(0xE5);
+        }
+
+        public void PopReg16(byte register16)
+        {
+            Write(0xC1 + register16 * 16);
+        }
+
+        public void PopIx()
+        {
+            Write(0xDD);
+            Write(0xE1);
+        }
+
+        public void PopIy()
+        {
+            Write(0xFD);
+            Write(0xE1);
+        }
+
+        public void ExDeHl()
+        {
+            Write(0xEB);
+        }
+
+        public void ExAfAfp()
+        {
+            Write(0x08);
+        }
+
+        public void Exx()
+        {
+            Write(0xD9);
+        }
     }
 }
