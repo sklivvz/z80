@@ -338,5 +338,10 @@ namespace z80.Tests
         {
             Write(0xD9);
         }
+
+        public void ExAddrSpHl()
+        {
+            Write(0xE3);
+        }
     }
 }

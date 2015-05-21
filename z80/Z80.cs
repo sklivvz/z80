@@ -452,12 +452,8 @@ namespace z80
                 case 0xEB:
                     {
                         // EX DE, HL
-                        byte reg = registers[D];
-                        registers[D] = registers[H];
-                        registers[H] = reg;
-                        reg = registers[E];
-                        registers[E] = registers[L];
-                        registers[L] = reg;
+                        SwapReg8(D, H);
+                        SwapReg8(E, L);
 #if(DEBUG)
                         Log("EX DE, HL");
 #endif
@@ -467,16 +463,44 @@ namespace z80
                 case 0x08:
                     {
                         // EX AF, AF'
-                        byte reg = registers[Ap];
-                        registers[Ap] = registers[A];
-                        registers[A] = reg;
-                        reg = registers[F];
-                        registers[F] = registers[Fp];
-                        registers[Fp] = reg;
+                        SwapReg8(Ap, A);
+                        SwapReg8(Fp, F);
 #if(DEBUG)
                         Log("EX AF, AF'");
 #endif
                         Wait(4);
+                        return;
+                    }
+                case 0xD9:
+                    {
+                        // EXX
+                        SwapReg8(B, Bp);
+                        SwapReg8(C, Cp);
+                        SwapReg8(D, Dp);
+                        SwapReg8(E, Ep);
+                        SwapReg8(H, Hp);
+                        SwapReg8(L, Lp);
+#if(DEBUG)
+                        Log("EXX");
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xE3:
+                    {
+                        // EX (SP), HL
+                        var h = registers[H];
+                        var l = registers[L];
+                        ushort addr = (ushort)(registers[SP + 1] + (registers[SP] << 8));
+                        registers[L] = _ram[addr];
+                        registers[H] = _ram[addr + 1];
+                        _ram[addr + 1] = h;
+                        _ram[addr] = l;
+
+#if(DEBUG)
+                        Log("EX (SP), HL");
+#endif
+                        Wait(19);
                         return;
                     }
                 case 0xF3:
@@ -1173,5 +1197,12 @@ namespace z80
             return "";
         }
 #endif
+
+        private void SwapReg8(byte r1, byte r2)
+        {
+            var t = registers[r1];
+            registers[r1] = registers[r2];
+            registers[r2] = t;
+        }
     }
 }

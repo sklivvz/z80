@@ -42,8 +42,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="OpCodeTests.cs" />
+    <Compile Include="EightBitLoadGroupTests.cs" />
+    <Compile Include="ExchangeBlockTransferSearchGroupTests.cs" />
+    <Compile Include="GeneralPurposeArithmeticCpuControlGroupTests.cs" />
+    <Compile Include="OpCodeTestBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SixteenBitLoadGroupTests.cs" />
     <Compile Include="System.cs" />
     <Compile Include="Z80Asm.cs" />
   </ItemGroup>
