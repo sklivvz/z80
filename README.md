@@ -1,11 +1,22 @@
 # z80
 A csharp z80 emulator
 
-Still work-in-progress, but so far I'm working in parallel on:
+## The project
 
-* Z80 Emulator (which could also double as a disassembler with a little tweaking)
+My goal is to write a Z80 emulator that works in real time.
+
+At the moment, I'm working in parallel on:
+
+* Z80 Emulator & step debugger
 * Z80 Assembler backend
 * Zilog-based Z80 tests
+
+The tests are my documentation, the assembler backend is needed to write tests and stay sane and the emulator is the whole point. The step debugger comes for free with it.
+
+## Status
+
+Progress: **3/11 (27%)**  
+Coverage: **95%**
 
 The following opcodes are supported
 
@@ -13,3 +24,20 @@ The following opcodes are supported
 * 16-bit load group (e.g. `POP HL`)
 * Exchange, Block Transfer, and Search group (e.g. `EX AF, AF'`)
 
+The following opcodes are not done
+
+* 8-Bit Arithmetic Group
+* General-Purpose Arithmetic and CPU Control Groups
+* 16-Bit Arithmetic Group
+* Rotate and Shift Group
+* Bit Set, Reset, and Test Group
+* Jump Group
+* Call and Return Group
+* Input and Output Group
+
+## The future
+
+After these are done it should be "easy" to add:
+
+* An assembler frontend thus having a full z80 assembler
+* A disassembler based on the current CPU emulator code
