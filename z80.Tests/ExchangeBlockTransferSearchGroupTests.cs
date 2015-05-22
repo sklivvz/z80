@@ -193,6 +193,225 @@ namespace z80.Tests
             Assert.IsFalse(en.FlagN);
             Assert.IsFalse(en.FlagP);
         }
+        [Test]
+        [TestCase(7)]
+        [TestCase(1)]
+        public void Test_LDD(byte bc)
+        {
+            asm.LoadReg16Val(3, 0x3333);
+            asm.LoadReg16Val(0, 0xFFFF);
+            asm.PushReg16(0);
+            asm.PopReg16(3);
+            asm.LoadReg16Val(0, bc);
+            asm.LoadReg16Val(1, 0x2222);
+            asm.LoadReg16Val(2, 0x1111);
+            asm.LoadRegVal(7, 0x88);
+            asm.LoadAddrA(0x1111);
+            asm.LoadRegVal(7, 0x66);
+            asm.LoadAddrA(0x2222);
+            asm.Ldd();
+            asm.Halt();
+
+            en.Run();
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(bc - 1, en.BC);
+            Assert.AreEqual(0x2221, en.DE);
+            Assert.AreEqual(0x1110, en.HL);
+            Assert.AreEqual(0x88, _ram[0x1111]);
+            Assert.AreEqual(0x88, _ram[0x2222]);
+            Assert.IsFalse(en.FlagH);
+            Assert.IsFalse(en.FlagN);
+            Assert.AreEqual(bc != 1, en.FlagP);
+        }
+
+        [Test]
+        public void Test_LDDR()
+        {
+            Array.Copy(new byte[] { 0x42, 0x88, 0x36, 0xA5 }, 0, _ram, 0x1111, 4);
+            Array.Copy(new byte[] { 0x24, 0x66, 0x59, 0xC5 }, 0, _ram, 0x2222, 4);
+
+            asm.LoadReg16Val(3, 0x3333);
+            asm.LoadReg16Val(0, 0xFFFF);
+            asm.PushReg16(0);
+            asm.PopReg16(3);
+            asm.LoadReg16Val(0, 0x0003);
+            asm.LoadReg16Val(1, 0x2225);
+            asm.LoadReg16Val(2, 0x1114);
+            asm.Lddr();
+            asm.Halt();
+
+            en.Run();
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(0x0000, en.BC);
+            Assert.AreEqual(0x2222, en.DE);
+            Assert.AreEqual(0x1111, en.HL);
+            Assert.AreEqual(0x88, _ram[0x1112]);
+            Assert.AreEqual(0x36, _ram[0x1113]);
+            Assert.AreEqual(0xA5, _ram[0x1114]);
+            Assert.AreEqual(0x42, _ram[0x1111]);
+            Assert.AreEqual(0x88, _ram[0x2223]);
+            Assert.AreEqual(0x36, _ram[0x2224]);
+            Assert.AreEqual(0xA5, _ram[0x2225]);
+            Assert.AreEqual(0x24, _ram[0x2222]);
+            Assert.IsFalse(en.FlagH);
+            Assert.IsFalse(en.FlagN);
+            Assert.IsFalse(en.FlagP);
+        }
+
+        [Test]
+        [TestCase(7, 0x3F)]
+        [TestCase(1, 0x3F)]
+        [TestCase(7, 0x42)]
+        [TestCase(1, 0x42)]
+        [TestCase(7, 0x21)]
+        [TestCase(1, 0x21)]
+        public void Test_CPI(byte bc, byte a)
+        {
+            asm.LoadReg16Val(3, 0x3333);
+            asm.LoadReg16Val(0, 0xFFFF);
+            asm.PushReg16(0);
+            asm.PopReg16(3);
+            asm.LoadReg16Val(0, bc);
+            asm.LoadReg16Val(2, 0x1111);
+            asm.LoadRegVal(7, 0x3F);
+            asm.LoadAddrA(0x1111);
+            asm.LoadRegVal(7, a);
+            asm.Cpi();
+            asm.Halt();
+
+            en.Run();
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(bc - 1, en.BC);
+            Assert.AreEqual(0x1112, en.HL);
+            Assert.AreEqual(a, en.A);
+            Assert.AreEqual(0x3F, _ram[0x1111]);
+
+            Assert.AreEqual(a < 0x3f, en.FlagS);
+            Assert.AreEqual(a == 0x3F, en.FlagZ);
+            // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
+            Assert.AreEqual((a & 4) == 0, en.FlagH);
+            Assert.AreEqual(bc != 1, en.FlagP);
+            Assert.IsTrue(en.FlagN);
+        }
+
+        [Test]
+        [TestCase(7, 0xF3, 4)]
+        [TestCase(1, 0xF3, 0)]
+        [TestCase(7, 0x42, 0)]
+        [TestCase(1, 0x42, 0)]
+        [TestCase(7, 0x21, 0)]
+        [TestCase(1, 0x21, 0)]
+        public void Test_CPIR(byte bc, byte a, byte bc_res)
+        {
+            Array.Copy(new byte[] { 0x52, 0x00, 0xF3 }, 0, _ram, 0x1111, 3);
+            asm.LoadReg16Val(3, 0x3333);
+            asm.LoadReg16Val(0, 0xFFFF);
+            asm.PushReg16(0);
+            asm.PopReg16(3);
+            asm.LoadReg16Val(0, bc);
+            asm.LoadReg16Val(2, 0x1111);
+            asm.LoadRegVal(7, a);
+            asm.Cpir();
+            asm.Halt();
+
+            en.Run();
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(bc_res, en.BC);
+            Assert.AreEqual(0x1111 + bc - bc_res, en.HL);
+            Assert.AreEqual(a, en.A);
+
+            var last = _ram[en.HL - 1];
+            Assert.AreEqual(a < last, en.FlagS);
+            Assert.AreEqual(a == last, en.FlagZ);
+            // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
+            Assert.AreEqual((a & 4) < (last & 4), en.FlagH);
+            Assert.AreEqual(en.BC != 0, en.FlagP);
+            Assert.IsTrue(en.FlagN);
+        }
+
+
+        [Test]
+        [TestCase(7, 0x3F)]
+        [TestCase(1, 0x3F)]
+        [TestCase(7, 0x42)]
+        [TestCase(1, 0x42)]
+        [TestCase(7, 0x21)]
+        [TestCase(1, 0x21)]
+        public void Test_CPD(byte bc, byte a)
+        {
+            asm.LoadReg16Val(3, 0x3333);
+            asm.LoadReg16Val(0, 0xFFFF);
+            asm.PushReg16(0);
+            asm.PopReg16(3);
+            asm.LoadReg16Val(0, bc);
+            asm.LoadReg16Val(2, 0x1111);
+            asm.LoadRegVal(7, 0x3F);
+            asm.LoadAddrA(0x1111);
+            asm.LoadRegVal(7, a);
+            asm.Cpd();
+            asm.Halt();
+
+            en.Run();
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(bc - 1, en.BC);
+            Assert.AreEqual(0x1110, en.HL);
+            Assert.AreEqual(a, en.A);
+            Assert.AreEqual(0x3F, _ram[0x1111]);
+
+            Assert.AreEqual(a < 0x3f, en.FlagS);
+            Assert.AreEqual(a == 0x3F, en.FlagZ);
+            // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
+            Assert.AreEqual((a & 4) == 0, en.FlagH);
+            Assert.AreEqual(bc != 1, en.FlagP);
+            Assert.IsTrue(en.FlagN);
+        }
+
+        [Test]
+        [TestCase(7, 0xF3, 4)]
+        [TestCase(1, 0xF3, 0)]
+        [TestCase(7, 0x42, 0)]
+        [TestCase(1, 0x42, 0)]
+        [TestCase(7, 0x21, 0)]
+        [TestCase(1, 0x21, 0)]
+        public void Test_CPDR(byte bc, byte a, byte bc_res)
+        {
+            Array.Copy(new byte[] { 0xF3, 0x00, 0x52 }, 0, _ram, 0x1116, 3);
+            asm.LoadReg16Val(3, 0x3333);
+            asm.LoadReg16Val(0, 0xFFFF);
+            asm.PushReg16(0);
+            asm.PopReg16(3);
+            asm.LoadReg16Val(0, bc);
+            asm.LoadReg16Val(2, 0x1118);
+            asm.LoadRegVal(7, a);
+            asm.Cpdr();
+            asm.Halt();
+
+            en.Run();
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(bc_res, en.BC);
+            Assert.AreEqual(0x1118 - bc + bc_res, en.HL);
+            Assert.AreEqual(a, en.A);
+
+            var last = _ram[en.HL + 1];
+            Assert.AreEqual(a < last, en.FlagS);
+            Assert.AreEqual(a == last, en.FlagZ);
+            // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
+            Assert.AreEqual((a & 4) < (last & 4), en.FlagH);
+            Assert.AreEqual(en.BC != 0, en.FlagP);
+            Assert.IsTrue(en.FlagN);
+        }
 
     }
 }

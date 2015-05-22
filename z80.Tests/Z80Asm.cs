@@ -367,5 +367,38 @@ namespace z80.Tests
             Write(0xED);
             Write(0xB0);
         }
+
+        public void Ldd()
+        {
+            Write(0xED);
+            Write(0xA8);
+        }
+
+        public void Lddr()
+        {
+            Write(0xED);
+            Write(0xB8);
+        }
+
+        public void Cpi()
+        {
+            Write(0xED);
+            Write(0xA1);
+        }
+        public void Cpir()
+        {
+            Write(0xED);
+            Write(0xB1);
+        }
+        public void Cpd()
+        {
+            Write(0xED);
+            Write(0xA9);
+        }
+        public void Cpdr()
+        {
+            Write(0xED);
+            Write(0xB9);
+        }
     }
 }

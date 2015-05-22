@@ -12,7 +12,7 @@ namespace z80
             var inp = File.ReadAllBytes("48.rom");
             if (inp.Length != 16384) throw new InvalidOperationException("Invalid 48.rom file");
 
-            Array.Copy(inp,ram,16384);
+            Array.Copy(inp, ram, 16384);
 
             var myZ80 = new Z80(ram);
             while (!myZ80.Halted)

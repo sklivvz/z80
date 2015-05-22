@@ -11,6 +11,5 @@ The following opcodes are supported
 
 * 8-bit load group (e.g. `LD A, 0x42`)
 * 16-bit load group (e.g. `POP HL`)
-* Exchange group (e.g. `EX AF, AF'`)
-* Block Transfer -- partially (e.g. `LDIR`)
+* Exchange, Block Transfer, and Search group (e.g. `EX AF, AF'`)
 

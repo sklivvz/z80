@@ -791,11 +791,11 @@ namespace z80
                         registers[F] = (byte)(registers[F] & 0xE9);
                         if (bc != 0)
                         {
-                            var pc = (ushort)((registers[PC] << 8) + registers[PC+1]);
+                            var pc = (ushort)((registers[PC] << 8) + registers[PC + 1]);
                             // jumps back to itself
                             pc -= 2;
-                            registers[PC] = (byte) (pc >> 8);
-                            registers[PC + 1] = (byte) (pc & 0xFF);
+                            registers[PC] = (byte)(pc >> 8);
+                            registers[PC + 1] = (byte)(pc & 0xFF);
                             Wait(21);
                             return;
                         }
@@ -803,6 +803,214 @@ namespace z80
                         Log("LDIR");
 #endif
                         Wait(16);
+                        return;
+
+                    }
+                case 0xA8:
+                    {
+                        // LDD
+                        var bc = (ushort)((registers[B] << 8) + registers[C]);
+                        var de = (ushort)((registers[D] << 8) + registers[E]);
+                        var hl = (ushort)((registers[H] << 8) + registers[L]);
+
+                        _ram[de] = _ram[hl];
+                        de--;
+                        hl--;
+                        bc--;
+
+                        registers[B] = (byte)(bc >> 8);
+                        registers[C] = (byte)(bc & 0xFF);
+                        registers[D] = (byte)(de >> 8);
+                        registers[E] = (byte)(de & 0xFF);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)(hl & 0xFF);
+
+                        var f = (byte)(registers[F] & 0xE9);
+                        if (bc != 0) f = (byte)(f | 0x04);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("LDD");
+#endif
+                        Wait(16);
+                        return;
+
+                    }
+                case 0xB8:
+                    {
+                        // LDDR
+                        var bc = (ushort)((registers[B] << 8) + registers[C]);
+                        var de = (ushort)((registers[D] << 8) + registers[E]);
+                        var hl = (ushort)((registers[H] << 8) + registers[L]);
+
+                        _ram[de] = _ram[hl];
+                        de--;
+                        hl--;
+                        bc--;
+
+                        registers[B] = (byte)(bc >> 8);
+                        registers[C] = (byte)(bc & 0xFF);
+                        registers[D] = (byte)(de >> 8);
+                        registers[E] = (byte)(de & 0xFF);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)(hl & 0xFF);
+
+                        registers[F] = (byte)(registers[F] & 0xE9);
+                        if (bc != 0)
+                        {
+                            var pc = (ushort)((registers[PC] << 8) + registers[PC + 1]);
+                            // jumps back to itself
+                            pc -= 2;
+                            registers[PC] = (byte)(pc >> 8);
+                            registers[PC + 1] = (byte)(pc & 0xFF);
+                            Wait(21);
+                            return;
+                        }
+#if(DEBUG)
+                        Log("LDDR");
+#endif
+                        Wait(16);
+                        return;
+
+                    }
+
+                case 0xA1:
+                    {
+                        // CPI
+                        var bc = (ushort)((registers[B] << 8) + registers[C]);
+                        var hl = (ushort)((registers[H] << 8) + registers[L]);
+
+                        var a = registers[A];
+                        var b = _ram[hl];
+                        hl++;
+                        bc--;
+
+                        registers[B] = (byte)(bc >> 8);
+                        registers[C] = (byte)(bc & 0xFF);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)(hl & 0xFF);
+
+                        var f = (byte)(registers[F] & 0x2A);
+                        if (a < b) f = (byte)(f | 0x80);
+                        if (a == b) f = (byte)(f | 0x40);
+                        if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                        if (bc != 0) f = (byte)(f | 0x04);
+                        registers[F] = (byte)(f | 0x02);
+#if(DEBUG)
+                        Log("CPI");
+#endif
+                        Wait(16);
+                        return;
+
+                    }
+
+                case 0xB1:
+                    {
+                        // CPIR
+                        var bc = (ushort)((registers[B] << 8) + registers[C]);
+                        var hl = (ushort)((registers[H] << 8) + registers[L]);
+
+                        var a = registers[A];
+                        var b = _ram[hl];
+                        hl++;
+                        bc--;
+
+                        registers[B] = (byte)(bc >> 8);
+                        registers[C] = (byte)(bc & 0xFF);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)(hl & 0xFF);
+
+                        if (a == b || bc == 0)
+                        {
+                            var f = (byte)(registers[F] & 0x2A);
+                            if (a < b) f = (byte)(f | 0x80);
+                            if (a == b) f = (byte)(f | 0x40);
+                            if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                            if (bc != 0) f = (byte)(f | 0x04);
+                            registers[F] = (byte)(f | 0x02);
+#if(DEBUG)
+                            Log("CPIR");
+#endif
+                            Wait(16);
+                            return;
+                        }
+
+                        var pc = (ushort)((registers[PC] << 8) + registers[PC + 1]);
+                        // jumps back to itself
+                        pc -= 2;
+                        registers[PC] = (byte)(pc >> 8);
+                        registers[PC + 1] = (byte)(pc & 0xFF);
+                        Wait(21);
+                        return;
+
+                    }
+
+                case 0xA9:
+                    {
+                        // CPD
+                        var bc = (ushort)((registers[B] << 8) + registers[C]);
+                        var hl = (ushort)((registers[H] << 8) + registers[L]);
+
+                        var a = registers[A];
+                        var b = _ram[hl];
+                        hl--;
+                        bc--;
+
+                        registers[B] = (byte)(bc >> 8);
+                        registers[C] = (byte)(bc & 0xFF);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)(hl & 0xFF);
+
+                        var f = (byte)(registers[F] & 0x2A);
+                        if (a < b) f = (byte)(f | 0x80);
+                        if (a == b) f = (byte)(f | 0x40);
+                        if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                        if (bc != 0) f = (byte)(f | 0x04);
+                        registers[F] = (byte)(f | 0x02);
+#if(DEBUG)
+                        Log("CPD");
+#endif
+                        Wait(16);
+                        return;
+
+                    }
+
+                case 0xB9:
+                    {
+                        // CPDR
+                        var bc = (ushort)((registers[B] << 8) + registers[C]);
+                        var hl = (ushort)((registers[H] << 8) + registers[L]);
+
+                        var a = registers[A];
+                        var b = _ram[hl];
+                        hl--;
+                        bc--;
+
+                        registers[B] = (byte)(bc >> 8);
+                        registers[C] = (byte)(bc & 0xFF);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)(hl & 0xFF);
+
+                        if (a == b || bc == 0)
+                        {
+                            var f = (byte)(registers[F] & 0x2A);
+                            if (a < b) f = (byte)(f | 0x80);
+                            if (a == b) f = (byte)(f | 0x40);
+                            if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                            if (bc != 0) f = (byte)(f | 0x04);
+                            registers[F] = (byte)(f | 0x02);
+#if(DEBUG)
+                            Log("CPDR");
+#endif
+                            Wait(16);
+                            return;
+                        }
+
+                        var pc = (ushort)((registers[PC] << 8) + registers[PC + 1]);
+                        // jumps back to itself
+                        pc -= 2;
+                        registers[PC] = (byte)(pc >> 8);
+                        registers[PC + 1] = (byte)(pc & 0xFF);
+                        Wait(21);
                         return;
 
                     }
