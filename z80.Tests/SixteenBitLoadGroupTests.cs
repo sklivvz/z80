@@ -394,7 +394,7 @@ namespace z80.Tests
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x000E, en.SP);
             Assert.AreEqual(en.A, _ram[en.SP + 1]);
-            Assert.AreEqual(en.Reg8(6), _ram[en.SP]);
+            Assert.AreEqual(en.F, _ram[en.SP]);
         }
 
         [Test]
@@ -440,7 +440,7 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x0010, en.SP);
-            Assert.AreEqual(0x1942, en.Reg16(0));
+            Assert.AreEqual(0x1942, en.BC);
         }
 
         [Test]
@@ -456,7 +456,7 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x0010, en.SP);
-            Assert.AreEqual(0x1942, en.Reg16(2));
+            Assert.AreEqual(0x1942, en.DE);
         }
 
         [Test]
@@ -472,7 +472,7 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x0010, en.SP);
-            Assert.AreEqual(0x1942, en.Reg16(4));
+            Assert.AreEqual(0x1942, en.HL);
         }
 
         [Test]
@@ -488,8 +488,7 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x0010, en.SP);
-            Assert.AreEqual(en.A, 0x19);
-            Assert.AreEqual(en.Reg8(6), 0x42);
+            Assert.AreEqual(0x4219, en.AF);
         }
 
         [Test]

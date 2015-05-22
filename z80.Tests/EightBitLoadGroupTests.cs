@@ -424,8 +424,6 @@ namespace z80.Tests
 
             en.Run();
 
-            en.DumpRam();
-
             Assert.AreEqual(asm.Position - 1, en.PC);
             Assert.AreEqual(66, en.A);
         }

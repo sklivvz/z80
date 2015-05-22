@@ -343,5 +343,29 @@ namespace z80.Tests
         {
             Write(0xE3);
         }
+
+        public void ExAddrSpIx()
+        {
+            Write(0xDD);
+            Write(0xE3);
+        }
+
+        public void ExAddrSpIy()
+        {
+            Write(0xFD);
+            Write(0xE3);
+        }
+
+        public void Ldi()
+        {
+            Write(0xED);
+            Write(0xA0);
+        }
+
+        public void Ldir()
+        {
+            Write(0xED);
+            Write(0xB0);
+        }
     }
 }

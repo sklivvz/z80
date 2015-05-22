@@ -30,45 +30,66 @@ namespace z80.Tests
         private const byte _IFF2 = 27;
 
         private readonly byte[] _ram;
-        private byte[] dumpedState;
-        private bool hasDump;
+        private byte[] _dumpedState;
+        private bool _hasDump;
         private readonly Z80 _myZ80;
 
-        public ushort IX { get { return Reg16(_IX); } }
-        public ushort IY { get { return Reg16(_IY); } }
-        public ushort SP { get { return Reg16(_SP); } }
-        public ushort PC { get { return Reg16(_PC); } }
-        public byte A { get { return Reg8(_A); } }
-        public byte B { get { return Reg8(_B); } }
-        public byte C { get { return Reg8(_C); } }
-        public byte D { get { return Reg8(_D); } }
-        public byte E { get { return Reg8(_E); } }
-        public byte H { get { return Reg8(_H); } }
-        public byte L { get { return Reg8(_L); } }
-        public byte I { get { return Reg8(_I); } }
-        public byte R { get { return Reg8(_R); } }
+        public ushort AF => Reg16(_F);
+        public ushort BC => Reg16(_B);
+        public ushort DE => Reg16(_D);
+        public ushort HL => Reg16(_H);
+        public ushort IX => Reg16(_IX);
+        public ushort IY => Reg16(_IY);
+        public ushort SP => Reg16(_SP);
+        public ushort PC => Reg16(_PC);
+        public ushort AFp => Reg16(_Fp);
+        public ushort BCp => Reg16(_Bp);
+        public ushort DEp => Reg16(_Dp);
+        public ushort HLp => Reg16(_Hp);
+
+        public byte A => Reg8(_A);
+        public byte B => Reg8(_B);
+        public byte C => Reg8(_C);
+        public byte D => Reg8(_D);
+        public byte E => Reg8(_E);
+        public byte F => Reg8(_F);
+        public byte H => Reg8(_H);
+        public byte L => Reg8(_L);
+        public byte I => Reg8(_I);
+        public byte R => Reg8(_R);
+
+        public byte Ap => Reg8(_Ap);
+        public byte Bp => Reg8(_Bp);
+        public byte Cp => Reg8(_Cp);
+        public byte Dp => Reg8(_Dp);
+        public byte Ep => Reg8(_Ep);
+        public byte Fp => Reg8(_Fp);
+        public byte Hp => Reg8(_Hp);
+        public byte Lp => Reg8(_Lp);
+
+
 
         // SZ-H-PNC
-        public bool FlagS { get { return (Reg8(_F) & 0x80) > 0; } }
-        public bool FlagZ { get { return (Reg8(_F) & 0x40) > 0; } }
-        public bool FlagH { get { return (Reg8(_F) & 0x10) > 0; } }
-        public bool FlagP { get { return (Reg8(_F) & 0x04) > 0; } }
-        public bool FlagN { get { return (Reg8(_F) & 0x02) > 0; } }
-        public bool FlagC { get { return (Reg8(_F) & 0x01) > 0; } }
+        public bool FlagS => (Reg8(_F) & 0x80) > 0;
+        public bool FlagZ => (Reg8(_F) & 0x40) > 0;
+        public bool FlagH => (Reg8(_F) & 0x10) > 0;
+        public bool FlagP => (Reg8(_F) & 0x04) > 0;
+        public bool FlagN => (Reg8(_F) & 0x02) > 0;
+        public bool FlagC => (Reg8(_F) & 0x01) > 0;
 
-        public bool Iff1 { get { return Reg8(_IFF1) > 0; } }
-        public bool Iff2 { get { return Reg8(_IFF2) > 0; } }
+        public bool Iff1 => Reg8(_IFF1) > 0;
+        public bool Iff2 => Reg8(_IFF2) > 0;
 
 
         public byte Reg8(int reg)
         {
-            if (!hasDump) throw new InvalidOperationException("Don't have a state!");
-            return dumpedState[reg];
+            if (!_hasDump) throw new InvalidOperationException("Don't have a state!");
+            return _dumpedState[reg];
         }
-        public ushort Reg16(byte reg)
+        private ushort Reg16(byte reg)
         {
-            if (!hasDump) throw new InvalidOperationException("Don't have a state!");
-            var ret = dumpedState[reg + 1] + dumpedState[reg] * 256;
+            if (!_hasDump) throw new InvalidOperationException("Don't have a state!");
+            var ret = _dumpedState[reg + 1] + _dumpedState[reg] * 256;
             return (ushort)ret;
         }
 
@@ -89,15 +110,15 @@ namespace z80.Tests
                 //Console.WriteLine(_myZ80.DumpState());
                 //DumpRam();
             }
-            dumpedState = _myZ80.GetState();
-            hasDump = true;
+            _dumpedState = _myZ80.GetState();
+            _hasDump = true;
             if (!_myZ80.Halted) Console.WriteLine("BAILOUT!");
         }
 
         public void Reset()
         {
-            dumpedState = null;
-            hasDump = false;
+            _dumpedState = null;
+            _hasDump = false;
             _myZ80.Reset();
         }
 
