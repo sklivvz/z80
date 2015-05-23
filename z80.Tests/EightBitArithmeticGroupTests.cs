@@ -6,6 +6,18 @@ namespace z80.Tests
     [TestFixture]
     public class EightBitArithmeticGroupTests : OpCodeTestBase
     {
+
+        private int Countbits(int value)
+        {
+            int count = 0;
+            while (value != 0)
+            {
+                count++;
+                value &= value - 1;
+            }
+            return count;
+        }
+        
         // Useful ref: http://stackoverflow.com/questions/8034566/overflow-and-carry-flags-on-z80
 
         [Test]
@@ -1152,6 +1164,690 @@ namespace z80.Tests
             var overflow = (val < 0x7F == val2 < 0x7F) && (val < 0x7F == sbyteDiff < 0); // if both operands are positive and result is negative or if both are negative and result is positive
             Assert.AreEqual(overflow, en.FlagP);
             Assert.AreEqual(trueDiff > 0xFF, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0, 0x44, 0x11)]
+        [TestCase(0, 0x44, 0x0F)]
+        [TestCase(0, 0x44, 0xFF)]
+        [TestCase(0, 0x44, 0x01)]
+        [TestCase(0, 0xF4, 0x11)]
+        [TestCase(0, 0xF4, 0x0F)]
+        [TestCase(0, 0xF4, 0xFF)]
+        [TestCase(0, 0xF4, 0x01)]
+        [TestCase(1, 0x44, 0x11)]
+        [TestCase(1, 0x44, 0x0F)]
+        [TestCase(1, 0x44, 0xFF)]
+        [TestCase(1, 0x44, 0x01)]
+        [TestCase(2, 0x44, 0x11)]
+        [TestCase(2, 0x44, 0x0F)]
+        [TestCase(2, 0x44, 0xFF)]
+        [TestCase(2, 0x44, 0x01)]
+        [TestCase(3, 0x44, 0x11)]
+        [TestCase(3, 0x44, 0x0F)]
+        [TestCase(3, 0x44, 0xFF)]
+        [TestCase(3, 0x44, 0x01)]
+        [TestCase(4, 0x44, 0x11)]
+        [TestCase(4, 0x44, 0x0F)]
+        [TestCase(4, 0x44, 0xFF)]
+        [TestCase(4, 0x44, 0x01)]
+        [TestCase(5, 0x44, 0x11)]
+        [TestCase(5, 0x44, 0x0F)]
+        [TestCase(5, 0x44, 0xFF)]
+        [TestCase(5, 0x44, 0x01)]
+        [TestCase(7, 0x44, 0x44)]
+        #endregion
+        public void Test_AND_A_r(byte reg, byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.LoadRegVal(reg, val2);
+            asm.AndReg(reg);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val & val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(true, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_AND_A_n(byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.AndVal(val2);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val & val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(true, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_AND_A_at_HL(byte val, byte val2)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.AndAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val & val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(true, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_AND_A_at_IX(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIxVal(0x0040);
+            asm.AndAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val & val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(true, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_AND_A_at_IY(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIyVal(0x0040);
+            asm.AndAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val & val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(true, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0, 0x44, 0x11)]
+        [TestCase(0, 0x44, 0x0F)]
+        [TestCase(0, 0x44, 0xFF)]
+        [TestCase(0, 0x44, 0x01)]
+        [TestCase(0, 0xF4, 0x11)]
+        [TestCase(0, 0xF4, 0x0F)]
+        [TestCase(0, 0xF4, 0xFF)]
+        [TestCase(0, 0xF4, 0x01)]
+        [TestCase(1, 0x44, 0x11)]
+        [TestCase(1, 0x44, 0x0F)]
+        [TestCase(1, 0x44, 0xFF)]
+        [TestCase(1, 0x44, 0x01)]
+        [TestCase(2, 0x44, 0x11)]
+        [TestCase(2, 0x44, 0x0F)]
+        [TestCase(2, 0x44, 0xFF)]
+        [TestCase(2, 0x44, 0x01)]
+        [TestCase(3, 0x44, 0x11)]
+        [TestCase(3, 0x44, 0x0F)]
+        [TestCase(3, 0x44, 0xFF)]
+        [TestCase(3, 0x44, 0x01)]
+        [TestCase(4, 0x44, 0x11)]
+        [TestCase(4, 0x44, 0x0F)]
+        [TestCase(4, 0x44, 0xFF)]
+        [TestCase(4, 0x44, 0x01)]
+        [TestCase(5, 0x44, 0x11)]
+        [TestCase(5, 0x44, 0x0F)]
+        [TestCase(5, 0x44, 0xFF)]
+        [TestCase(5, 0x44, 0x01)]
+        [TestCase(7, 0x44, 0x44)]
+        #endregion
+        public void Test_OR_A_r(byte reg, byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.LoadRegVal(reg, val2);
+            asm.OrReg(reg);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val | val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_OR_A_n(byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.OrVal(val2);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val | val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_OR_A_at_HL(byte val, byte val2)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.OrAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val | val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_OR_A_at_IX(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIxVal(0x0040);
+            asm.OrAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val | val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_OR_A_at_IY(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIyVal(0x0040);
+            asm.OrAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val | val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0, 0x44, 0x11)]
+        [TestCase(0, 0x44, 0x0F)]
+        [TestCase(0, 0x44, 0xFF)]
+        [TestCase(0, 0x44, 0x01)]
+        [TestCase(0, 0xF4, 0x11)]
+        [TestCase(0, 0xF4, 0x0F)]
+        [TestCase(0, 0xF4, 0xFF)]
+        [TestCase(0, 0xF4, 0x01)]
+        [TestCase(1, 0x44, 0x11)]
+        [TestCase(1, 0x44, 0x0F)]
+        [TestCase(1, 0x44, 0xFF)]
+        [TestCase(1, 0x44, 0x01)]
+        [TestCase(2, 0x44, 0x11)]
+        [TestCase(2, 0x44, 0x0F)]
+        [TestCase(2, 0x44, 0xFF)]
+        [TestCase(2, 0x44, 0x01)]
+        [TestCase(3, 0x44, 0x11)]
+        [TestCase(3, 0x44, 0x0F)]
+        [TestCase(3, 0x44, 0xFF)]
+        [TestCase(3, 0x44, 0x01)]
+        [TestCase(4, 0x44, 0x11)]
+        [TestCase(4, 0x44, 0x0F)]
+        [TestCase(4, 0x44, 0xFF)]
+        [TestCase(4, 0x44, 0x01)]
+        [TestCase(5, 0x44, 0x11)]
+        [TestCase(5, 0x44, 0x0F)]
+        [TestCase(5, 0x44, 0xFF)]
+        [TestCase(5, 0x44, 0x01)]
+        [TestCase(7, 0x44, 0x44)]
+        #endregion
+        public void Test_XOR_A_r(byte reg, byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.LoadRegVal(reg, val2);
+            asm.XorReg(reg);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val ^ val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_XOR_A_n(byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.XorVal(val2);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val ^ val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_XOR_A_at_HL(byte val, byte val2)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.XorAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val ^ val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_XOR_A_at_IX(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIxVal(0x0040);
+            asm.XorAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val ^ val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_XOR_A_at_IY(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIyVal(0x0040);
+            asm.XorAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+
+            var res = (byte)(val ^ val2);
+            var sres = (sbyte)res;
+            Assert.AreEqual(res, en.A);
+            Assert.AreEqual(sres < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual(false, en.FlagH);
+            var parity = Countbits(res) % 2 == 0;
+            Assert.AreEqual(parity, en.FlagP);
+            Assert.AreEqual(false, en.FlagC);
 
         }
     }

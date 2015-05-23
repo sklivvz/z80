@@ -500,5 +500,96 @@ namespace z80.Tests
             Write(0x9E);
             Write(displacement);
         }
+
+        public void AndReg(byte reg)
+        {
+            Write(0xA0 + reg);
+        }
+
+        public void AndVal(byte value)
+        {
+            Write(0xE6);
+            Write(value);
+        }
+
+        public void AndAddrHl()
+        {
+            Write(0xA6);
+        }
+
+        public void AndAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xA6);
+            Write(displacement);
+        }
+
+        public void AndAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xA6);
+            Write(displacement);
+        }
+
+
+        public void OrReg(byte reg)
+        {
+            Write(0xB0 + reg);
+        }
+
+        public void OrVal(byte value)
+        {
+            Write(0xF6);
+            Write(value);
+        }
+
+        public void OrAddrHl()
+        {
+            Write(0xB6);
+        }
+
+        public void OrAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xB6);
+            Write(displacement);
+        }
+
+        public void OrAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xB6);
+            Write(displacement);
+        }
+
+        public void XorReg(byte reg)
+        {
+            Write(0xA8 + reg);
+        }
+
+        public void XorVal(byte value)
+        {
+            Write(0xEE);
+            Write(value);
+        }
+
+        public void XorAddrHl()
+        {
+            Write(0xAE);
+        }
+
+        public void XorAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xAE);
+            Write(displacement);
+        }
+
+        public void XorAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xAE);
+            Write(displacement);
+        }
     }
 }

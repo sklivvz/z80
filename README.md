@@ -15,20 +15,20 @@ The tests are my documentation, the assembler backend is needed to write tests a
 
 ## Status
 
-Progress: **3.4/11 (31%)**  
+Progress: **3.7/11 (34%)**  
 Coverage: **98.6%**  
-Spectrum ROM: **Does not work**, runs up to address `0x0001` (`XOR A`)
+Spectrum ROM: **Does not work**, runs up to address `0x0005` (`JP nn`)
 
 The following opcodes are supported
 
 * 8-bit load group (e.g. `LD A, 0x42`)
 * 16-bit load group (e.g. `POP HL`)
 * Exchange, Block Transfer, and Search group (e.g. `EX AF, AF'`)
-* 8-Bit Arithmetic Group (`ADD`, `ADC`, `SUB`, `SBC`)
+* 8-Bit Arithmetic Group (`ADD`, `ADC`, `SUB`, `SBC`, `AND`, `OR`, `XOR`)
 
 The following opcodes are not done
 
-* 8-Bit Arithmetic Group (`AND`, `OR`, `XOR`, `CP`, `INC`, `DEC`)
+* 8-Bit Arithmetic Group (`CP`, `INC`, `DEC`)
 * General-Purpose Arithmetic and CPU Control Groups
 * 16-Bit Arithmetic Group
 * Rotate and Shift Group
