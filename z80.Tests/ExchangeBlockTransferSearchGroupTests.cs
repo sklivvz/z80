@@ -295,7 +295,7 @@ namespace z80.Tests
             Assert.AreEqual(a < 0x3f, en.FlagS);
             Assert.AreEqual(a == 0x3F, en.FlagZ);
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 4) == 0, en.FlagH);
+            Assert.AreEqual((a & 8) == 0, en.FlagH);
             Assert.AreEqual(bc != 1, en.FlagP);
             Assert.IsTrue(en.FlagN);
         }
@@ -332,7 +332,7 @@ namespace z80.Tests
             Assert.AreEqual(a < last, en.FlagS);
             Assert.AreEqual(a == last, en.FlagZ);
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 4) < (last & 4), en.FlagH);
+            Assert.AreEqual((a & 8) < (last & 8), en.FlagH);
             Assert.AreEqual(en.BC != 0, en.FlagP);
             Assert.IsTrue(en.FlagN);
         }
@@ -371,7 +371,7 @@ namespace z80.Tests
             Assert.AreEqual(a < 0x3f, en.FlagS);
             Assert.AreEqual(a == 0x3F, en.FlagZ);
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 4) == 0, en.FlagH);
+            Assert.AreEqual((a & 8) == 0, en.FlagH);
             Assert.AreEqual(bc != 1, en.FlagP);
             Assert.IsTrue(en.FlagN);
         }
@@ -408,7 +408,7 @@ namespace z80.Tests
             Assert.AreEqual(a < last, en.FlagS);
             Assert.AreEqual(a == last, en.FlagZ);
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 4) < (last & 4), en.FlagH);
+            Assert.AreEqual((a & 8) < (last & 8), en.FlagH);
             Assert.AreEqual(en.BC != 0, en.FlagP);
             Assert.IsTrue(en.FlagN);
         }

@@ -83,7 +83,7 @@ namespace z80.Tests
         [Test]
         public void Test_LD_HL_at_nn()
         {
-            asm.LoadHLAddr(0x04);
+            asm.LoadHlAddr(0x04);
             asm.Halt();
             asm.Data(0x42);
             asm.Data(0x19);

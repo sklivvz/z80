@@ -212,7 +212,7 @@ namespace z80.Tests
             Write(0xFB);
         }
 
-        public void LoadHLAddr(ushort address)
+        public void LoadHlAddr(ushort address)
         {
             Write(0x2A);
             Write(address & 0xFF);
@@ -399,6 +399,106 @@ namespace z80.Tests
         {
             Write(0xED);
             Write(0xB9);
+        }
+        public void AddAReg(byte register)
+        {
+            Write(0x80 + register);
+        }
+        public void AddAVal(byte value)
+        {
+            Write(0xC6);
+            Write(value);
+        }
+        public void AddAAddrHl()
+        {
+            Write(0x86);
+        }
+        public void AddAAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0x86);
+            Write(displacement);
+        }
+        public void AddAAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0x86);
+            Write(displacement);
+        }
+        public void AdcAReg(byte register)
+        {
+            Write(0x88 + register);
+        }
+        public void AdcAVal(byte value)
+        {
+            Write(0xCE);
+            Write(value);
+        }
+        public void AdcAAddrHl()
+        {
+            Write(0x8E);
+        }
+        public void AdcAAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0x8E);
+            Write(displacement);
+        }
+        public void AdcAAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0x8E);
+            Write(displacement);
+        }
+        public void SubReg(byte register)
+        {
+            Write(0x90 + register);
+        }
+        public void SubVal(byte value)
+        {
+            Write(0xD6);
+            Write(value);
+        }
+        public void SubAddrHl()
+        {
+            Write(0x96);
+        }
+        public void SubAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0x96);
+            Write(displacement);
+        }
+        public void SubAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0x96);
+            Write(displacement);
+        }
+        public void SbcAReg(byte register)
+        {
+            Write(0x98 + register);
+        }
+        public void SbcAVal(byte value)
+        {
+            Write(0xDE);
+            Write(value);
+        }
+        public void SbcAAddrHl()
+        {
+            Write(0x9E);
+        }
+        public void SbcAAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0x9E);
+            Write(displacement);
+        }
+        public void SbcAAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0x9E);
+            Write(displacement);
         }
     }
 }

@@ -503,6 +503,292 @@ namespace z80
                         Wait(19);
                         return;
                     }
+                case 0x80:
+                case 0x81:
+                case 0x82:
+                case 0x83:
+                case 0x84:
+                case 0x85:
+                case 0x87:
+                    {
+                        // ADD A, r
+                        var a = registers[A];
+                        var b = registers[lo];
+                        var sum = a + b;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADD A, {0}", RName(lo));
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xC6:
+                    {
+                        // ADD A, n
+                        var a = registers[A];
+                        var b = Fetch();
+                        var sum = a + b;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADC A, 0x{0:X2}", b);
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x86:
+                    {
+                        // ADD A, (HL)
+                        var a = registers[A];
+                        ushort addr = (ushort)(registers[L] + (registers[H] << 8));
+                        var b = _ram[addr];
+                        var sum = a + b;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADD A, (HL)");
+#endif
+                        Wait(7);
+                        return;
+                    }
+                case 0x88:
+                case 0x89:
+                case 0x8A:
+                case 0x8B:
+                case 0x8C:
+                case 0x8D:
+                case 0x8F:
+                    {
+                        // ADC A, r
+                        var a = registers[A];
+                        var b = registers[lo];
+                        var c = (byte)(registers[F] & 0x01);
+                        var sum = a + b + c;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADC A, {0}", RName(lo));
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xCE:
+                    {
+                        // ADC A, n
+                        var a = registers[A];
+                        var b = Fetch();
+                        var c = (byte)(registers[F] & 0x01);
+                        var sum = a + b + c;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADC A, 0x{0:X2}", b);
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x8E:
+                    {
+                        // ADC A, (HL)
+                        var a = registers[A];
+                        ushort addr = (ushort)(registers[L] + (registers[H] << 8));
+                        var b = _ram[addr];
+                        var c = (byte)(registers[F] & 0x01);
+                        var sum = a + b + c;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADC A, (HL)");
+#endif
+                        Wait(7);
+                        return;
+                    }
+                case 0x90:
+                case 0x91:
+                case 0x92:
+                case 0x93:
+                case 0x94:
+                case 0x95:
+                case 0x97:
+                    {
+                        // SUB A, r
+                        var a = registers[A];
+                        var b = registers[lo];
+                        var diff = a - b;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF)) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SUB A, {0}", RName(lo));
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xD6:
+                    {
+                        // SUB A, n
+                        var a = registers[A];
+                        var b = Fetch();
+                        var diff = a - b;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF)) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SBC A, 0x{0:X2}", b);
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x96:
+                    {
+                        // SUB A, (HL)
+                        var a = registers[A];
+                        ushort addr = (ushort)(registers[L] + (registers[H] << 8));
+                        var b = _ram[addr];
+                        var diff = a - b;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF)) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SUB A, (HL)");
+#endif
+                        Wait(7);
+                        return;
+                    }
+                case 0x98:
+                case 0x99:
+                case 0x9A:
+                case 0x9B:
+                case 0x9C:
+                case 0x9D:
+                case 0x9F:
+                    {
+                        // SBC A, r
+                        var a = registers[A];
+                        var b = registers[lo];
+                        var c = (byte)(registers[F] & 0x01);
+                        var diff = a - b - c;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF) + c) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SBC A, {0}", RName(lo));
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xDE:
+                    {
+                        // SBC A, n
+                        var a = registers[A];
+                        var b = Fetch();
+                        var c = (byte)(registers[F] & 0x01);
+                        var diff = a - b - c;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF) + c) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SBC A, 0x{0:X2}", b);
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x9E:
+                    {
+                        // SBC A, (HL)
+                        var a = registers[A];
+                        ushort addr = (ushort)(registers[L] + (registers[H] << 8));
+                        var b = _ram[addr];
+                        var c = (byte)(registers[F] & 0x01);
+                        var diff = a - b - c;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF) + c) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SBC A, (HL)");
+#endif
+                        Wait(7);
+                        return;
+                    }
                 case 0xF3:
                     {
                         // DI
@@ -892,7 +1178,7 @@ namespace z80
                         var f = (byte)(registers[F] & 0x2A);
                         if (a < b) f = (byte)(f | 0x80);
                         if (a == b) f = (byte)(f | 0x40);
-                        if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                        if ((a & 8) < (b & 8)) f = (byte)(f | 0x10);
                         if (bc != 0) f = (byte)(f | 0x04);
                         registers[F] = (byte)(f | 0x02);
 #if(DEBUG)
@@ -924,7 +1210,7 @@ namespace z80
                             var f = (byte)(registers[F] & 0x2A);
                             if (a < b) f = (byte)(f | 0x80);
                             if (a == b) f = (byte)(f | 0x40);
-                            if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                            if ((a & 8) < (b & 8)) f = (byte)(f | 0x10);
                             if (bc != 0) f = (byte)(f | 0x04);
                             registers[F] = (byte)(f | 0x02);
 #if(DEBUG)
@@ -963,7 +1249,7 @@ namespace z80
                         var f = (byte)(registers[F] & 0x2A);
                         if (a < b) f = (byte)(f | 0x80);
                         if (a == b) f = (byte)(f | 0x40);
-                        if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                        if ((a & 8) < (b & 8)) f = (byte)(f | 0x10);
                         if (bc != 0) f = (byte)(f | 0x04);
                         registers[F] = (byte)(f | 0x02);
 #if(DEBUG)
@@ -995,7 +1281,7 @@ namespace z80
                             var f = (byte)(registers[F] & 0x2A);
                             if (a < b) f = (byte)(f | 0x80);
                             if (a == b) f = (byte)(f | 0x40);
-                            if ((a & 4) < (b & 4)) f = (byte)(f | 0x10);
+                            if ((a & 8) < (b & 8)) f = (byte)(f | 0x10);
                             if (bc != 0) f = (byte)(f | 0x04);
                             registers[F] = (byte)(f | 0x02);
 #if(DEBUG)
@@ -1178,7 +1464,102 @@ namespace z80
                         return;
                     }
 
+                case 0x86:
+                    {
+                        // ADD A, (IX+d)
+                        var a = registers[A];
+                        var d = (sbyte)Fetch();
+                        ushort addr = (ushort)(registers[IX + 1] + (registers[IX] << 8) + d);
+                        var b = _ram[addr];
 
+                        var sum = a + b;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADD A, (IX{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
+                case 0x8E:
+                    {
+                        // ADC A, (IX+d)
+                        var a = registers[A];
+                        var d = (sbyte)Fetch();
+                        ushort addr = (ushort)(registers[IX + 1] + (registers[IX] << 8) + d);
+                        var b = _ram[addr];
+
+                        var c = (byte)(registers[F] & 0x01);
+                        var sum = a + b + c;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADC A, (IX{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
+                case 0x96:
+                    {
+                        // SUB A, (IX+d)
+                        var a = registers[A];
+                        var d = (sbyte)Fetch();
+                        ushort addr = (ushort)(registers[IX + 1] + (registers[IX] << 8) + d);
+                        var b = _ram[addr];
+                        var diff = a - b;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF)) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SUB A, (IX{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
+                case 0x9E:
+                    {
+                        // SBC A, (IX+d)
+                        var a = registers[A];
+                        var d = (sbyte)Fetch();
+                        ushort addr = (ushort)(registers[IX + 1] + (registers[IX] << 8) + d);
+                        var b = _ram[addr];
+                        var c = (byte)(registers[F] & 0x01);
+                        var diff = a - b - c;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF) + c) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SBC A, (IX{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("DD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -1343,6 +1724,103 @@ namespace z80
                         Wait(24);
                         return;
                     }
+                case 0x86:
+                    {
+                        // ADD A, (IY+d)
+                        var a = registers[A];
+                        ushort addr = (ushort)(registers[IY + 1] + (registers[IY] << 8));
+                        var d = (sbyte)Fetch();
+                        var b = _ram[addr + d];
+
+                        var sum = a + b;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADD A, (IY{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
+                case 0x8E:
+                    {
+                        // ADC A, (IY+d)
+                        var a = registers[A];
+                        var d = (sbyte)Fetch();
+                        ushort addr = (ushort)(registers[IY + 1] + (registers[IY] << 8) + d);
+                        var b = _ram[addr];
+
+                        var c = (byte)(registers[F] & 0x01);
+                        var sum = a + b + c;
+                        registers[A] = (byte)sum;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (sum == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (sum > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("ADC A, (IY{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
+                case 0x96:
+                    {
+                        // SUB A, (IY+d)
+                        var a = registers[A];
+                        var d = (sbyte)Fetch();
+                        ushort addr = (ushort)(registers[IY + 1] + (registers[IY] << 8) + d);
+                        var b = _ram[addr];
+                        var diff = a - b;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF)) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SUB A, (IY{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
+                case 0x9E:
+                    {
+                        // SBC A, (IY+d)
+                        var a = registers[A];
+                        var d = (sbyte)Fetch();
+                        ushort addr = (ushort)(registers[IY + 1] + (registers[IY] << 8) + d);
+                        var b = _ram[addr];
+                        var c = (byte)(registers[F] & 0x01);
+                        var diff = a - b - c;
+                        registers[A] = (byte)diff;
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+                        if (diff == 0) f = (byte)(f | 0x40);
+                        if ((a & 0xF) < (b & 0xF) + c) f = (byte)(f | 0x10);
+                        if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+                        f = (byte)(f | 0x02);
+                        if (diff > 0xFF) f = (byte)(f | 0x01);
+                        registers[F] = f;
+#if(DEBUG)
+                        Log("SBC A, (IY{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
+
             }
 #if(DEBUG)
             Log("FD {3:X2}: 0x{0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
