@@ -1,4 +1,5 @@
 ﻿using System;
+
 // ReSharper disable InconsistentNaming
 
 namespace z80.Tests
@@ -31,7 +32,7 @@ namespace z80.Tests
 
         private void Write(int value)
         {
-            Write((byte)value);
+            Write((byte) value);
         }
 
         private void Write(byte value)
@@ -47,25 +48,25 @@ namespace z80.Tests
 
         public void LoadRegVal(byte register, byte value)
         {
-            Write(register * 8 + 6);
+            Write(register*8 + 6);
             Write(value);
         }
 
         public void LoadRegReg(byte register, byte register2)
         {
-            Write(register * 8 + register2 + 64);
+            Write(register*8 + register2 + 64);
         }
 
         public void LoadReg16Val(byte register16, ushort value)
         {
-            Write(1 + register16 * 16);
+            Write(1 + register16*16);
             Write(value & 0xFF);
             Write(value >> 8);
         }
 
         public void LoadRegAtHl(byte register)
         {
-            Write(70 + register * 8);
+            Write(70 + register*8);
         }
 
         public void Data(byte value)
@@ -76,7 +77,7 @@ namespace z80.Tests
         public void LoadRegAddrIx(byte register, sbyte displacement)
         {
             Write(0xDD);
-            Write(70 + register * 8);
+            Write(70 + register*8);
             Write(displacement);
         }
 
@@ -91,7 +92,7 @@ namespace z80.Tests
         public void LoadRegAddrIy(byte register, sbyte displacement)
         {
             Write(0xFD);
-            Write(70 + register * 8);
+            Write(70 + register*8);
             Write(displacement);
         }
 
@@ -222,7 +223,7 @@ namespace z80.Tests
         public void LoadReg16Addr(byte register16, ushort address)
         {
             Write(0xED);
-            Write(0x4B + register16 * 16);
+            Write(0x4B + register16*16);
             Write(address & 0xFF);
             Write(address >> 8);
         }
@@ -253,7 +254,7 @@ namespace z80.Tests
         public void LoadAddrReg16(byte register16, ushort address)
         {
             Write(0xED);
-            Write(0x43 + register16 * 16);
+            Write(0x43 + register16*16);
             Write(address & 0xFF);
             Write(address >> 8);
         }
@@ -265,6 +266,7 @@ namespace z80.Tests
             Write(address & 0xFF);
             Write(address >> 8);
         }
+
         public void LoadAddrIy(ushort address)
         {
             Write(0xFD);
@@ -292,7 +294,7 @@ namespace z80.Tests
 
         public void PushReg16(byte register16)
         {
-            Write(0xC5 + register16 * 16);
+            Write(0xC5 + register16*16);
         }
 
         public void PushIx()
@@ -309,7 +311,7 @@ namespace z80.Tests
 
         public void PopReg16(byte register16)
         {
-            Write(0xC1 + register16 * 16);
+            Write(0xC1 + register16*16);
         }
 
         public void PopIx()
@@ -385,115 +387,138 @@ namespace z80.Tests
             Write(0xED);
             Write(0xA1);
         }
+
         public void Cpir()
         {
             Write(0xED);
             Write(0xB1);
         }
+
         public void Cpd()
         {
             Write(0xED);
             Write(0xA9);
         }
+
         public void Cpdr()
         {
             Write(0xED);
             Write(0xB9);
         }
+
         public void AddAReg(byte register)
         {
             Write(0x80 + register);
         }
+
         public void AddAVal(byte value)
         {
             Write(0xC6);
             Write(value);
         }
+
         public void AddAAddrHl()
         {
             Write(0x86);
         }
+
         public void AddAAddrIx(sbyte displacement)
         {
             Write(0xDD);
             Write(0x86);
             Write(displacement);
         }
+
         public void AddAAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0x86);
             Write(displacement);
         }
+
         public void AdcAReg(byte register)
         {
             Write(0x88 + register);
         }
+
         public void AdcAVal(byte value)
         {
             Write(0xCE);
             Write(value);
         }
+
         public void AdcAAddrHl()
         {
             Write(0x8E);
         }
+
         public void AdcAAddrIx(sbyte displacement)
         {
             Write(0xDD);
             Write(0x8E);
             Write(displacement);
         }
+
         public void AdcAAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0x8E);
             Write(displacement);
         }
+
         public void SubReg(byte register)
         {
             Write(0x90 + register);
         }
+
         public void SubVal(byte value)
         {
             Write(0xD6);
             Write(value);
         }
+
         public void SubAddrHl()
         {
             Write(0x96);
         }
+
         public void SubAddrIx(sbyte displacement)
         {
             Write(0xDD);
             Write(0x96);
             Write(displacement);
         }
+
         public void SubAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0x96);
             Write(displacement);
         }
+
         public void SbcAReg(byte register)
         {
             Write(0x98 + register);
         }
+
         public void SbcAVal(byte value)
         {
             Write(0xDE);
             Write(value);
         }
+
         public void SbcAAddrHl()
         {
             Write(0x9E);
         }
+
         public void SbcAAddrIx(sbyte displacement)
         {
             Write(0xDD);
             Write(0x9E);
             Write(displacement);
         }
+
         public void SbcAAddrIy(sbyte displacement)
         {
             Write(0xFD);
@@ -591,5 +616,36 @@ namespace z80.Tests
             Write(0xAE);
             Write(displacement);
         }
+
+        public void CpReg(byte register)
+        {
+            Write(0xB8 + register);
+        }
+
+        public void CpVal(byte value)
+        {
+            Write(0xFE);
+            Write(value);
+        }
+
+        public void CpAddrHl()
+        {
+            Write(0xBE);
+        }
+
+        public void CpAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xBE);
+            Write(displacement);
+        }
+
+        public void CpAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xBE);
+            Write(displacement);
+        }
+
     }
 }

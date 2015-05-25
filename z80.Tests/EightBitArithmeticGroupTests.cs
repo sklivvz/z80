@@ -1850,5 +1850,234 @@ namespace z80.Tests
             Assert.AreEqual(false, en.FlagC);
 
         }
+
+
+        [Test]
+        #region testcases
+        [TestCase(0, 0x44, 0x11)]
+        [TestCase(0, 0x44, 0x0F)]
+        [TestCase(0, 0x44, 0xFF)]
+        [TestCase(0, 0x44, 0x01)]
+        [TestCase(0, 0xF4, 0x11)]
+        [TestCase(0, 0xF4, 0x0F)]
+        [TestCase(0, 0xF4, 0xFF)]
+        [TestCase(0, 0xF4, 0x01)]
+        [TestCase(1, 0x44, 0x11)]
+        [TestCase(1, 0x44, 0x0F)]
+        [TestCase(1, 0x44, 0xFF)]
+        [TestCase(1, 0x44, 0x01)]
+        [TestCase(2, 0x44, 0x11)]
+        [TestCase(2, 0x44, 0x0F)]
+        [TestCase(2, 0x44, 0xFF)]
+        [TestCase(2, 0x44, 0x01)]
+        [TestCase(3, 0x44, 0x11)]
+        [TestCase(3, 0x44, 0x0F)]
+        [TestCase(3, 0x44, 0xFF)]
+        [TestCase(3, 0x44, 0x01)]
+        [TestCase(4, 0x44, 0x11)]
+        [TestCase(4, 0x44, 0x0F)]
+        [TestCase(4, 0x44, 0xFF)]
+        [TestCase(4, 0x44, 0x01)]
+        [TestCase(5, 0x44, 0x11)]
+        [TestCase(5, 0x44, 0x0F)]
+        [TestCase(5, 0x44, 0xFF)]
+        [TestCase(5, 0x44, 0x01)]
+        [TestCase(7, 0x44, 0x44)]
+        #endregion
+        public void Test_CP_A_r(byte reg, byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.LoadRegVal(reg, val2);
+            asm.CpReg(reg);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueDiff = (val - val2);
+            var byteDiff = (byte)trueDiff % 256;
+            var sbyteDiff = (sbyte)byteDiff;
+            Assert.AreEqual(val, en.A);
+            Assert.AreEqual(sbyteDiff < 0, en.FlagS);
+            Assert.AreEqual(val == val2, en.FlagZ);
+            Assert.AreEqual((0x0F & val2) > (0x0F & val), en.FlagH);
+            var overflow = (val < 0x7F == val2 < 0x7F) && (val < 0x7F == sbyteDiff < 0); // if both operands are positive and result is negative or if both are negative and result is positive
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueDiff > 0xFF, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_CP_A_n(byte val, byte val2)
+        {
+            asm.LoadRegVal(7, val);
+            asm.CpVal(val2);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueDiff = (val - val2);
+            var byteDiff = (byte)trueDiff % 256;
+            var sbyteDiff = (sbyte)byteDiff;
+            Assert.AreEqual(val, en.A);
+            Assert.AreEqual(sbyteDiff < 0, en.FlagS);
+            Assert.AreEqual(val == val2, en.FlagZ);
+            Assert.AreEqual((0x0F & val2) > (0x0F & val), en.FlagH);
+            var overflow = (val < 0x7F == val2 < 0x7F) && (val < 0x7F == sbyteDiff < 0); // if both operands are positive and result is negative or if both are negative and result is positive
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueDiff > 0xFF, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11)]
+        [TestCase(0x44, 0x0F)]
+        [TestCase(0x44, 0xFF)]
+        [TestCase(0x44, 0x01)]
+        [TestCase(0xF4, 0x11)]
+        [TestCase(0xF4, 0x0F)]
+        [TestCase(0xF4, 0xFF)]
+        [TestCase(0xF4, 0x01)]
+        #endregion
+        public void Test_CP_A_at_HL(byte val, byte val2)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.CpAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueDiff = (val - val2);
+            var byteDiff = (byte)trueDiff % 256;
+            var sbyteDiff = (sbyte)byteDiff;
+            Assert.AreEqual(val, en.A);
+            Assert.AreEqual(sbyteDiff < 0, en.FlagS);
+            Assert.AreEqual(val == val2, en.FlagZ);
+            Assert.AreEqual((0x0F & val2) > (0x0F & val), en.FlagH);
+            var overflow = (val < 0x7F == val2 < 0x7F) && (val < 0x7F == sbyteDiff < 0); // if both operands are positive and result is negative or if both are negative and result is positive
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueDiff > 0xFF, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_CP_A_at_IX(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIxVal(0x0040);
+            asm.CpAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueDiff = (val - val2);
+            var byteDiff = (byte)trueDiff % 256;
+            var sbyteDiff = (sbyte)byteDiff;
+            Assert.AreEqual(val, en.A);
+            Assert.AreEqual(sbyteDiff < 0, en.FlagS);
+            Assert.AreEqual(val == val2, en.FlagZ);
+            Assert.AreEqual((0x0F & val2) > (0x0F & val), en.FlagH);
+            var overflow = (val < 0x7F == val2 < 0x7F) && (val < 0x7F == sbyteDiff < 0); // if both operands are positive and result is negative or if both are negative and result is positive
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueDiff > 0xFF, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x44, 0x11, 0)]
+        [TestCase(0x44, 0x0F, 0)]
+        [TestCase(0x44, 0xFF, 0)]
+        [TestCase(0x44, 0x01, 0)]
+        [TestCase(0xF4, 0x11, 0)]
+        [TestCase(0xF4, 0x0F, 0)]
+        [TestCase(0xF4, 0xFF, 0)]
+        [TestCase(0xF4, 0x01, 0)]
+        [TestCase(0x44, 0x11, 1)]
+        [TestCase(0x44, 0x0F, 1)]
+        [TestCase(0x44, 0xFF, 1)]
+        [TestCase(0x44, 0x01, 1)]
+        [TestCase(0xF4, 0x11, 1)]
+        [TestCase(0xF4, 0x0F, 1)]
+        [TestCase(0xF4, 0xFF, 1)]
+        [TestCase(0xF4, 0x01, 1)]
+        [TestCase(0x44, 0x11, -1)]
+        [TestCase(0x44, 0x0F, -1)]
+        [TestCase(0x44, 0xFF, -1)]
+        [TestCase(0x44, 0x01, -1)]
+        [TestCase(0xF4, 0x11, -1)]
+        [TestCase(0xF4, 0x0F, -1)]
+        [TestCase(0xF4, 0xFF, -1)]
+        [TestCase(0xF4, 0x01, -1)]
+        #endregion
+        public void Test_CP_A_at_IY(byte val, byte val2, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val2);
+            asm.LoadRegVal(7, val);
+            asm.LoadIyVal(0x0040);
+            asm.CpAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueDiff = (val - val2);
+            var byteDiff = (byte)trueDiff % 256;
+            var sbyteDiff = (sbyte)byteDiff;
+            Assert.AreEqual(val, en.A);
+            Assert.AreEqual(sbyteDiff < 0, en.FlagS);
+            Assert.AreEqual(en.A == 0x00, en.FlagZ);
+            Assert.AreEqual((0x0F & val2) > (0x0F & val), en.FlagH);
+            var overflow = (val < 0x7F == val2 < 0x7F) && (val < 0x7F == sbyteDiff < 0); // if both operands are positive and result is negative or if both are negative and result is positive
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueDiff > 0xFF, en.FlagC);
+
+        }
+
     }
 }

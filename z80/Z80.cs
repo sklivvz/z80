@@ -820,6 +820,50 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0xB8:
+                case 0xB9:
+                case 0xBA:
+                case 0xBB:
+                case 0xBC:
+                case 0xBD:
+                case 0xBF:
+                    {
+                        // CP A, r
+                        var a = registers[A];
+                        var b = registers[lo];
+                        Cmp(a, b);
+#if(DEBUG)
+                        Log("CP A, {0}", RName(lo));
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xFE:
+                    {
+                        // CP A, n
+                        var a = registers[A];
+                        var b = Fetch();
+                        Cmp(a, b);
+#if(DEBUG)
+                        Log("CP A, 0x{0:X2}", b);
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0xBE:
+                    {
+                        // CP A, (HL)
+                        var a = registers[A];
+                        ushort addr = Hl;
+                        var b = _ram[addr];
+                        Cmp(a, b);
+#if(DEBUG)
+                        Log("CP A, (HL)");
+#endif
+                        Wait(7);
+                        return;
+                    }
+
             }
 
 #if(DEBUG)
@@ -1551,6 +1595,18 @@ namespace z80
                         Wait(19);
                         return;
                     }
+                case 0xBE:
+                    {
+                        // CP A, (IX+d)
+                        var d = (sbyte)Fetch();
+                        var b = _ram[(ushort)(Ix + d)];
+                        Cmp(registers[A], b);
+#if(DEBUG)
+                        Log("CP A, (IX{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("DD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -1795,6 +1851,17 @@ namespace z80
                         Wait(19);
                         return;
                     }
+                case 0xBE:
+                    {
+                        // CP A, (IY+d)
+                        var d = (sbyte)Fetch();
+                        Cmp(registers[A], _ram[(ushort)(Iy + d)]);
+#if(DEBUG)
+                        Log("CP A, (IY{0:+0;-#})", d);
+#endif
+                        Wait(19);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("FD {3:X2}: 0x{0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -1891,6 +1958,18 @@ namespace z80
             if ((res & 0x80) > 0) f = (byte)(f | 0x80);
             if (res == 0) f = (byte)(f | 0x40);
             if (Parity(res)) f = (byte)(f | 0x04);
+            registers[F] = f;
+        }
+        private void Cmp(byte a, byte b)
+        {
+            var diff = a - b;
+            var f = (byte)(registers[F] & 0x28);
+            if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
+            if (diff == 0) f = (byte)(f | 0x40);
+            if ((a & 0xF) < (b & 0xF)) f = (byte)(f | 0x10);
+            if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
+            f = (byte)(f | 0x02);
+            if (diff > 0xFF) f = (byte)(f | 0x01);
             registers[F] = f;
         }
 
