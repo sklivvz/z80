@@ -2079,7 +2079,6 @@ namespace z80.Tests
 
         }
 
-
         [Test]
         #region testcases
         [TestCase(0, 0x28)]
@@ -2214,6 +2213,138 @@ namespace z80.Tests
 
         }
 
+        [Test]
+        #region testcases
+        [TestCase(0, 0x28)]
+        [TestCase(0, 0x80)]
+        [TestCase(1, 0x28)]
+        [TestCase(1, 0x80)]
+        [TestCase(2, 0x28)]
+        [TestCase(2, 0x80)]
+        [TestCase(3, 0x28)]
+        [TestCase(3, 0x80)]
+        [TestCase(4, 0x28)]
+        [TestCase(4, 0x80)]
+        [TestCase(5, 0x28)]
+        [TestCase(5, 0x80)]
+        [TestCase(7, 0x28)]
+        [TestCase(7, 0x80)]
+        #endregion
+        public void Test_DEC_r(byte reg, byte val)
+        {
+            asm.LoadRegVal(reg, val);
+            asm.DecReg(reg);
+            asm.Halt();
 
+            en.Run();
+
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueSum = val - 1;
+            var byteSum = trueSum % 256;
+            var sbyteSum = (sbyte)byteSum;
+            Assert.AreEqual(byteSum, en.Reg8(reg));
+            Assert.AreEqual(sbyteSum < 0, en.FlagS);
+            Assert.AreEqual(en.Reg8(reg) == 0x00, en.FlagZ);
+            Assert.AreEqual((0x0F & val) == 0, en.FlagH);
+            var overflow = val == 0x80;
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueSum > 0xFF, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x28)]
+        [TestCase(0x80)]
+        #endregion
+        public void Test_DEC_at_HL(byte val)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(val);
+            asm.DecAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueSum = val - 1;
+            var byteSum = trueSum % 256;
+            var sbyteSum = (sbyte)byteSum;
+            Assert.AreEqual(byteSum, _ram[0x0040]);
+            Assert.AreEqual(sbyteSum < 0, en.FlagS);
+            Assert.AreEqual(_ram[0x0040] == 0x00, en.FlagZ);
+            Assert.AreEqual((0x0F & val) == 0, en.FlagH);
+            var overflow = val == 0x80;
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueSum > 0xFF, en.FlagC);
+
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x28, 0)]
+        [TestCase(0x80, 0)]
+        [TestCase(0x28, 1)]
+        [TestCase(0x80, 1)]
+        [TestCase(0x28, -1)]
+        [TestCase(0x80, -1)]
+        #endregion
+        public void Test_DEC_at_IX(byte val, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val);
+            asm.LoadIxVal(0x0040);
+            asm.DecAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueSum = val - 1;
+            var byteSum = trueSum % 256;
+            var sbyteSum = (sbyte)byteSum;
+            Assert.AreEqual(byteSum, _ram[0x0040 + disp]);
+            Assert.AreEqual(sbyteSum < 0, en.FlagS);
+            Assert.AreEqual(byteSum == 0x00, en.FlagZ);
+            Assert.AreEqual((0x0F & val) == 0, en.FlagH);
+            var overflow = val == 0x80;
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueSum > 0xFF, en.FlagC);
+
+        }
+        [Test]
+        #region testcases
+        [TestCase(0x28, 0)]
+        [TestCase(0x80, 0)]
+        [TestCase(0x28, 1)]
+        [TestCase(0x80, 1)]
+        [TestCase(0x28, -1)]
+        [TestCase(0x80, -1)]
+        #endregion
+        public void Test_DEC_at_IY(byte val, sbyte disp)
+        {
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(val);
+            asm.LoadIyVal(0x0040);
+            asm.DecAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            var trueSum = val - 1;
+            var byteSum = trueSum % 256;
+            var sbyteSum = (sbyte)byteSum;
+            Assert.AreEqual(byteSum, _ram[0x0040 + disp]);
+            Assert.AreEqual(sbyteSum < 0, en.FlagS);
+            Assert.AreEqual(byteSum == 0x00, en.FlagZ);
+            Assert.AreEqual((0x0F & val) == 0, en.FlagH);
+            var overflow = val == 0x80;
+            Assert.AreEqual(overflow, en.FlagP);
+            Assert.AreEqual(trueSum > 0xFF, en.FlagC);
+
+        }
     }
 }

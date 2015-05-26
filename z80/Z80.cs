@@ -890,6 +890,34 @@ namespace z80
                         return;
                     }
 
+                case 0x05:
+                case 0x0D:
+                case 0x15:
+                case 0x1D:
+                case 0x25:
+                case 0x2D:
+                case 0x3D:
+                    {
+                        // DEC r
+                        registers[r][Hl] = Dec(registers[r]);
+#if(DEBUG)
+                        Log("DEC {0}", RName(r));
+#endif
+                        Wait(7);
+                        return;
+                    }
+                case 0x35:
+                    {
+                        // DEC (HL)
+                        _ram[Hl] = Dec(_ram[Hl]);
+#if(DEBUG)
+                        Log("DEC (HL)");
+#endif
+                        Wait(7);
+                        return;
+                    }
+
+
             }
 
 #if(DEBUG)
@@ -1644,6 +1672,18 @@ namespace z80
                         Wait(7);
                         return;
                     }
+                case 0x35:
+                    {
+                        // DEC (IX+d)
+                        var d = (sbyte)Fetch();
+                        _ram[(ushort)(Ix + d)] = Dec(_ram[(ushort)(Ix + d)]);
+#if(DEBUG)
+                        Log("DEC (IX{0:+0;-#})", d);
+#endif
+                        Wait(7);
+                        return;
+                    }
+
             }
 #if(DEBUG)
             Log("DD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -1910,6 +1950,17 @@ namespace z80
                         Wait(7);
                         return;
                     }
+                case 0x35:
+                    {
+                        // DEC (IY+d)
+                        var d = (sbyte)Fetch();
+                        _ram[(ushort)(Iy + d)] = Dec(_ram[(ushort)(Iy + d)]);
+#if(DEBUG)
+                        Log("DEC (IY{0:+0;-#})", d);
+#endif
+                        Wait(7);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("FD {3:X2}: 0x{0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -2031,6 +2082,20 @@ namespace z80
             if ((b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
             f = (byte)(f | 0x02);
             if (sum > 0xFF) f = (byte)(f | 0x01);
+            registers[F] = f;
+
+            return (byte)sum;
+        }
+
+        private byte Dec(byte b)
+        {
+            var sum = b - 1;
+            var f = (byte)(registers[F] & 0x28);
+            if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+            if (sum == 0) f = (byte)(f | 0x40);
+            if ((b & 0x0F) == 0) f = (byte)(f | 0x10);
+            if (b == 0x80) f = (byte)(f | 0x04);
+            f = (byte)(f | 0x02);
             registers[F] = f;
 
             return (byte)sum;

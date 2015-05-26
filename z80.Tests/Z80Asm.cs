@@ -670,5 +670,29 @@ namespace z80.Tests
             Write(0x34);
             Write(displacement);
         }
+
+        public void DecReg(byte register)
+        {
+            Write(0x05 + register * 8);
+        }
+
+        public void DecAddrHl()
+        {
+            Write(0x35);
+        }
+
+        public void DecAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0x35);
+            Write(displacement);
+        }
+
+        public void DecAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0x35);
+            Write(displacement);
+        }
     }
 }
