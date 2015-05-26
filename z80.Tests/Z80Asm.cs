@@ -32,7 +32,7 @@ namespace z80.Tests
 
         private void Write(int value)
         {
-            Write((byte) value);
+            Write((byte)value);
         }
 
         private void Write(byte value)
@@ -48,25 +48,25 @@ namespace z80.Tests
 
         public void LoadRegVal(byte register, byte value)
         {
-            Write(register*8 + 6);
+            Write(register * 8 + 6);
             Write(value);
         }
 
         public void LoadRegReg(byte register, byte register2)
         {
-            Write(register*8 + register2 + 64);
+            Write(register * 8 + register2 + 64);
         }
 
         public void LoadReg16Val(byte register16, ushort value)
         {
-            Write(1 + register16*16);
+            Write(1 + register16 * 16);
             Write(value & 0xFF);
             Write(value >> 8);
         }
 
         public void LoadRegAtHl(byte register)
         {
-            Write(70 + register*8);
+            Write(70 + register * 8);
         }
 
         public void Data(byte value)
@@ -77,7 +77,7 @@ namespace z80.Tests
         public void LoadRegAddrIx(byte register, sbyte displacement)
         {
             Write(0xDD);
-            Write(70 + register*8);
+            Write(70 + register * 8);
             Write(displacement);
         }
 
@@ -92,7 +92,7 @@ namespace z80.Tests
         public void LoadRegAddrIy(byte register, sbyte displacement)
         {
             Write(0xFD);
-            Write(70 + register*8);
+            Write(70 + register * 8);
             Write(displacement);
         }
 
@@ -223,7 +223,7 @@ namespace z80.Tests
         public void LoadReg16Addr(byte register16, ushort address)
         {
             Write(0xED);
-            Write(0x4B + register16*16);
+            Write(0x4B + register16 * 16);
             Write(address & 0xFF);
             Write(address >> 8);
         }
@@ -254,7 +254,7 @@ namespace z80.Tests
         public void LoadAddrReg16(byte register16, ushort address)
         {
             Write(0xED);
-            Write(0x43 + register16*16);
+            Write(0x43 + register16 * 16);
             Write(address & 0xFF);
             Write(address >> 8);
         }
@@ -294,7 +294,7 @@ namespace z80.Tests
 
         public void PushReg16(byte register16)
         {
-            Write(0xC5 + register16*16);
+            Write(0xC5 + register16 * 16);
         }
 
         public void PushIx()
@@ -311,7 +311,7 @@ namespace z80.Tests
 
         public void PopReg16(byte register16)
         {
-            Write(0xC1 + register16*16);
+            Write(0xC1 + register16 * 16);
         }
 
         public void PopIx()
@@ -647,5 +647,28 @@ namespace z80.Tests
             Write(displacement);
         }
 
+        public void IncReg(byte register)
+        {
+            Write(0x04 + register * 8);
+        }
+
+        public void IncAddrHl()
+        {
+            Write(0x34);
+        }
+
+        public void IncAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0x34);
+            Write(displacement);
+        }
+
+        public void IncAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0x34);
+            Write(displacement);
+        }
     }
 }

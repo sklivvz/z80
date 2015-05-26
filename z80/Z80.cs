@@ -863,6 +863,32 @@ namespace z80
                         Wait(7);
                         return;
                     }
+                case 0x04:
+                case 0x0C:
+                case 0x14:
+                case 0x1C:
+                case 0x24:
+                case 0x2C:
+                case 0x3C:
+                    {
+                        // INC r
+                        registers[r] = Inc(registers[r]);
+#if(DEBUG)
+                        Log("INC {0}", RName(r));
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x34:
+                    {
+                        // INC (HL)
+                        _ram[Hl] = Inc(_ram[Hl]);
+#if(DEBUG)
+                        Log("INC (HL)");
+#endif
+                        Wait(7);
+                        return;
+                    }
 
             }
 
@@ -1607,6 +1633,17 @@ namespace z80
                         Wait(19);
                         return;
                     }
+                case 0x34:
+                    {
+                        // INC (IX+d)
+                        var d = (sbyte)Fetch();
+                        _ram[(ushort)(Ix + d)] = Inc(_ram[(ushort)(Ix + d)]);
+#if(DEBUG)
+                        Log("INC (IX{0:+0;-#})", d);
+#endif
+                        Wait(7);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("DD {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -1862,6 +1899,17 @@ namespace z80
                         Wait(19);
                         return;
                     }
+                case 0x34:
+                    {
+                        // INC (IY+d)
+                        var d = (sbyte)Fetch();
+                        _ram[(ushort)(Iy + d)] = Inc(_ram[(ushort)(Iy + d)]);
+#if(DEBUG)
+                        Log("INC (IY{0:+0;-#})", d);
+#endif
+                        Wait(7);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log("FD {3:X2}: 0x{0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
@@ -1973,6 +2021,22 @@ namespace z80
             registers[F] = f;
         }
 
+        private byte Inc(byte b)
+        {
+            var sum = b + 1;
+            var f = (byte)(registers[F] & 0x28);
+            if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
+            if (sum == 0) f = (byte)(f | 0x40);
+            if ((b & 0xF) == 0xF) f = (byte)(f | 0x10);
+            if ((b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
+            f = (byte)(f | 0x02);
+            if (sum > 0xFF) f = (byte)(f | 0x01);
+            registers[F] = f;
+
+            return (byte)sum;
+        }
+
+
         private static bool Parity(ushort value)
         {
             var parity = true;
@@ -2001,7 +2065,7 @@ namespace z80
 
         private ushort Fetch16()
         {
-            return (ushort) (Fetch() + (Fetch() << 8));
+            return (ushort)(Fetch() + (Fetch() << 8));
         }
 
         public void Reset()
