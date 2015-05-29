@@ -169,7 +169,7 @@ namespace z80
                         var n = Fetch();
                         registers[r] = n;
 #if(DEBUG)
-                        Log("LD {0}, {1}", RName(r), n, mc);
+                        Log("LD {0}, 0x{1:X2}", RName(r), n);
 #endif
                         Wait(7);
                         return;
@@ -522,7 +522,7 @@ namespace z80
                         // ADD A, r
                         var a = registers[A];
                         var b = registers[lo];
-                        Add(a, b);
+                        Add(b);
 #if(DEBUG)
                         Log("ADD A, {0}", RName(lo));
 #endif
@@ -534,10 +534,11 @@ namespace z80
                         // ADD A, n
                         var a = registers[A];
                         var b = Fetch();
-                        Add(a, b);
+                        Add(b);
 #if(DEBUG)
-                        Log("ADC A, 0x{0:X2}", b);
+                        Log("ADD A, 0x{0:X2}", b);
 #endif
+                        Wait(4);
                         Wait(4);
                         return;
                     }
@@ -547,7 +548,7 @@ namespace z80
                         var a = registers[A];
                         ushort addr = Hl;
                         var b = _ram[addr];
-                        Add(a, b);
+                        Add(b);
 #if(DEBUG)
                         Log("ADD A, (HL)");
 #endif
@@ -565,7 +566,7 @@ namespace z80
                         // ADC A, r
                         var a = registers[A];
                         var b = registers[lo];
-                        Adc(a, b);
+                        Adc(b);
 #if(DEBUG)
                         Log("ADC A, {0}", RName(lo));
 #endif
@@ -577,7 +578,7 @@ namespace z80
                         // ADC A, n
                         var a = registers[A];
                         var b = Fetch();
-                        Adc(a, b);
+                        Adc(b);
 #if(DEBUG)
                         Log("ADC A, 0x{0:X2}", b);
 #endif
@@ -590,7 +591,7 @@ namespace z80
                         var a = registers[A];
                         ushort addr = Hl;
                         var b = _ram[addr];
-                        Adc(a, b);
+                        Adc(b);
 #if(DEBUG)
                         Log("ADC A, (HL)");
 #endif
@@ -608,7 +609,7 @@ namespace z80
                         // SUB A, r
                         var a = registers[A];
                         var b = registers[lo];
-                        Sub(a, b);
+                        Sub(b);
 #if(DEBUG)
                         Log("SUB A, {0}", RName(lo));
 #endif
@@ -620,7 +621,7 @@ namespace z80
                         // SUB A, n
                         var a = registers[A];
                         var b = Fetch();
-                        Sub(a, b);
+                        Sub(b);
 #if(DEBUG)
                         Log("SUB A, 0x{0:X2}", b);
 #endif
@@ -633,7 +634,7 @@ namespace z80
                         var a = registers[A];
                         ushort addr = Hl;
                         var b = _ram[addr];
-                        Sub(a, b);
+                        Sub(b);
 #if(DEBUG)
                         Log("SUB A, (HL)");
 #endif
@@ -652,7 +653,7 @@ namespace z80
                         var a = registers[A];
                         var b = registers[lo];
                         var c = (byte)(registers[F] & 0x01);
-                        Sbc(a, b);
+                        Sbc(b);
 #if(DEBUG)
                         Log("SBC A, {0}", RName(lo));
 #endif
@@ -665,7 +666,7 @@ namespace z80
                         var a = registers[A];
                         var b = Fetch();
                         var c = (byte)(registers[F] & 0x01);
-                        Sbc(a, b);
+                        Sbc(b);
 #if(DEBUG)
                         Log("SBC A, 0x{0:X2}", b);
 #endif
@@ -675,7 +676,8 @@ namespace z80
                 case 0x9E:
                     {
                         // SBC A, (HL)
-                        Sbc(registers[A], _ram[Hl]);
+                        byte unknown = registers[A];
+                        Sbc(_ram[Hl]);
 #if(DEBUG)
                         Log("SBC A, (HL)");
 #endif
@@ -693,7 +695,8 @@ namespace z80
                     {
                         // AND A, r
                         // http://stackoverflow.com/questions/13548977/ P/V is parity
-                        And(registers[A], registers[lo]);
+                        byte unknown = registers[A];
+                        And(registers[lo]);
 #if(DEBUG)
                         Log("AND A, {0}", RName(lo));
 #endif
@@ -704,7 +707,8 @@ namespace z80
                     {
                         // AND A, n
                         var b = Fetch();
-                        And(registers[A], b);
+                        byte unknown = registers[A];
+                        And(b);
 #if(DEBUG)
                         Log("AND A, 0x{0:X2}", b);
 #endif
@@ -714,7 +718,8 @@ namespace z80
                 case 0xA6:
                     {
                         // AND A, (HL)
-                        And(registers[A], _ram[Hl]);
+                        byte unknown = registers[A];
+                        And(_ram[Hl]);
 #if(DEBUG)
                         Log("AND A, (HL)");
 #endif
@@ -731,7 +736,8 @@ namespace z80
                     {
                         // OR A, r
                         // http://stackoverflow.com/questions/13548977/ P/V is parity
-                        Or(registers[A], registers[lo]);
+                        byte unknown = registers[A];
+                        Or(registers[lo]);
 #if(DEBUG)
                         Log("OR A, {0}", RName(lo));
 #endif
@@ -742,7 +748,8 @@ namespace z80
                     {
                         // OR A, n
                         var b = Fetch();
-                        Or(registers[A], b);
+                        byte unknown = registers[A];
+                        Or(b);
 #if(DEBUG)
                         Log("OR A, 0x{0:X2}", b);
 #endif
@@ -752,7 +759,8 @@ namespace z80
                 case 0xB6:
                     {
                         // OR A, (HL)
-                        Or(registers[A], _ram[Hl]);
+                        byte unknown = registers[A];
+                        Or(_ram[Hl]);
 #if(DEBUG)
                         Log("OR A, (HL)");
 #endif
@@ -769,7 +777,8 @@ namespace z80
                     {
                         // XOR A, r
                         // http://stackoverflow.com/questions/13548977/ P/V is parity
-                        Xor(registers[A], registers[lo]);
+                        byte unknown = registers[A];
+                        Xor(registers[lo]);
 #if(DEBUG)
                         Log("XOR A, {0}", RName(lo));
 #endif
@@ -780,7 +789,8 @@ namespace z80
                     {
                         // XOR A, n
                         var b = Fetch();
-                        Xor(registers[A], b);
+                        byte unknown = registers[A];
+                        Xor(b);
 #if(DEBUG)
                         Log("XOR A, 0x{0:X2}", b);
 #endif
@@ -790,7 +800,8 @@ namespace z80
                 case 0xAE:
                     {
                         // XOR A, (HL)
-                        Xor(registers[A], _ram[Hl]);
+                        byte unknown = registers[A];
+                        Xor(_ram[Hl]);
 #if(DEBUG)
                         Log("XOR A, (HL)");
 #endif
@@ -831,7 +842,7 @@ namespace z80
                         // CP A, r
                         var a = registers[A];
                         var b = registers[lo];
-                        Cmp(a, b);
+                        Cmp(b);
 #if(DEBUG)
                         Log("CP A, {0}", RName(lo));
 #endif
@@ -843,7 +854,7 @@ namespace z80
                         // CP A, n
                         var a = registers[A];
                         var b = Fetch();
-                        Cmp(a, b);
+                        Cmp(b);
 #if(DEBUG)
                         Log("CP A, 0x{0:X2}", b);
 #endif
@@ -856,7 +867,7 @@ namespace z80
                         var a = registers[A];
                         ushort addr = Hl;
                         var b = _ram[addr];
-                        Cmp(a, b);
+                        Cmp(b);
 #if(DEBUG)
                         Log("CP A, (HL)");
 #endif
@@ -899,7 +910,7 @@ namespace z80
                 case 0x3D:
                     {
                         // DEC r
-                        registers[r][Hl] = Dec(registers[r]);
+                        registers[r] = Dec(registers[r]);
 #if(DEBUG)
                         Log("DEC {0}", RName(r));
 #endif
@@ -914,6 +925,26 @@ namespace z80
                         Log("DEC (HL)");
 #endif
                         Wait(7);
+                        return;
+                    }
+                case 0x27:
+                    {
+                        // DAA
+                        var a = registers[A];
+                        var f = registers[F];
+                        if ((a & 0x0F) > 0x09 || (f & (byte)Fl.H) > 0)
+                        {
+                            Add(0x06);
+                            a = registers[A];
+                        }
+                        if ((a & 0xF0) > 0x90 || (f & (byte)Fl.C) > 0)
+                        {
+                            Add(0x60);
+                        }
+#if (DEBUG)
+                        Log("DAA");
+#endif
+                        Wait(4);
                         return;
                     }
 
@@ -1572,7 +1603,8 @@ namespace z80
                     {
                         // ADD A, (IX+d)
                         var d = (sbyte)Fetch();
-                        Add(registers[A], _ram[(ushort)(Ix + d)]);
+                        byte unknown = registers[A];
+                        Add(_ram[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("ADD A, (IX{0:+0;-#})", d);
 #endif
@@ -1583,7 +1615,8 @@ namespace z80
                     {
                         // ADC A, (IX+d)
                         var d = (sbyte)Fetch();
-                        Adc(registers[A], _ram[(ushort)(Ix + d)]);
+                        byte a = registers[A];
+                        Adc(_ram[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("ADC A, (IX{0:+0;-#})", d);
 #endif
@@ -1595,7 +1628,8 @@ namespace z80
                         // SUB A, (IX+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Ix + d)];
-                        Sub(registers[A], b);
+                        byte unknown = registers[A];
+                        Sub(b);
 #if(DEBUG)
                         Log("SUB A, (IX{0:+0;-#})", d);
 #endif
@@ -1606,7 +1640,8 @@ namespace z80
                     {
                         // SBC A, (IX+d)
                         var d = (sbyte)Fetch();
-                        Sbc(registers[A], _ram[(ushort)(Ix + d)]);
+                        byte unknown = registers[A];
+                        Sbc(_ram[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("SBC A, (IX{0:+0;-#})", d);
 #endif
@@ -1618,7 +1653,8 @@ namespace z80
                         // AND A, (IX+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Ix + d)];
-                        And(registers[A], b);
+                        byte unknown = registers[A];
+                        And(b);
 #if(DEBUG)
                         Log("AND A, (IX{0:+0;-#})", d);
 #endif
@@ -1630,7 +1666,8 @@ namespace z80
                         // OR A, (IX+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Ix + d)];
-                        Or(registers[A], b);
+                        byte unknown = registers[A];
+                        Or(b);
 #if(DEBUG)
                         Log("OR A, (IX{0:+0;-#})", d);
 #endif
@@ -1642,7 +1679,8 @@ namespace z80
                         // OR A, (IX+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Ix + d)];
-                        Xor(registers[A], b);
+                        byte unknown = registers[A];
+                        Xor(b);
 #if(DEBUG)
                         Log("XOR A, (IX{0:+0;-#})", d);
 #endif
@@ -1654,7 +1692,8 @@ namespace z80
                         // CP A, (IX+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Ix + d)];
-                        Cmp(registers[A], b);
+                        byte unknown = registers[A];
+                        Cmp(b);
 #if(DEBUG)
                         Log("CP A, (IX{0:+0;-#})", d);
 #endif
@@ -1851,7 +1890,8 @@ namespace z80
                     {
                         // ADD A, (IY+d)
                         var d = (sbyte)Fetch();
-                        Add(registers[A], _ram[(ushort)(Iy + d)]);
+                        byte unknown = registers[A];
+                        Add(_ram[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("ADD A, (IY{0:+0;-#})", d);
 #endif
@@ -1862,7 +1902,8 @@ namespace z80
                     {
                         // ADC A, (IY+d)
                         var d = (sbyte)Fetch();
-                        Adc(registers[A], _ram[(ushort)(Iy + d)]);
+                        byte a = registers[A];
+                        Adc(_ram[(ushort)(Iy + d)]);
 
 #if(DEBUG)
                         Log("ADC A, (IY{0:+0;-#})", d);
@@ -1874,7 +1915,8 @@ namespace z80
                     {
                         // SUB A, (IY+d)
                         var d = (sbyte)Fetch();
-                        Sub(registers[A], _ram[(ushort)(Iy + d)]);
+                        byte unknown = registers[A];
+                        Sub(_ram[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("SUB A, (IY{0:+0;-#})", d);
 #endif
@@ -1885,7 +1927,8 @@ namespace z80
                     {
                         // SBC A, (IY+d)
                         var d = (sbyte)Fetch();
-                        Sbc(registers[A], _ram[(ushort)(Iy + d)]);
+                        byte unknown = registers[A];
+                        Sbc(_ram[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("SBC A, (IY{0:+0;-#})", d);
 #endif
@@ -1897,7 +1940,8 @@ namespace z80
                         // AND A, (IY+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Iy + d)];
-                        And(registers[A], b);
+                        byte unknown = registers[A];
+                        And(b);
 #if(DEBUG)
                         Log("AND A, (IY{0:+0;-#})", d);
 #endif
@@ -1909,7 +1953,8 @@ namespace z80
                         // OR A, (IY+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Iy + d)];
-                        Or(registers[A], b);
+                        byte unknown = registers[A];
+                        Or(b);
 #if(DEBUG)
                         Log("OR A, (IY{0:+0;-#})", d);
 #endif
@@ -1921,7 +1966,8 @@ namespace z80
                         // XOR A, (IY+d)
                         var d = (sbyte)Fetch();
                         var b = _ram[(ushort)(Iy + d)];
-                        Xor(registers[A], b);
+                        byte unknown = registers[A];
+                        Xor(b);
 #if(DEBUG)
                         Log("XOR A, (IY{0:+0;-#})", d);
 #endif
@@ -1932,7 +1978,8 @@ namespace z80
                     {
                         // CP A, (IY+d)
                         var d = (sbyte)Fetch();
-                        Cmp(registers[A], _ram[(ushort)(Iy + d)]);
+                        byte unknown = registers[A];
+                        Cmp(_ram[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("CP A, (IY{0:+0;-#})", d);
 #endif
@@ -1968,37 +2015,39 @@ namespace z80
             Halted = true;
         }
 
-        private void Add(byte a, byte b)
+        private void Add(byte b)
         {
+            var a = registers[A];
             var sum = a + b;
             registers[A] = (byte)sum;
             var f = (byte)(registers[F] & 0x28);
-            if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
-            if (sum == 0) f = (byte)(f | 0x40);
-            if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
-            if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
-            f = (byte)(f | 0x02);
-            if (sum > 0xFF) f = (byte)(f | 0x01);
+            if ((sum & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+            if ((byte)sum == 0) f = (byte)(f | (byte)Fl.Z);
+            if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | (byte)Fl.H);
+            if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | (byte)Fl.PV);
+            if (sum > 0xFF) f = (byte)(f | (byte)Fl.C);
             registers[F] = f;
         }
 
-        private void Adc(byte a, byte b)
+        private void Adc(byte b)
         {
-            var c = (byte)(registers[F] & 0x01);
+            var a = registers[A];
+            var c = (byte)(registers[F] & (byte)Fl.C);
             var sum = a + b + c;
             registers[A] = (byte)sum;
             var f = (byte)(registers[F] & 0x28);
-            if ((sum & 0x80) > 0) f = (byte)(f | 0x80);
-            if (sum == 0) f = (byte)(f | 0x40);
-            if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | 0x10);
-            if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | 0x04);
-            f = (byte)(f | 0x02);
-            if (sum > 0xFF) f = (byte)(f | 0x01);
+            if ((sum & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+            if ((byte)sum == 0) f = (byte)(f | (byte)Fl.Z);
+            if ((a & 0xF + b & 0xF) > 0xF) f = (byte)(f | (byte)Fl.H);
+            if ((a > 0x80 && b > 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0)) f = (byte)(f | (byte)Fl.PV);
+            f = (byte)(f & ~(byte)Fl.N);
+            if (sum > 0xFF) f = (byte)(f | (byte)Fl.C);
             registers[F] = f;
         }
 
-        private void Sub(byte a, byte b)
+        private void Sub(byte b)
         {
+            var a = registers[A];
             var diff = a - b;
             registers[A] = (byte)diff;
             var f = (byte)(registers[F] & 0x28);
@@ -2011,8 +2060,9 @@ namespace z80
             registers[F] = f;
         }
 
-        private void Sbc(byte a, byte b)
+        private void Sbc(byte b)
         {
+            var a = registers[A];
             var c = (byte)(registers[F] & 0x01);
             var diff = a - b - c;
             registers[A] = (byte)diff;
@@ -2026,8 +2076,9 @@ namespace z80
             registers[F] = f;
         }
 
-        private void And(byte a, byte b)
+        private void And(byte b)
         {
+            var a = registers[A];
             var res = (byte)(a & b);
             registers[A] = res;
             var f = (byte)(registers[F] & 0x28);
@@ -2038,8 +2089,9 @@ namespace z80
             registers[F] = f;
         }
 
-        private void Or(byte a, byte b)
+        private void Or(byte b)
         {
+            var a = registers[A];
             var res = (byte)(a | b);
             registers[A] = res;
             var f = (byte)(registers[F] & 0x28);
@@ -2049,8 +2101,9 @@ namespace z80
             registers[F] = f;
         }
 
-        private void Xor(byte a, byte b)
+        private void Xor(byte b)
         {
+            var a = registers[A];
             var res = (byte)(a ^ b);
             registers[A] = res;
             var f = (byte)(registers[F] & 0x28);
@@ -2059,8 +2112,10 @@ namespace z80
             if (Parity(res)) f = (byte)(f | 0x04);
             registers[F] = f;
         }
-        private void Cmp(byte a, byte b)
+
+        private void Cmp(byte b)
         {
+            var a = registers[A];
             var diff = a - b;
             var f = (byte)(registers[F] & 0x28);
             if ((diff & 0x80) > 0) f = (byte)(f | 0x80);

@@ -694,5 +694,10 @@ namespace z80.Tests
             Write(0x35);
             Write(displacement);
         }
+
+        public void Daa()
+        {
+            Write(0x27);
+        }
     }
 }
