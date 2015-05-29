@@ -2192,6 +2192,11 @@ namespace z80
         {
             Array.Clear(registers, 0, registers.Length);
 
+            registers[A] = 0xFF;
+            registers[F] = 0xFF;
+            registers[SP] = 0xFF;
+            registers[SP + 1] = 0xFF;
+
             //A CPU reset forces both the IFF1 and IFF2 to the reset state, which disables interrupts
             IFF1 = false;
             IFF2 = false;

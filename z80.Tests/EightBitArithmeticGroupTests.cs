@@ -2416,10 +2416,10 @@ namespace z80.Tests
         [TestCase(2, 1, 0x01)]
         [TestCase(10, 1, 0x09)]
         [TestCase(16, 1, 0x15)]
-        [TestCase(160, 16, 0x44)]
-        [TestCase(170, 17, 0x53)]
+        [TestCase(0xA0, 0x10, 0x90)]
+        [TestCase(0xAA, 0x11, 0x99)]
         [TestCase(10, 0, 0x10)]
-        [TestCase(100, 1, 0x99)]
+        [TestCase(100, 1, 99)]
         public void Test_DAA_Sub(byte a, byte val, int correct)
         {
             asm.LoadRegVal(7, a);
@@ -2429,6 +2429,7 @@ namespace z80.Tests
 
             en.Run();
 
+            en.DumpRam();
             en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
