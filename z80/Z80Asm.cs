@@ -772,13 +772,13 @@ namespace z80
             Write(0x03 + register16 * 16);
         }
 
-        public void IncIx(byte register16)
+        public void IncIx()
         {
             Write(0xDD);
             Write(0x23);
         }
 
-        public void IncIy(byte register16)
+        public void IncIy()
         {
             Write(0xFD);
             Write(0x23);
@@ -789,13 +789,13 @@ namespace z80
             Write(0x0B + register16 * 16);
         }
 
-        public void DecIx(byte register16)
+        public void DecIx()
         {
             Write(0xDD);
             Write(0x2B);
         }
 
-        public void DecIy(byte register16)
+        public void DecIy()
         {
             Write(0xFD);
             Write(0x2B);

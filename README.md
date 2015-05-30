@@ -15,8 +15,8 @@ The tests are my documentation, the assembler backend is needed to write tests a
 
 ## Status
 
-Progress: **5.3/11 (48%)**  
-Coverage: **95.5%**  
+Progress: **6/12 (50%)**  
+Coverage: **96.8%**  
 Spectrum ROM: **Does not work**, runs up to address `0x0005` (`JP nn`)
 
 The following opcodes are supported
@@ -24,18 +24,18 @@ The following opcodes are supported
 * 8-bit load group (e.g. `LD A, 0x42`)
 * 16-bit load group (e.g. `POP HL`)
 * Exchange, Block Transfer, and Search group (e.g. `EX AF, AF'`)
-* 8-Bit Arithmetic Group (e.g. `ADD`, `SUB`)
+* 8-Bit Arithmetic Group (e.g. `ADD 0x23`)
 * General-Purpose Arithmetic and CPU Control Groups (e.g. `NOP`, `HALT`, ...)
-* 16-Bit Arithmetic Group (`ADD HL, ss`, `ADD IX, pp`, `ADD IY, rr`)
+* 16-Bit Arithmetic Group (e.g. `ADD HL, 0x2D5F`, ...)
 
 The following opcodes are not done
 
-* 16-Bit Arithmetic Group (`ADC HL, ss`, `SBC HL, ss`, `INC ss`, `INC IX`, `INC IY`, `DEC ss`, `DEC IX`, `DEC IY`)
-* Rotate and Shift Group
+* Rotate and Shift Group (`LCA`, `LA`, `RCA`, `RA`, `LC r`, `LC (HL)`, `LC (IX+d)`, `LC (IY+d)`, `L m`, `RC m`, `R m`, `LA m`, `RA m`, `RL m`, `LD`, `RRD`)
 * Bit Set, Reset, and Test Group
 * Jump Group
 * Call and Return Group
 * Input and Output Group
+* Undocumented opcodes
 
 ## The future
 
