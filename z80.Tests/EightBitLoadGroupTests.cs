@@ -498,10 +498,10 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual((byte)val, en.A);
-            Assert.AreEqual(sign, en.FlagS);
-            Assert.AreEqual(zero, en.FlagZ);
-            Assert.AreEqual(false, en.FlagH);
-            Assert.AreEqual(false, en.FlagN);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
         }
 
         [Test]
@@ -533,10 +533,10 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual((byte)val, en.A);
-            Assert.AreEqual(sign, en.FlagS);
-            Assert.AreEqual(zero, en.FlagZ);
-            Assert.AreEqual(false, en.FlagH);
-            Assert.AreEqual(false, en.FlagN);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
         }
     }
 }

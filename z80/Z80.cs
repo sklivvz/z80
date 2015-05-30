@@ -1390,9 +1390,19 @@ namespace z80
                 case 0x44:
                     {
                         // NEG
-                        var a = -registers[A];
-                        registers[A] = (byte)a;
-                        registers[F] |= (byte)(Fl.H | Fl.N);
+                        var a = registers[A];
+                        var diff = -a;
+                        registers[A] = (byte)diff;
+
+                        var f = (byte)(registers[F] & 0x28);
+                        if ((diff & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+                        if (diff == 0) f = (byte)(f | (byte)Fl.Z);
+                        if ((a & 0xF) != 0) f = (byte)(f | (byte)Fl.H);
+                        if (a == 0x80) f = (byte)(f | (byte)Fl.PV);
+                        f = (byte)(f | (byte)Fl.N);
+                        if (diff != 0) f = (byte)(f | (byte)Fl.C);
+                        registers[F] = f;
+
 
 #if (DEBUG)
                         Log("NEG");
@@ -2006,12 +2016,12 @@ namespace z80
             var diff = a - b;
             registers[A] = (byte)diff;
             var f = (byte)(registers[F] & 0x28);
-            if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
-            if (diff == 0) f = (byte)(f | 0x40);
-            if ((a & 0xF) < (b & 0xF)) f = (byte)(f | 0x10);
-            if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
-            f = (byte)(f | 0x02);
-            if (diff > 0xFF) f = (byte)(f | 0x01);
+            if ((diff & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+            if (diff == 0) f = (byte)(f | (byte)Fl.Z);
+            if ((a & 0xF) < (b & 0xF)) f = (byte)(f | (byte)Fl.H);
+            if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | (byte)Fl.PV);
+            f = (byte)(f | (byte)Fl.N);
+            if (diff > 0xFF) f = (byte)(f | (byte)Fl.C);
             registers[F] = f;
         }
 
@@ -2022,12 +2032,12 @@ namespace z80
             var diff = a - b - c;
             registers[A] = (byte)diff;
             var f = (byte)(registers[F] & 0x28);
-            if ((diff & 0x80) > 0) f = (byte)(f | 0x80);
-            if (diff == 0) f = (byte)(f | 0x40);
-            if ((a & 0xF) < (b & 0xF) + c) f = (byte)(f | 0x10);
-            if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | 0x04);
-            f = (byte)(f | 0x02);
-            if (diff > 0xFF) f = (byte)(f | 0x01);
+            if ((diff & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+            if (diff == 0) f = (byte)(f | (byte)Fl.Z);
+            if ((a & 0xF) < (b & 0xF) + c) f = (byte)(f | (byte)Fl.H);
+            if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0)) f = (byte)(f | (byte)Fl.PV);
+            f = (byte)(f | (byte)Fl.N);
+            if (diff > 0xFF) f = (byte)(f | (byte)Fl.C);
             registers[F] = f;
         }
 
@@ -2037,10 +2047,10 @@ namespace z80
             var res = (byte)(a & b);
             registers[A] = res;
             var f = (byte)(registers[F] & 0x28);
-            if ((res & 0x80) > 0) f = (byte)(f | 0x80);
-            if (res == 0) f = (byte)(f | 0x40);
-            f = (byte)(f | 0x10);
-            if (Parity(res)) f = (byte)(f | 0x04);
+            if ((res & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+            if (res == 0) f = (byte)(f | (byte)Fl.Z);
+            f = (byte)(f | (byte)Fl.H);
+            if (Parity(res)) f = (byte)(f | (byte)Fl.PV);
             registers[F] = f;
         }
 
@@ -2050,9 +2060,9 @@ namespace z80
             var res = (byte)(a | b);
             registers[A] = res;
             var f = (byte)(registers[F] & 0x28);
-            if ((res & 0x80) > 0) f = (byte)(f | 0x80);
-            if (res == 0) f = (byte)(f | 0x40);
-            if (Parity(res)) f = (byte)(f | 0x04);
+            if ((res & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+            if (res == 0) f = (byte)(f | (byte)Fl.Z);
+            if (Parity(res)) f = (byte)(f | (byte)Fl.PV);
             registers[F] = f;
         }
 
@@ -2062,9 +2072,9 @@ namespace z80
             var res = (byte)(a ^ b);
             registers[A] = res;
             var f = (byte)(registers[F] & 0x28);
-            if ((res & 0x80) > 0) f = (byte)(f | 0x80);
-            if (res == 0) f = (byte)(f | 0x40);
-            if (Parity(res)) f = (byte)(f | 0x04);
+            if ((res & 0x80) > 0) f = (byte)(f | (byte)Fl.S);
+            if (res == 0) f = (byte)(f | (byte)Fl.Z);
+            if (Parity(res)) f = (byte)(f | (byte)Fl.PV);
             registers[F] = f;
         }
 

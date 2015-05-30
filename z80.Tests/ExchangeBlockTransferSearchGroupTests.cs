@@ -154,7 +154,7 @@ namespace z80.Tests
             Assert.AreEqual(0x88, _ram[0x2222]);
             Assert.IsFalse(en.FlagH);
             Assert.IsFalse(en.FlagN);
-            Assert.AreEqual(bc != 1, en.FlagP);
+            Assert.AreEqual(bc != 1, en.FlagP, "Flag P contained the wrong value");
         }
 
         [Test]
@@ -220,7 +220,7 @@ namespace z80.Tests
             Assert.AreEqual(0x88, _ram[0x2222]);
             Assert.IsFalse(en.FlagH);
             Assert.IsFalse(en.FlagN);
-            Assert.AreEqual(bc != 1, en.FlagP);
+            Assert.AreEqual(bc != 1, en.FlagP, "Flag P contained the wrong value");
         }
 
         [Test]
@@ -287,11 +287,11 @@ namespace z80.Tests
             Assert.AreEqual(a, en.A);
             Assert.AreEqual(0x3F, _ram[0x1111]);
 
-            Assert.AreEqual(a < 0x3f, en.FlagS);
-            Assert.AreEqual(a == 0x3F, en.FlagZ);
+            Assert.AreEqual(a < 0x3f, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(a == 0x3F, en.FlagZ, "Flag Z contained the wrong value");
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 8) == 0, en.FlagH);
-            Assert.AreEqual(bc != 1, en.FlagP);
+            Assert.AreEqual((a & 8) == 0, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(bc != 1, en.FlagP, "Flag P contained the wrong value");
             Assert.IsTrue(en.FlagN);
         }
 
@@ -323,11 +323,11 @@ namespace z80.Tests
             Assert.AreEqual(a, en.A);
 
             var last = _ram[en.HL - 1];
-            Assert.AreEqual(a < last, en.FlagS);
-            Assert.AreEqual(a == last, en.FlagZ);
+            Assert.AreEqual(a < last, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(a == last, en.FlagZ, "Flag Z contained the wrong value");
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 8) < (last & 8), en.FlagH);
-            Assert.AreEqual(en.BC != 0, en.FlagP);
+            Assert.AreEqual((a & 8) < (last & 8), en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(en.BC != 0, en.FlagP, "Flag P contained the wrong value");
             Assert.IsTrue(en.FlagN);
         }
 
@@ -361,11 +361,11 @@ namespace z80.Tests
             Assert.AreEqual(a, en.A);
             Assert.AreEqual(0x3F, _ram[0x1111]);
 
-            Assert.AreEqual(a < 0x3f, en.FlagS);
-            Assert.AreEqual(a == 0x3F, en.FlagZ);
+            Assert.AreEqual(a < 0x3f, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(a == 0x3F, en.FlagZ, "Flag Z contained the wrong value");
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 8) == 0, en.FlagH);
-            Assert.AreEqual(bc != 1, en.FlagP);
+            Assert.AreEqual((a & 8) == 0, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(bc != 1, en.FlagP, "Flag P contained the wrong value");
             Assert.IsTrue(en.FlagN);
         }
 
@@ -397,11 +397,11 @@ namespace z80.Tests
             Assert.AreEqual(a, en.A);
 
             var last = _ram[en.HL + 1];
-            Assert.AreEqual(a < last, en.FlagS);
-            Assert.AreEqual(a == last, en.FlagZ);
+            Assert.AreEqual(a < last, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(a == last, en.FlagZ, "Flag Z contained the wrong value");
             // (hl) has bit 3 set, if a doesn't a borrow occurs from bit 4 (half carry flag)
-            Assert.AreEqual((a & 8) < (last & 8), en.FlagH);
-            Assert.AreEqual(en.BC != 0, en.FlagP);
+            Assert.AreEqual((a & 8) < (last & 8), en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(en.BC != 0, en.FlagP, "Flag P contained the wrong value");
             Assert.IsTrue(en.FlagN);
         }
 

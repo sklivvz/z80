@@ -74,12 +74,12 @@ namespace z80.Tests
             var byteSum = trueSum % 256;
             var sbyteSum = (sbyte)byteSum;
             Assert.AreEqual(byteSum, en.A);
-            Assert.AreEqual(sbyteSum < 0, en.FlagS);
-            Assert.AreEqual(en.A == 0x00, en.FlagZ);
-            Assert.AreEqual(false, en.FlagH);
+            Assert.AreEqual(sbyteSum < 0, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(en.A == 0x00, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
             var overflow = trueSum > 256;
-            Assert.AreEqual(overflow, en.FlagP);
-            Assert.AreEqual(trueSum > 0xFF, en.FlagC);
+            Assert.AreEqual(overflow, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(trueSum > 0xFF, en.FlagC, "Flag C contained the wrong value");
         }
 
         [Test]
@@ -138,12 +138,12 @@ namespace z80.Tests
             var byteSum = trueSum % 256;
             var sbyteSum = (sbyte)byteSum;
             Assert.AreEqual(byteSum, en.A);
-            Assert.AreEqual(sbyteSum < 0, en.FlagS);
-            Assert.AreEqual(en.A == 0x00, en.FlagZ);
-            Assert.AreEqual(false, en.FlagH);
+            Assert.AreEqual(sbyteSum < 0, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(en.A == 0x00, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
             var overflow = trueSum > 256;
-            Assert.AreEqual(overflow, en.FlagP);
-            Assert.AreEqual(trueSum > 0xFF, en.FlagC);
+            Assert.AreEqual(overflow, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(trueSum > 0xFF, en.FlagC, "Flag C contained the wrong value");
         }
 
         [Test]
@@ -161,8 +161,8 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual((byte)(a^0xFF), en.A);
-            Assert.AreEqual(true, en.FlagH);
-            Assert.AreEqual(true, en.FlagN);
+            Assert.AreEqual(true, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
         }
 
         [Test]
@@ -178,10 +178,15 @@ namespace z80.Tests
 
             en.Run();
 
+            var exp = -a;
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual((sbyte)-a, (sbyte)en.A);
-            Assert.AreEqual(true, en.FlagH);
-            Assert.AreEqual(true, en.FlagN);
+            Assert.AreEqual((sbyte)exp, (sbyte)en.A);
+            Assert.AreEqual((sbyte)exp < 0, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(exp == 0, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual((a&15)>0, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(a == 0x80, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(a != 0, en.FlagC, "Flag C contained the wrong value");
         }
 
     }
