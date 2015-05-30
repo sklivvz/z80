@@ -1387,6 +1387,20 @@ namespace z80
                         return;
 
                     }
+                case 0x44:
+                    {
+                        // CPL
+                        var a = -registers[A];
+                        registers[A] = (byte)a;
+                        registers[F] |= (byte)(Fl.H | Fl.N);
+
+#if (DEBUG)
+                        Log("CPL");
+#endif
+                        Wait(4);
+                        return;
+
+                    }
             }
 #if(DEBUG)
             Log("ED {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
