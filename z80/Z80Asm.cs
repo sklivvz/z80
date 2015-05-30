@@ -737,5 +737,68 @@ namespace z80
             Write(0xED);
             Write(0x5E);
         }
+
+        public void AddHlReg16(byte register16)
+        {
+            Write(0x09 + register16 * 16);
+        }
+
+        public void AdcHlReg16(byte register16)
+        {
+            Write(0xED);
+            Write(0x4A + register16 * 16);
+        }
+
+        public void SbcHlReg16(byte register16)
+        {
+            Write(0xED);
+            Write(0x42 + register16 * 16);
+        }
+
+        public void AddIxReg16(byte register16)
+        {
+            Write(0xDD);
+            Write(0x09 + register16 * 16);
+        }
+
+        public void AddIyReg16(byte register16)
+        {
+            Write(0xFD);
+            Write(0x09 + register16 * 16);
+        }
+
+        public void IncReg16(byte register16)
+        {
+            Write(0x03 + register16 * 16);
+        }
+
+        public void IncIx(byte register16)
+        {
+            Write(0xDD);
+            Write(0x23);
+        }
+
+        public void IncIy(byte register16)
+        {
+            Write(0xFD);
+            Write(0x23);
+        }
+
+        public void DecReg16(byte register16)
+        {
+            Write(0x0B + register16 * 16);
+        }
+
+        public void DecIx(byte register16)
+        {
+            Write(0xDD);
+            Write(0x2B);
+        }
+
+        public void DecIy(byte register16)
+        {
+            Write(0xFD);
+            Write(0x2B);
+        }
     }
 }

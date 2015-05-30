@@ -15,8 +15,8 @@ The tests are my documentation, the assembler backend is needed to write tests a
 
 ## Status
 
-Progress: **5/11 (45%)**  
-Coverage: **98.9%**  
+Progress: **5.3/11 (48%)**  
+Coverage: **95.5%**  
 Spectrum ROM: **Does not work**, runs up to address `0x0005` (`JP nn`)
 
 The following opcodes are supported
@@ -26,10 +26,11 @@ The following opcodes are supported
 * Exchange, Block Transfer, and Search group (e.g. `EX AF, AF'`)
 * 8-Bit Arithmetic Group (e.g. `ADD`, `SUB`)
 * General-Purpose Arithmetic and CPU Control Groups (e.g. `NOP`, `HALT`, ...)
+* 16-Bit Arithmetic Group (`ADD HL, ss`, `ADD IX, pp`, `ADD IY, rr`)
 
 The following opcodes are not done
 
-* 16-Bit Arithmetic Group (`ADD HL, ss`, `ADC HL, ss`, `SBC HL, ss`, `ADD IX, pp`, `ADD IY, rr`, `INC ss`, `INC IX`, `INC IY`, `DEC ss`, `DEC IX`, `DEC IY`)
+* 16-Bit Arithmetic Group (`ADC HL, ss`, `SBC HL, ss`, `INC ss`, `INC IX`, `INC IY`, `DEC ss`, `DEC IX`, `DEC IY`)
 * Rotate and Shift Group
 * Bit Set, Reset, and Test Group
 * Jump Group
