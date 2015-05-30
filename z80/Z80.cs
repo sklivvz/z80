@@ -29,7 +29,7 @@ namespace z80
         private const byte IY = 20;
         private const byte SP = 22;
         private const byte PC = 24;
-        private readonly byte[] _ram;
+        private readonly Memory mem;
         private readonly byte[] registers = new byte[26];
         private DateTime _clock = DateTime.UtcNow;
         private bool IFF1;
@@ -43,9 +43,9 @@ namespace z80
         private ushort De => (ushort)((registers[D] << 8) + registers[E]);
 
 
-        public Z80(byte[] ram)
+        public Z80(Memory memory)
         {
-            _ram = ram;
+            mem = memory;
             Reset();
         }
 
@@ -183,11 +183,10 @@ namespace z80
                 case 0x7e:
                     {
                         // LD r, (HL)
+                        registers[r] = mem[Hl];
 #if(DEBUG)
                         Log("LD {0}, (HL)", RName(r));
 #endif
-                        var addr = (registers[H] << 8) + registers[L];
-                        registers[r] = _ram[addr];
                         Wait(7);
                         return;
                     }
@@ -200,11 +199,10 @@ namespace z80
                 case 0x77:
                     {
                         // LD (HL), r
+                        mem[Hl] = registers[lo];
 #if(DEBUG)
                         Log("LD (HL), {0}", RName(lo));
 #endif
-                        var addr = (registers[H] << 8) + registers[L];
-                        _ram[addr] = registers[lo];
                         Wait(7);
                         return;
                     }
@@ -212,11 +210,10 @@ namespace z80
                     {
                         // LD (HL), n
                         var n = Fetch();
+                        mem[Hl] = n;
 #if(DEBUG)
                         Log("LD (HL), {0}", n);
 #endif
-                        var addr = (registers[H] << 8) + registers[L];
-                        _ram[addr] = n;
                         Wait(10);
                         return;
                     }
@@ -230,8 +227,7 @@ namespace z80
                 case 0x0A:
                     {
                         // LD A, (BC)
-                        var addr = (registers[B] << 8) + registers[C];
-                        registers[A] = _ram[addr];
+                        registers[A] = mem[Bc];
 #if(DEBUG)
                         Log("LD A, (BC)");
 #endif
@@ -241,8 +237,7 @@ namespace z80
                 case 0x1A:
                     {
                         // LD A, (DE)
-                        var addr = (registers[D] << 8) + registers[E];
-                        registers[A] = _ram[addr];
+                        registers[A] = mem[De];
 #if(DEBUG)
                         Log("LD A, (DE)");
 #endif
@@ -253,9 +248,9 @@ namespace z80
                     {
                         // LD A, (nn)
                         var addr = Fetch16();
-                        registers[A] = _ram[addr];
+                        registers[A] = mem[addr];
 #if(DEBUG)
-                        Log("LD A, (en.AFp)", addr);
+                        Log("LD A, (0x{0:X4})", addr);
 #endif
                         Wait(13);
                         return;
@@ -263,8 +258,7 @@ namespace z80
                 case 0x02:
                     {
                         // LD (BC), A
-                        var addr = (registers[B] << 8) + registers[C];
-                        _ram[addr] = registers[A];
+                        mem[Bc] = registers[A];
 #if(DEBUG)
                         Log("LD (BC), A");
 #endif
@@ -274,8 +268,7 @@ namespace z80
                 case 0x12:
                     {
                         // LD (DE), A
-                        var addr = (registers[D] << 8) + registers[E];
-                        _ram[addr] = registers[A];
+                        mem[De] = registers[A];
 #if(DEBUG)
                         Log("LD (DE), A");
 #endif
@@ -286,9 +279,9 @@ namespace z80
                     {
                         // LD (nn), A 
                         var addr = Fetch16();
-                        _ram[addr] = registers[A];
+                        mem[addr] = registers[A];
 #if(DEBUG)
-                        Log("LD (0x{0:X4}),A", addr);
+                        Log("LD (0x{0:X4}), A", addr);
 #endif
                         Wait(13);
                         return;
@@ -297,10 +290,10 @@ namespace z80
                     {
                         // LD HL, (nn) 
                         var addr = Fetch16();
-                        registers[H] = _ram[addr + 1];
-                        registers[L] = _ram[addr];
+                        registers[L] = mem[addr++];
+                        registers[H] = mem[addr];
 #if(DEBUG)
-                        Log("LD HL, (0x{0:X4})", addr);
+                        Log("LD HL, (0x{0:X4})", --addr);
 #endif
                         Wait(16);
                         return;
@@ -309,10 +302,10 @@ namespace z80
                     {
                         // LD (nn), HL
                         var addr = Fetch16();
-                        _ram[addr] = registers[L];
-                        _ram[addr + 1] = registers[H];
+                        mem[addr++] = registers[L];
+                        mem[addr] = registers[H];
 #if(DEBUG)
-                        Log("LD (0x{0:X4}), HL", addr);
+                        Log("LD (0x{0:X4}), HL", --addr);
 #endif
                         Wait(16);
                         return;
@@ -333,10 +326,8 @@ namespace z80
                     {
                         // PUSH BC
                         ushort addr = Sp;
-                        addr--;
-                        _ram[addr] = registers[B];
-                        addr--;
-                        _ram[addr] = registers[C];
+                        mem[--addr] = registers[B];
+                        mem[--addr] = registers[C];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -348,11 +339,9 @@ namespace z80
                 case 0xD5:
                     {
                         // PUSH DE
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
-                        addr--;
-                        _ram[addr] = registers[D];
-                        addr--;
-                        _ram[addr] = registers[E];
+                        var addr = Sp;
+                        mem[--addr] = registers[D];
+                        mem[--addr] = registers[E];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -365,10 +354,8 @@ namespace z80
                     {
                         // PUSH HL
                         ushort addr = Sp;
-                        addr--;
-                        _ram[addr] = registers[H];
-                        addr--;
-                        _ram[addr] = registers[L];
+                        mem[--addr] = registers[H];
+                        mem[--addr] = registers[L];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -381,10 +368,8 @@ namespace z80
                     {
                         // PUSH AF
                         ushort addr = Sp;
-                        addr--;
-                        _ram[addr] = registers[A];
-                        addr--;
-                        _ram[addr] = registers[F];
+                        mem[--addr] = registers[A];
+                        mem[--addr] = registers[F];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -397,10 +382,8 @@ namespace z80
                     {
                         // POP BC
                         ushort addr = Sp;
-                        registers[C] = _ram[addr];
-                        addr++;
-                        registers[B] = _ram[addr];
-                        addr++;
+                        registers[C] = mem[addr++];
+                        registers[B] = mem[addr++];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -413,10 +396,8 @@ namespace z80
                     {
                         // POP DE
                         ushort addr = Sp;
-                        registers[E] = _ram[addr];
-                        addr++;
-                        registers[D] = _ram[addr];
-                        addr++;
+                        registers[E] = mem[addr++];
+                        registers[D] = mem[addr++];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -429,10 +410,8 @@ namespace z80
                     {
                         // POP HL
                         ushort addr = Sp;
-                        registers[L] = _ram[addr];
-                        addr++;
-                        registers[H] = _ram[addr];
-                        addr++;
+                        registers[L] = mem[addr++];
+                        registers[H] = mem[addr++];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -445,10 +424,8 @@ namespace z80
                     {
                         // POP AF
                         ushort addr = Sp;
-                        registers[F] = _ram[addr];
-                        addr++;
-                        registers[A] = _ram[addr];
-                        addr++;
+                        registers[F] = mem[addr++];
+                        registers[A] = mem[addr++];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -497,13 +474,15 @@ namespace z80
                 case 0xE3:
                     {
                         // EX (SP), HL
-                        var h = registers[H];
-                        var l = registers[L];
-                        ushort addr = Sp;
-                        registers[L] = _ram[addr];
-                        registers[H] = _ram[addr + 1];
-                        _ram[addr + 1] = h;
-                        _ram[addr] = l;
+                        var addr = Sp;
+
+                        var tmp = registers[L];
+                        registers[L] = mem[addr];
+                        mem[addr++] = tmp;
+
+                        tmp = registers[H];
+                        registers[H] = mem[addr];
+                        mem[addr] = tmp;
 
 #if(DEBUG)
                         Log("EX (SP), HL");
@@ -520,9 +499,7 @@ namespace z80
                 case 0x87:
                     {
                         // ADD A, r
-                        var a = registers[A];
-                        var b = registers[lo];
-                        Add(b);
+                        Add(registers[lo]);
 #if(DEBUG)
                         Log("ADD A, {0}", RName(lo));
 #endif
@@ -532,7 +509,6 @@ namespace z80
                 case 0xC6:
                     {
                         // ADD A, n
-                        var a = registers[A];
                         var b = Fetch();
                         Add(b);
 #if(DEBUG)
@@ -545,10 +521,7 @@ namespace z80
                 case 0x86:
                     {
                         // ADD A, (HL)
-                        var a = registers[A];
-                        ushort addr = Hl;
-                        var b = _ram[addr];
-                        Add(b);
+                        Add(mem[Hl]);
 #if(DEBUG)
                         Log("ADD A, (HL)");
 #endif
@@ -564,9 +537,7 @@ namespace z80
                 case 0x8F:
                     {
                         // ADC A, r
-                        var a = registers[A];
-                        var b = registers[lo];
-                        Adc(b);
+                        Adc(registers[lo]);
 #if(DEBUG)
                         Log("ADC A, {0}", RName(lo));
 #endif
@@ -576,7 +547,6 @@ namespace z80
                 case 0xCE:
                     {
                         // ADC A, n
-                        var a = registers[A];
                         var b = Fetch();
                         Adc(b);
 #if(DEBUG)
@@ -588,10 +558,7 @@ namespace z80
                 case 0x8E:
                     {
                         // ADC A, (HL)
-                        var a = registers[A];
-                        ushort addr = Hl;
-                        var b = _ram[addr];
-                        Adc(b);
+                        Adc(mem[Hl]);
 #if(DEBUG)
                         Log("ADC A, (HL)");
 #endif
@@ -607,9 +574,7 @@ namespace z80
                 case 0x97:
                     {
                         // SUB A, r
-                        var a = registers[A];
-                        var b = registers[lo];
-                        Sub(b);
+                        Sub(registers[lo]);
 #if(DEBUG)
                         Log("SUB A, {0}", RName(lo));
 #endif
@@ -619,7 +584,6 @@ namespace z80
                 case 0xD6:
                     {
                         // SUB A, n
-                        var a = registers[A];
                         var b = Fetch();
                         Sub(b);
 #if(DEBUG)
@@ -631,10 +595,7 @@ namespace z80
                 case 0x96:
                     {
                         // SUB A, (HL)
-                        var a = registers[A];
-                        ushort addr = Hl;
-                        var b = _ram[addr];
-                        Sub(b);
+                        Sub(mem[Hl]);
 #if(DEBUG)
                         Log("SUB A, (HL)");
 #endif
@@ -650,10 +611,7 @@ namespace z80
                 case 0x9F:
                     {
                         // SBC A, r
-                        var a = registers[A];
-                        var b = registers[lo];
-                        var c = (byte)(registers[F] & 0x01);
-                        Sbc(b);
+                        Sbc(registers[lo]);
 #if(DEBUG)
                         Log("SBC A, {0}", RName(lo));
 #endif
@@ -663,9 +621,7 @@ namespace z80
                 case 0xDE:
                     {
                         // SBC A, n
-                        var a = registers[A];
                         var b = Fetch();
-                        var c = (byte)(registers[F] & 0x01);
                         Sbc(b);
 #if(DEBUG)
                         Log("SBC A, 0x{0:X2}", b);
@@ -676,8 +632,7 @@ namespace z80
                 case 0x9E:
                     {
                         // SBC A, (HL)
-                        byte unknown = registers[A];
-                        Sbc(_ram[Hl]);
+                        Sbc(mem[Hl]);
 #if(DEBUG)
                         Log("SBC A, (HL)");
 #endif
@@ -694,8 +649,6 @@ namespace z80
                 case 0xA7:
                     {
                         // AND A, r
-                        // http://stackoverflow.com/questions/13548977/ P/V is parity
-                        byte unknown = registers[A];
                         And(registers[lo]);
 #if(DEBUG)
                         Log("AND A, {0}", RName(lo));
@@ -707,7 +660,7 @@ namespace z80
                     {
                         // AND A, n
                         var b = Fetch();
-                        byte unknown = registers[A];
+
                         And(b);
 #if(DEBUG)
                         Log("AND A, 0x{0:X2}", b);
@@ -718,8 +671,7 @@ namespace z80
                 case 0xA6:
                     {
                         // AND A, (HL)
-                        byte unknown = registers[A];
-                        And(_ram[Hl]);
+                        And(mem[Hl]);
 #if(DEBUG)
                         Log("AND A, (HL)");
 #endif
@@ -735,8 +687,6 @@ namespace z80
                 case 0xB7:
                     {
                         // OR A, r
-                        // http://stackoverflow.com/questions/13548977/ P/V is parity
-                        byte unknown = registers[A];
                         Or(registers[lo]);
 #if(DEBUG)
                         Log("OR A, {0}", RName(lo));
@@ -748,7 +698,6 @@ namespace z80
                     {
                         // OR A, n
                         var b = Fetch();
-                        byte unknown = registers[A];
                         Or(b);
 #if(DEBUG)
                         Log("OR A, 0x{0:X2}", b);
@@ -759,8 +708,7 @@ namespace z80
                 case 0xB6:
                     {
                         // OR A, (HL)
-                        byte unknown = registers[A];
-                        Or(_ram[Hl]);
+                        Or(mem[Hl]);
 #if(DEBUG)
                         Log("OR A, (HL)");
 #endif
@@ -776,8 +724,6 @@ namespace z80
                 case 0xAF:
                     {
                         // XOR A, r
-                        // http://stackoverflow.com/questions/13548977/ P/V is parity
-                        byte unknown = registers[A];
                         Xor(registers[lo]);
 #if(DEBUG)
                         Log("XOR A, {0}", RName(lo));
@@ -789,7 +735,6 @@ namespace z80
                     {
                         // XOR A, n
                         var b = Fetch();
-                        byte unknown = registers[A];
                         Xor(b);
 #if(DEBUG)
                         Log("XOR A, 0x{0:X2}", b);
@@ -800,8 +745,7 @@ namespace z80
                 case 0xAE:
                     {
                         // XOR A, (HL)
-                        byte unknown = registers[A];
-                        Xor(_ram[Hl]);
+                        Xor(mem[Hl]);
 #if(DEBUG)
                         Log("XOR A, (HL)");
 #endif
@@ -840,9 +784,7 @@ namespace z80
                 case 0xBF:
                     {
                         // CP A, r
-                        var a = registers[A];
-                        var b = registers[lo];
-                        Cmp(b);
+                        Cmp(registers[lo]);
 #if(DEBUG)
                         Log("CP A, {0}", RName(lo));
 #endif
@@ -852,7 +794,6 @@ namespace z80
                 case 0xFE:
                     {
                         // CP A, n
-                        var a = registers[A];
                         var b = Fetch();
                         Cmp(b);
 #if(DEBUG)
@@ -864,10 +805,7 @@ namespace z80
                 case 0xBE:
                     {
                         // CP A, (HL)
-                        var a = registers[A];
-                        ushort addr = Hl;
-                        var b = _ram[addr];
-                        Cmp(b);
+                        Cmp(mem[Hl]);
 #if(DEBUG)
                         Log("CP A, (HL)");
 #endif
@@ -893,7 +831,7 @@ namespace z80
                 case 0x34:
                     {
                         // INC (HL)
-                        _ram[Hl] = Inc(_ram[Hl]);
+                        mem[Hl] = Inc(mem[Hl]);
 #if(DEBUG)
                         Log("INC (HL)");
 #endif
@@ -920,7 +858,7 @@ namespace z80
                 case 0x35:
                     {
                         // DEC (HL)
-                        _ram[Hl] = Dec(_ram[Hl]);
+                        mem[Hl] = Dec(mem[Hl]);
 #if(DEBUG)
                         Log("DEC (HL)");
 #endif
@@ -947,8 +885,19 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0x2F:
+                    {
+                        // CPL
+                        registers[A] ^= 0xFF;
+                        registers[F] |= (byte)(Fl.H | Fl.N);
 
+#if (DEBUG)
+                        Log("CPL");
+#endif
+                        Wait(4);
+                        return;
 
+                    }
             }
 
 #if(DEBUG)
@@ -1064,10 +1013,10 @@ namespace z80
                     {
                         // LD BC, (nn)
                         var addr = Fetch16();
-                        registers[B] = _ram[addr + 1];
-                        registers[C] = _ram[addr];
+                        registers[C] = mem[addr++];
+                        registers[B] = mem[addr];
 #if(DEBUG)
-                        Log("LD BC, (0x{0:X4})", addr);
+                        Log("LD BC, (0x{0:X4})", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1077,10 +1026,10 @@ namespace z80
                     {
                         // LD DE, (nn)
                         var addr = Fetch16();
-                        registers[D] = _ram[addr + 1];
-                        registers[E] = _ram[addr];
+                        registers[E] = mem[addr++];
+                        registers[D] = mem[addr];
 #if(DEBUG)
-                        Log("LD DE, (0x{0:X4})", addr);
+                        Log("LD DE, (0x{0:X4})", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1090,10 +1039,10 @@ namespace z80
                     {
                         // LD HL, (nn)
                         var addr = Fetch16();
-                        registers[H] = _ram[addr + 1];
-                        registers[L] = _ram[addr];
+                        registers[L] = mem[addr++];
+                        registers[H] = mem[addr];
 #if(DEBUG)
-                        Log("LD HL, (0x{0:X4})*", addr);
+                        Log("LD HL, (0x{0:X4})*", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1103,10 +1052,10 @@ namespace z80
                     {
                         // LD SP, (nn)
                         var addr = Fetch16();
-                        registers[SP] = _ram[addr + 1];
-                        registers[SP + 1] = _ram[addr];
+                        registers[SP + 1] = mem[addr++];
+                        registers[SP] = mem[addr];
 #if(DEBUG)
-                        Log("LD SP, (0x{0:X4})", addr);
+                        Log("LD SP, (0x{0:X4})", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1116,10 +1065,10 @@ namespace z80
                     {
                         // LD (nn), BC
                         var addr = Fetch16();
-                        _ram[addr + 1] = registers[B];
-                        _ram[addr] = registers[C];
+                        mem[addr++] = registers[C];
+                        mem[addr] = registers[B];
 #if(DEBUG)
-                        Log("LD (0x{0:X4}), BC", addr);
+                        Log("LD (0x{0:X4}), BC", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1129,10 +1078,10 @@ namespace z80
                     {
                         // LD (nn), DE
                         var addr = Fetch16();
-                        _ram[addr + 1] = registers[D];
-                        _ram[addr] = registers[E];
+                        mem[addr++] = registers[E];
+                        mem[addr] = registers[D];
 #if(DEBUG)
-                        Log("LD (0x{0:X4}), DE", addr);
+                        Log("LD (0x{0:X4}), DE", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1142,10 +1091,10 @@ namespace z80
                     {
                         // LD (nn), HL
                         var addr = Fetch16();
-                        _ram[addr + 1] = registers[H];
-                        _ram[addr] = registers[L];
+                        mem[addr++] = registers[L];
+                        mem[addr] = registers[H];
 #if(DEBUG)
-                        Log("LD (0x{0:X4}), HL", addr);
+                        Log("LD (0x{0:X4}), HL", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1155,10 +1104,10 @@ namespace z80
                     {
                         // LD (nn), SP
                         var addr = Fetch16();
-                        _ram[addr + 1] = registers[SP];
-                        _ram[addr] = registers[SP + 1];
+                        mem[addr++] = registers[SP + 1];
+                        mem[addr] = registers[SP];
 #if(DEBUG)
-                        Log("LD (0x{0:X4}), SP", addr);
+                        Log("LD (0x{0:X4}), SP", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1171,7 +1120,7 @@ namespace z80
                         var de = De;
                         var hl = Hl;
 
-                        _ram[de] = _ram[hl];
+                        mem[de] = mem[hl];
                         de++;
                         hl++;
                         bc--;
@@ -1200,7 +1149,7 @@ namespace z80
                         var de = De;
                         var hl = Hl;
 
-                        _ram[de] = _ram[hl];
+                        mem[de] = mem[hl];
                         de++;
                         hl++;
                         bc--;
@@ -1237,7 +1186,7 @@ namespace z80
                         var de = De;
                         var hl = Hl;
 
-                        _ram[de] = _ram[hl];
+                        mem[de] = mem[hl];
                         de--;
                         hl--;
                         bc--;
@@ -1266,7 +1215,7 @@ namespace z80
                         var de = De;
                         var hl = Hl;
 
-                        _ram[de] = _ram[hl];
+                        mem[de] = mem[hl];
                         de--;
                         hl--;
                         bc--;
@@ -1304,7 +1253,7 @@ namespace z80
                         var hl = Hl;
 
                         var a = registers[A];
-                        var b = _ram[hl];
+                        var b = mem[hl];
                         hl++;
                         bc--;
 
@@ -1334,7 +1283,7 @@ namespace z80
                         var hl = Hl;
 
                         var a = registers[A];
-                        var b = _ram[hl];
+                        var b = mem[hl];
                         hl++;
                         bc--;
 
@@ -1375,7 +1324,7 @@ namespace z80
                         var hl = Hl;
 
                         var a = registers[A];
-                        var b = _ram[hl];
+                        var b = mem[hl];
                         hl--;
                         bc--;
 
@@ -1405,7 +1354,7 @@ namespace z80
                         var hl = Hl;
 
                         var a = registers[A];
-                        var b = _ram[hl];
+                        var b = mem[hl];
                         hl--;
                         bc--;
 
@@ -1425,7 +1374,7 @@ namespace z80
 #if(DEBUG)
                             Log("CPDR");
 #endif
-                            Wait(16);
+                            Wait(21);
                             return;
                         }
 
@@ -1476,7 +1425,7 @@ namespace z80
                     {
                         // LD r, (IX+d)
                         var d = (sbyte)Fetch();
-                        registers[r] = _ram[(ushort)(Ix + d)];
+                        registers[r] = mem[(ushort)(Ix + d)];
 #if(DEBUG)
                         Log("LD {0}, (IX{1:+0;-#})", RName(r), d);
 #endif
@@ -1493,7 +1442,7 @@ namespace z80
                     {
                         // LD (IX+d), r
                         var d = (sbyte)Fetch();
-                        _ram[(ushort)(Ix + d)] = registers[lo];
+                        mem[(ushort)(Ix + d)] = registers[lo];
 #if(DEBUG)
                         Log("LD (IX{1:+0;-#}), {0}", RName(lo), d);
 #endif
@@ -1505,7 +1454,7 @@ namespace z80
                         // LD (IX+d), n
                         var d = (sbyte)Fetch();
                         var n = Fetch();
-                        _ram[(ushort)(Ix + d)] = n;
+                        mem[(ushort)(Ix + d)] = n;
 #if(DEBUG)
                         Log("LD (IX{1:+0;-#}), {0}", n, d);
 #endif
@@ -1516,8 +1465,8 @@ namespace z80
                     {
                         // LD IX, (nn)
                         var addr = Fetch16();
-                        registers[IX] = _ram[addr + 1];
-                        registers[IX + 1] = _ram[addr];
+                        registers[IX + 1] = mem[addr++];
+                        registers[IX] = mem[addr];
 #if(DEBUG)
                         Log("LD IX, (0x{0:X4})*", addr);
 #endif
@@ -1529,8 +1478,8 @@ namespace z80
                     {
                         // LD (nn), IX
                         var addr = Fetch16();
-                        _ram[addr] = registers[IX + 1];
-                        _ram[addr + 1] = registers[IX];
+                        mem[addr++] = registers[IX + 1];
+                        mem[addr] = registers[IX];
 #if(DEBUG)
                         Log("LD (0x{0:X4}), IX", addr);
 #endif
@@ -1554,9 +1503,9 @@ namespace z80
                         // PUSH IX
                         var addr = Sp;
                         addr--;
-                        _ram[addr] = registers[IX];
+                        mem[addr] = registers[IX];
                         addr--;
-                        _ram[addr] = registers[IX + 1];
+                        mem[addr] = registers[IX + 1];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -1569,10 +1518,8 @@ namespace z80
                     {
                         // POP IX
                         var addr = Sp;
-                        registers[IX + 1] = _ram[addr];
-                        addr++;
-                        registers[IX] = _ram[addr];
-                        addr++;
+                        registers[IX + 1] = mem[addr++];
+                        registers[IX] = mem[addr++];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -1587,10 +1534,10 @@ namespace z80
                         var h = registers[IX];
                         var l = registers[IX + 1];
                         ushort addr = Sp;
-                        registers[IX + 1] = _ram[addr];
-                        registers[IX] = _ram[addr + 1];
-                        _ram[addr + 1] = h;
-                        _ram[addr] = l;
+                        registers[IX + 1] = mem[addr++];
+                        registers[IX] = mem[addr];
+                        mem[addr--] = h;
+                        mem[addr] = l;
 
 #if(DEBUG)
                         Log("EX (SP), IX");
@@ -1603,8 +1550,8 @@ namespace z80
                     {
                         // ADD A, (IX+d)
                         var d = (sbyte)Fetch();
-                        byte unknown = registers[A];
-                        Add(_ram[(ushort)(Ix + d)]);
+
+                        Add(mem[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("ADD A, (IX{0:+0;-#})", d);
 #endif
@@ -1616,7 +1563,7 @@ namespace z80
                         // ADC A, (IX+d)
                         var d = (sbyte)Fetch();
                         byte a = registers[A];
-                        Adc(_ram[(ushort)(Ix + d)]);
+                        Adc(mem[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("ADC A, (IX{0:+0;-#})", d);
 #endif
@@ -1627,8 +1574,8 @@ namespace z80
                     {
                         // SUB A, (IX+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Ix + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Ix + d)];
+
                         Sub(b);
 #if(DEBUG)
                         Log("SUB A, (IX{0:+0;-#})", d);
@@ -1640,8 +1587,8 @@ namespace z80
                     {
                         // SBC A, (IX+d)
                         var d = (sbyte)Fetch();
-                        byte unknown = registers[A];
-                        Sbc(_ram[(ushort)(Ix + d)]);
+
+                        Sbc(mem[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("SBC A, (IX{0:+0;-#})", d);
 #endif
@@ -1652,8 +1599,8 @@ namespace z80
                     {
                         // AND A, (IX+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Ix + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Ix + d)];
+
                         And(b);
 #if(DEBUG)
                         Log("AND A, (IX{0:+0;-#})", d);
@@ -1665,8 +1612,8 @@ namespace z80
                     {
                         // OR A, (IX+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Ix + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Ix + d)];
+
                         Or(b);
 #if(DEBUG)
                         Log("OR A, (IX{0:+0;-#})", d);
@@ -1678,8 +1625,8 @@ namespace z80
                     {
                         // OR A, (IX+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Ix + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Ix + d)];
+
                         Xor(b);
 #if(DEBUG)
                         Log("XOR A, (IX{0:+0;-#})", d);
@@ -1691,8 +1638,8 @@ namespace z80
                     {
                         // CP A, (IX+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Ix + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Ix + d)];
+
                         Cmp(b);
 #if(DEBUG)
                         Log("CP A, (IX{0:+0;-#})", d);
@@ -1704,7 +1651,7 @@ namespace z80
                     {
                         // INC (IX+d)
                         var d = (sbyte)Fetch();
-                        _ram[(ushort)(Ix + d)] = Inc(_ram[(ushort)(Ix + d)]);
+                        mem[(ushort)(Ix + d)] = Inc(mem[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("INC (IX{0:+0;-#})", d);
 #endif
@@ -1715,7 +1662,7 @@ namespace z80
                     {
                         // DEC (IX+d)
                         var d = (sbyte)Fetch();
-                        _ram[(ushort)(Ix + d)] = Dec(_ram[(ushort)(Ix + d)]);
+                        mem[(ushort)(Ix + d)] = Dec(mem[(ushort)(Ix + d)]);
 #if(DEBUG)
                         Log("DEC (IX{0:+0;-#})", d);
 #endif
@@ -1762,7 +1709,7 @@ namespace z80
                     {
                         // LD r, (IY+d)
                         var d = (sbyte)Fetch();
-                        registers[r] = _ram[(ushort)(Iy + d)];
+                        registers[r] = mem[(ushort)(Iy + d)];
 #if(DEBUG)
                         Log("LD {0}, (IY{1:+0;-#})", RName(r), d);
 #endif
@@ -1779,11 +1726,10 @@ namespace z80
                     {
                         // LD (IY+d), r
                         var d = (sbyte)Fetch();
+                        mem[(ushort)(Iy + d)] = registers[lo];
 #if(DEBUG)
                         Log("LD (IY{1:+0;-#}), {0}", RName(lo), d);
 #endif
-                        var addr = (registers[IY] << 8) + registers[IY + 1] + d;
-                        _ram[addr] = registers[lo];
                         Wait(19);
                         return;
                     }
@@ -1792,11 +1738,10 @@ namespace z80
                         // LD (IY+d), n
                         var d = (sbyte)Fetch();
                         var n = Fetch();
+                        mem[(ushort)(Iy + d)] = n;
 #if(DEBUG)
                         Log("LD (IY{1:+0;-#}), {0}", n, d);
 #endif
-                        var addr = (registers[IY] << 8) + registers[IY + 1] + d;
-                        _ram[addr] = n;
                         Wait(19);
                         return;
                     }
@@ -1804,10 +1749,10 @@ namespace z80
                     {
                         // LD IY, (nn)
                         var addr = Fetch16();
-                        registers[IY] = _ram[addr + 1];
-                        registers[IY + 1] = _ram[addr];
+                        registers[IY + 1] = mem[addr++];
+                        registers[IY] = mem[addr];
 #if(DEBUG)
-                        Log("LD IY, (0x{0:X4})*", addr);
+                        Log("LD IY, (0x{0:X4})*", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1818,10 +1763,10 @@ namespace z80
                     {
                         // LD (nn), IY
                         var addr = Fetch16();
-                        _ram[addr] = registers[IY + 1];
-                        _ram[addr + 1] = registers[IY];
+                        mem[addr++] = registers[IY + 1];
+                        mem[addr] = registers[IY];
 #if(DEBUG)
-                        Log("LD (0x{0:X4}), IY", addr);
+                        Log("LD (0x{0:X4}), IY", --addr);
 #endif
                         Wait(20);
                         return;
@@ -1840,11 +1785,9 @@ namespace z80
                 case 0xE5:
                     {
                         // PUSH IY
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
-                        addr--;
-                        _ram[addr] = registers[IY];
-                        addr--;
-                        _ram[addr] = registers[IY + 1];
+                        var addr = Sp;
+                        mem[--addr] = registers[IY];
+                        mem[--addr] = registers[IY + 1];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -1856,11 +1799,9 @@ namespace z80
                 case 0xE1:
                     {
                         // POP IY
-                        var addr = registers[SP + 1] + (registers[SP] << 8);
-                        registers[IY + 1] = _ram[addr];
-                        addr++;
-                        registers[IY] = _ram[addr];
-                        addr++;
+                        var addr = Sp;
+                        registers[IY + 1] = mem[addr++];
+                        registers[IY] = mem[addr++];
                         registers[SP + 1] = (byte)(addr & 0xFF);
                         registers[SP] = (byte)(addr >> 8);
 #if(DEBUG)
@@ -1875,10 +1816,10 @@ namespace z80
                         var h = registers[IY];
                         var l = registers[IY + 1];
                         ushort addr = Sp;
-                        registers[IY + 1] = _ram[addr];
-                        registers[IY] = _ram[addr + 1];
-                        _ram[addr + 1] = h;
-                        _ram[addr] = l;
+                        registers[IY + 1] = mem[addr];
+                        mem[addr++] = l;
+                        registers[IY] = mem[addr];
+                        mem[addr] = h;
 
 #if(DEBUG)
                         Log("EX (SP), IY");
@@ -1890,8 +1831,8 @@ namespace z80
                     {
                         // ADD A, (IY+d)
                         var d = (sbyte)Fetch();
-                        byte unknown = registers[A];
-                        Add(_ram[(ushort)(Iy + d)]);
+
+                        Add(mem[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("ADD A, (IY{0:+0;-#})", d);
 #endif
@@ -1903,7 +1844,7 @@ namespace z80
                         // ADC A, (IY+d)
                         var d = (sbyte)Fetch();
                         byte a = registers[A];
-                        Adc(_ram[(ushort)(Iy + d)]);
+                        Adc(mem[(ushort)(Iy + d)]);
 
 #if(DEBUG)
                         Log("ADC A, (IY{0:+0;-#})", d);
@@ -1915,8 +1856,8 @@ namespace z80
                     {
                         // SUB A, (IY+d)
                         var d = (sbyte)Fetch();
-                        byte unknown = registers[A];
-                        Sub(_ram[(ushort)(Iy + d)]);
+
+                        Sub(mem[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("SUB A, (IY{0:+0;-#})", d);
 #endif
@@ -1927,8 +1868,8 @@ namespace z80
                     {
                         // SBC A, (IY+d)
                         var d = (sbyte)Fetch();
-                        byte unknown = registers[A];
-                        Sbc(_ram[(ushort)(Iy + d)]);
+
+                        Sbc(mem[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("SBC A, (IY{0:+0;-#})", d);
 #endif
@@ -1939,8 +1880,8 @@ namespace z80
                     {
                         // AND A, (IY+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Iy + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Iy + d)];
+
                         And(b);
 #if(DEBUG)
                         Log("AND A, (IY{0:+0;-#})", d);
@@ -1952,8 +1893,8 @@ namespace z80
                     {
                         // OR A, (IY+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Iy + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Iy + d)];
+
                         Or(b);
 #if(DEBUG)
                         Log("OR A, (IY{0:+0;-#})", d);
@@ -1965,8 +1906,8 @@ namespace z80
                     {
                         // XOR A, (IY+d)
                         var d = (sbyte)Fetch();
-                        var b = _ram[(ushort)(Iy + d)];
-                        byte unknown = registers[A];
+                        var b = mem[(ushort)(Iy + d)];
+
                         Xor(b);
 #if(DEBUG)
                         Log("XOR A, (IY{0:+0;-#})", d);
@@ -1978,8 +1919,8 @@ namespace z80
                     {
                         // CP A, (IY+d)
                         var d = (sbyte)Fetch();
-                        byte unknown = registers[A];
-                        Cmp(_ram[(ushort)(Iy + d)]);
+
+                        Cmp(mem[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("CP A, (IY{0:+0;-#})", d);
 #endif
@@ -1990,7 +1931,7 @@ namespace z80
                     {
                         // INC (IY+d)
                         var d = (sbyte)Fetch();
-                        _ram[(ushort)(Iy + d)] = Inc(_ram[(ushort)(Iy + d)]);
+                        mem[(ushort)(Iy + d)] = Inc(mem[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("INC (IY{0:+0;-#})", d);
 #endif
@@ -2001,7 +1942,7 @@ namespace z80
                     {
                         // DEC (IY+d)
                         var d = (sbyte)Fetch();
-                        _ram[(ushort)(Iy + d)] = Dec(_ram[(ushort)(Iy + d)]);
+                        mem[(ushort)(Iy + d)] = Dec(mem[(ushort)(Iy + d)]);
 #if(DEBUG)
                         Log("DEC (IY{0:+0;-#})", d);
 #endif
@@ -2176,7 +2117,7 @@ namespace z80
         private byte Fetch()
         {
             var pc = (ushort)((registers[PC] << 8) + registers[PC + 1]);
-            var ret = _ram[pc];
+            var ret = mem[pc];
             pc++;
             registers[PC] = (byte)(pc >> 8);
             registers[PC + 1] = (byte)(pc & 0xFF);

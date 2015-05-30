@@ -2,7 +2,7 @@
 
 namespace z80.Tests
 {
-    public class System
+    public class TestSystem
     {
         private const byte _B = 0;
         private const byte _C = 1;
@@ -93,10 +93,10 @@ namespace z80.Tests
             return (ushort)ret;
         }
 
-        public System(byte[] ram)
+        public TestSystem(byte[] ram)
         {
             _ram = ram;
-            _myZ80 = new Z80(_ram);
+            _myZ80 = new Z80(new Memory(ram, 0));
         }
 
         public void Run()

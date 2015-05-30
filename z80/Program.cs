@@ -14,7 +14,7 @@ namespace z80
 
             Array.Copy(inp, ram, 16384);
 
-            var myZ80 = new Z80(ram);
+            var myZ80 = new Z80(new Memory(ram, 16384));
             while (!myZ80.Halted)
             {
                 myZ80.Parse();
