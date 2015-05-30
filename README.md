@@ -29,7 +29,7 @@ The following opcodes are supported
 
 The following opcodes are not done
 
-* 16-Bit Arithmetic Group
+* 16-Bit Arithmetic Group (`ADD HL, ss`, `ADC HL, ss`, `SBC HL, ss`, `ADD IX, pp`, `ADD IY, rr`, `INC ss`, `INC IX`, `INC IY`, `DEC ss`, `DEC IX`, `DEC IY`)
 * Rotate and Shift Group
 * Bit Set, Reset, and Test Group
 * Jump Group
