@@ -34,6 +34,7 @@ namespace z80
         private DateTime _clock = DateTime.UtcNow;
         private bool IFF1;
         private bool IFF2;
+        private int interruptMode;
 
         private ushort Hl => (ushort)(registers[L] + (registers[H] << 8));
         private ushort Sp => (ushort)(registers[SP + 1] + (registers[SP] << 8));
@@ -898,6 +899,33 @@ namespace z80
                         return;
 
                     }
+                case 0x3F:
+                    {
+                        // CCF
+                        registers[F] &= (byte)~(Fl.N);
+                        registers[F] ^= (byte)(Fl.C);
+
+#if (DEBUG)
+                        Log("CCF");
+#endif
+                        Wait(4);
+                        return;
+
+                    }
+                case 0x37:
+                    {
+                        // SCF
+                        registers[F] &= (byte)~(Fl.N);
+                        registers[F] |= (byte)(Fl.C);
+
+#if (DEBUG)
+                        Log("SCF");
+#endif
+                        Wait(4);
+                        return;
+
+                    }
+
             }
 
 #if(DEBUG)
@@ -1407,9 +1435,39 @@ namespace z80
 #if (DEBUG)
                         Log("NEG");
 #endif
-                        Wait(4);
+                        Wait(8);
                         return;
 
+                    }
+                case 0x46:
+                    {
+                        // IM 0
+                        interruptMode = 0;
+#if (DEBUG)
+                        Log("IM 0");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x56:
+                    {
+                        // IM 1
+                        interruptMode = 1;
+#if (DEBUG)
+                        Log("IM 1");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x5E:
+                    {
+                        // IM 2
+                        interruptMode = 2;
+#if (DEBUG)
+                        Log("IM 2");
+#endif
+                        Wait(8);
+                        return;
                     }
             }
 #if(DEBUG)

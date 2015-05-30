@@ -2,7 +2,7 @@
 
 // ReSharper disable InconsistentNaming
 
-namespace z80.Tests
+namespace z80
 {
     public class Z80Asm
     {
@@ -708,6 +708,34 @@ namespace z80.Tests
         {
             Write(0xED);
             Write(0x44);
+        }
+
+        public void Ccf()
+        {
+            Write(0x3F);
+        }
+
+        public void Scf()
+        {
+            Write(0x37);
+        }
+
+        public void Im0()
+        {
+            Write(0xED);
+            Write(0x46);
+        }
+
+        public void Im1()
+        {
+            Write(0xED);
+            Write(0x56);
+        }
+
+        public void Im2()
+        {
+            Write(0xED);
+            Write(0x5E);
         }
     }
 }

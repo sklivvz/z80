@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace z80.Tests
 {
     [TestFixture]
-    public class GeneralPurposeArithmeticCpuControlGroupTests: OpCodeTestBase
+    public class GeneralPurposeArithmeticCpuControlGroupTests : OpCodeTestBase
     {
         [Test]
         public void Test_HALT()
@@ -151,7 +151,7 @@ namespace z80.Tests
         [TestCase(0x08)]
         [TestCase(0x80)]
         [TestCase(0xFF)]
-        public void Test_Cpl(byte a)
+        public void Test_CPL(byte a)
         {
             asm.LoadRegVal(7, a);
             asm.Cpl();
@@ -160,7 +160,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual((byte)(a^0xFF), en.A);
+            Assert.AreEqual((byte)(a ^ 0xFF), en.A);
             Assert.AreEqual(true, en.FlagH, "Flag H contained the wrong value");
             Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
         }
@@ -170,7 +170,7 @@ namespace z80.Tests
         [TestCase(0x08)]
         [TestCase(0x80)]
         [TestCase(0xFF)]
-        public void Test_Neg(byte a)
+        public void Test_NEG(byte a)
         {
             asm.LoadRegVal(7, a);
             asm.Neg();
@@ -183,10 +183,96 @@ namespace z80.Tests
             Assert.AreEqual((sbyte)exp, (sbyte)en.A);
             Assert.AreEqual((sbyte)exp < 0, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(exp == 0, en.FlagZ, "Flag Z contained the wrong value");
-            Assert.AreEqual((a&15)>0, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual((a & 15) > 0, en.FlagH, "Flag H contained the wrong value");
             Assert.AreEqual(a == 0x80, en.FlagP, "Flag P contained the wrong value");
             Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
             Assert.AreEqual(a != 0, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        [TestCase(true, true)]
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        [TestCase(false, false)]
+        public void Test_CCF(bool carry, bool rest)
+        {
+            asm.LoadReg16Val(2, (byte)((carry ? 1 : 0) + (rest ? 254 : 0)));
+            asm.PushReg16(2);
+            asm.PopReg16(3);
+            asm.Ccf();
+            asm.Halt();
+
+            en.Run();
+
+            en.DumpCpu();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(rest, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(rest, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(rest, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(rest, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(!carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        [TestCase(true, true)]
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        [TestCase(false, false)]
+        public void Test_SCF(bool carry, bool rest)
+        {
+            asm.LoadReg16Val(2, (byte)((carry ? 1 : 0) + (rest ? 254 : 0)));
+            asm.PushReg16(2);
+            asm.PopReg16(3);
+            asm.Scf();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(rest, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(rest, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(rest, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(rest, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(true, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        public void Test_IM_0()
+        {
+            asm.Im0();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.Inconclusive("Interrupts are not implemented yet.");
+        }
+
+        [Test]
+        public void Test_IM_1()
+        {
+            asm.Im1();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.Inconclusive("Interrupts are not implemented yet.");
+        }
+
+        [Test]
+        public void Test_IM_2()
+        {
+            asm.Im2();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.Inconclusive("Interrupts are not implemented yet.");
         }
 
     }
