@@ -699,8 +699,12 @@ namespace z80.Tests
         {
             Write(0x27);
         }
-
         public void Cpl()
+        {
+            Write(0x2F);
+        }
+
+        public void Neg()
         {
             Write(0xED);
             Write(0x44);

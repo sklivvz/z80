@@ -1389,13 +1389,13 @@ namespace z80
                     }
                 case 0x44:
                     {
-                        // CPL
+                        // NEG
                         var a = -registers[A];
                         registers[A] = (byte)a;
                         registers[F] |= (byte)(Fl.H | Fl.N);
 
 #if (DEBUG)
-                        Log("CPL");
+                        Log("NEG");
 #endif
                         Wait(4);
                         return;

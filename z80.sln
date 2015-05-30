@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "z80sample", "z80sample\z80sample.csproj", "{030936E3-9AC6-4247-B060-3541C31F0F19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{557C1BBF-10CB-42E3-80D7-83443207AD94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{557C1BBF-10CB-42E3-80D7-83443207AD94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{557C1BBF-10CB-42E3-80D7-83443207AD94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{030936E3-9AC6-4247-B060-3541C31F0F19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{030936E3-9AC6-4247-B060-3541C31F0F19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{030936E3-9AC6-4247-B060-3541C31F0F19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{030936E3-9AC6-4247-B060-3541C31F0F19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

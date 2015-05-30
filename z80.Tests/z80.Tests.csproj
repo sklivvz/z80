@@ -46,6 +46,7 @@
     <Compile Include="EightBitLoadGroupTests.cs" />
     <Compile Include="ExchangeBlockTransferSearchGroupTests.cs" />
     <Compile Include="GeneralPurposeArithmeticCpuControlGroupTests.cs" />
+    <Compile Include="MemoryTests.cs" />
     <Compile Include="OpCodeTestBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SixteenBitLoadGroupTests.cs" />

@@ -151,10 +151,29 @@ namespace z80.Tests
         [TestCase(0x08)]
         [TestCase(0x80)]
         [TestCase(0xFF)]
-        public void Test_CPL(byte a)
+        public void Test_Cpl(byte a)
         {
             asm.LoadRegVal(7, a);
             asm.Cpl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual((byte)(a^0xFF), en.A);
+            Assert.AreEqual(true, en.FlagH);
+            Assert.AreEqual(true, en.FlagN);
+        }
+
+        [Test]
+        [TestCase(0x00)]
+        [TestCase(0x08)]
+        [TestCase(0x80)]
+        [TestCase(0xFF)]
+        public void Test_Neg(byte a)
+        {
+            asm.LoadRegVal(7, a);
+            asm.Neg();
             asm.Halt();
 
             en.Run();

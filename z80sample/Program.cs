@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
+using z80;
 
-namespace z80
+namespace z80Sample
 {
     internal class Program
     {
@@ -25,18 +26,18 @@ namespace z80
             Console.WriteLine(Environment.NewLine + myZ80.DumpState());
             for (var i = 0; i < 0x80; i++)
             {
-                if (i%16 == 0) Console.Write("{0:X4} | ", i);
+                if (i % 16 == 0) Console.Write("{0:X4} | ", i);
                 Console.Write("{0:x2} ", ram[i]);
-                if (i%8 == 7) Console.Write("  ");
-                if (i%16 == 15) Console.WriteLine();
+                if (i % 8 == 7) Console.Write("  ");
+                if (i % 16 == 15) Console.WriteLine();
             }
             Console.WriteLine();
             for (var i = 0x8080; i < 0x80A0; i++)
             {
-                if (i%16 == 0) Console.Write("{0:X4} | ", i);
+                if (i % 16 == 0) Console.Write("{0:X4} | ", i);
                 Console.Write("{0:x2} ", ram[i]);
-                if (i%8 == 7) Console.Write("  ");
-                if (i%16 == 15) Console.WriteLine();
+                if (i % 8 == 7) Console.Write("  ");
+                if (i % 16 == 15) Console.WriteLine();
             }
             Console.ReadLine();
         }
