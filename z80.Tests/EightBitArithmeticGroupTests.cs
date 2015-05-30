@@ -2104,8 +2104,6 @@ namespace z80.Tests
 
             en.Run();
 
-            en.DumpCpu();
-
             Assert.AreEqual(asm.Position, en.PC);
             var trueSum = val + 1;
             var byteSum = trueSum % 256;
@@ -2238,8 +2236,6 @@ namespace z80.Tests
 
             en.Run();
 
-            en.DumpCpu();
-
             Assert.AreEqual(asm.Position, en.PC);
             var trueSum = val - 1;
             var byteSum = trueSum % 256;
@@ -2361,8 +2357,6 @@ namespace z80.Tests
 
             en.Run();
 
-            en.DumpCpu();
-
             Assert.AreEqual(asm.Position, en.PC);
             var trueSum = correct;
             var byteSum = trueSum % 256;
@@ -2428,9 +2422,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-
-            en.DumpRam();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             var trueSum = correct;

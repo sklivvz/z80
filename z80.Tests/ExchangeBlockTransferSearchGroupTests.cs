@@ -145,7 +145,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(bc - 1, en.BC);
@@ -175,7 +174,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x0000, en.BC);
@@ -213,7 +211,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(bc - 1, en.BC);
@@ -243,7 +240,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x0000, en.BC);
@@ -284,7 +280,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(bc - 1, en.BC);
@@ -321,7 +316,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(bc_res, en.BC);
@@ -360,7 +354,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(bc - 1, en.BC);
@@ -397,7 +390,6 @@ namespace z80.Tests
             asm.Halt();
 
             en.Run();
-            en.DumpCpu();
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(bc_res, en.BC);
