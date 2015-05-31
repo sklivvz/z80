@@ -15,23 +15,25 @@ The tests are a translation of the documentation, the assembler backend is neede
 
 ## Usage example
 
-    var ram = new byte[65536];
+```csharp
+var ram = new byte[65536];
 
-    // Load a ROM image
-    Array.Clear(ram, 0, ram.Length);
-    Array.Copy(File.ReadAllBytes("48.rom"), ram, 16384);
+// Load a ROM image
+Array.Clear(ram, 0, ram.Length);
+Array.Copy(File.ReadAllBytes("48.rom"), ram, 16384);
 
-    // Set up memory layout
-    var myZ80 = new Z80(new Memory(ram, 16384));
+// Set up memory layout
+var myZ80 = new Z80(new Memory(ram, 16384));
 
-    // Run
-    while (!myZ80.Halted)
-    {
-        myZ80.Parse();
-    }
+// Run
+while (!myZ80.Halted)
+{
+    myZ80.Parse();
+}
 
-    // Show the registers
-    Console.WriteLine(myZ80.DumpState());
+// Show the registers
+Console.WriteLine(myZ80.DumpState());
+```
 
 ## Status
 
