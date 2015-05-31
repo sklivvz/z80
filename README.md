@@ -90,7 +90,7 @@ The following resources have bee useful documentation:
 
 ## License
 
-Copyright (c) 2015, Marco Cecconi  
+Copyright &copy; 2015, Marco Cecconi  
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -105,4 +105,4 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 ### ZX Spectrum 48k ROM image
 
-The ZX Spectrue 48k rom is (c) Copyright Amstrad. Amstrad have kindly given their permission for the redistribution of their copyrighted material but retain that copyright.
+The ZX Spectrum 48k ROM is &copy; copyright Amstrad Ltd. Amstrad have kindly given their permission for the redistribution of their copyrighted material but retain that copyright.
