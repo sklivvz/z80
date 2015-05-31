@@ -3,7 +3,7 @@ A csharp z80 emulator.
 
 ## The project
 
-THe project's goal is to write a Z80 emulator that works in real time.
+The project's goal is to write a Z80 emulator that works in real time.
 
 At the moment, I'm working in parallel on:
 
