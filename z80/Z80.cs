@@ -1042,6 +1042,69 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0x07:
+                    {
+                        var a = registers[A];
+                        var c = (byte)((a & 0x80) >> 7);
+                        a <<= 1;
+                        registers[A] = a;
+                        registers[F] &= (byte)~(Fl.H | Fl.N | Fl.C);
+                        registers[F] |= c;
+#if (DEBUG)
+                        Log("RLCA");
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x17:
+                    {
+                        var a = registers[A];
+                        var c = (byte)((a & 0x80) >> 7);
+                        a <<= 1;
+                        var f = registers[F];
+                        a |= (byte)(f & (byte)Fl.C);
+                        registers[A] = a;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C);
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RLCA");
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x0F:
+                    {
+                        var a = registers[A];
+                        var c = (byte)(a & 0x01);
+                        a >>= 1;
+                        registers[A] = a;
+                        registers[F] &= (byte)~(Fl.H | Fl.N | Fl.C);
+                        registers[F] |= c;
+#if (DEBUG)
+                        Log("RLCA");
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x1F:
+                    {
+                        var a = registers[A];
+                        var c = (byte)(a & 0x01);
+                        a >>= 1;
+                        var f = registers[F];
+                        a |= (byte)((f & (byte)Fl.C) << 7);
+                        registers[A] = a;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C);
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RLCA");
+#endif
+                        Wait(4);
+                        return;
+                    }
+
             }
 
 #if(DEBUG)
@@ -1128,7 +1191,7 @@ namespace z80
                 f |= (byte)Fl.H;
             if (diff > short.MaxValue || diff < short.MinValue)
                 f |= (byte)Fl.PV;
-            if ((ushort) diff > value1)
+            if ((ushort)diff > value1)
                 f |= (byte)Fl.C;
             registers[F] = f;
             return (ushort)diff;

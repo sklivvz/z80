@@ -800,5 +800,25 @@ namespace z80
             Write(0xFD);
             Write(0x2B);
         }
+
+        public void Rlca()
+        {
+            Write(0x07);
+        }
+
+        public void Rla()
+        {
+            Write(0x17);
+        }
+
+        public void Rrca()
+        {
+            Write(0x0F);
+        }
+
+        public void Rra()
+        {
+            Write(0x1F);
+        }
     }
 }

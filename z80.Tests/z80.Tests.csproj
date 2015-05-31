@@ -49,6 +49,7 @@
     <Compile Include="MemoryTests.cs" />
     <Compile Include="OpCodeTestBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RotateShiftGroupTests.cs" />
     <Compile Include="SixteenBitArithmeticGroupTests.cs" />
     <Compile Include="SixteenBitLoadGroupTests.cs" />
     <Compile Include="TestSystem.cs" />
