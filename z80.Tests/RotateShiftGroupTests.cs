@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
+using System.Linq.Expressions;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace z80.Tests
 {
@@ -93,7 +96,7 @@ namespace z80.Tests
 
             en.Run();
 
-            en.DumpRam();
+
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(res, en.A);
@@ -102,5 +105,646 @@ namespace z80.Tests
             Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
         }
 
+        [Test]
+        #region testcases
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x01, 0x02, false, false, false, false)]
+        [TestCase(0, 0x81, 0x02, true, false, false, false)]
+        [TestCase(0, 0x42, 0x84, false, false, true, true)]
+        [TestCase(1, 0x84, 0x08, true, false, false, false)]
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x01, 0x02, false, false, false, false)]
+        [TestCase(1, 0x81, 0x02, true, false, false, false)]
+        [TestCase(2, 0x42, 0x84, false, false, true, true)]
+        [TestCase(2, 0x84, 0x08, true, false, false, false)]
+        [TestCase(2, 0x00, 0x00, false, true, false, true)]
+        [TestCase(2, 0x01, 0x02, false, false, false, false)]
+        [TestCase(3, 0x81, 0x02, true, false, false, false)]
+        [TestCase(3, 0x42, 0x84, false, false, true, true)]
+        [TestCase(3, 0x84, 0x08, true, false, false, false)]
+        [TestCase(3, 0x00, 0x00, false, true, false, true)]
+        [TestCase(4, 0x01, 0x02, false, false, false, false)]
+        [TestCase(4, 0x81, 0x02, true, false, false, false)]
+        [TestCase(4, 0x42, 0x84, false, false, true, true)]
+        [TestCase(4, 0x84, 0x08, true, false, false, false)]
+        [TestCase(5, 0x00, 0x00, false, true, false, true)]
+        [TestCase(5, 0x01, 0x02, false, false, false, false)]
+        [TestCase(5, 0x81, 0x02, true, false, false, false)]
+        [TestCase(5, 0x42, 0x84, false, false, true, true)]
+        [TestCase(5, 0x84, 0x08, true, false, false, false)]
+        [TestCase(7, 0x00, 0x00, false, true, false, true)]
+        [TestCase(7, 0x01, 0x02, false, false, false, false)]
+        [TestCase(7, 0x81, 0x02, true, false, false, false)]
+        [TestCase(7, 0x42, 0x84, false, false, true, true)]
+        [TestCase(7, 0x84, 0x08, true, false, false, false)]
+        #endregion
+        public void Test_RLC_r(byte register, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadRegVal(register, reg);
+            asm.RlcReg(register);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, en.Reg8(register));
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x00, 0x00, false, true, false, true)]
+        [TestCase(0x01, 0x02, false, false, false, false)]
+        [TestCase(0x81, 0x02, true, false, false, false)]
+        [TestCase(0x42, 0x84, false, false, true, true)]
+        [TestCase(0x84, 0x08, true, false, false, false)]
+        #endregion
+        public void Test_RLC_HL(byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(reg);
+            asm.RlcAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x01, 0x02, false, false, false, false)]
+        [TestCase(-1, 0x81, 0x02, true, false, false, false)]
+        [TestCase(-1, 0x42, 0x84, false, false, true, true)]
+        [TestCase(-1, 0x84, 0x08, true, false, false, false)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x01, 0x02, false, false, false, false)]
+        [TestCase(0, 0x81, 0x02, true, false, false, false)]
+        [TestCase(0, 0x42, 0x84, false, false, true, true)]
+        [TestCase(0, 0x84, 0x08, true, false, false, false)]
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x01, 0x02, false, false, false, false)]
+        [TestCase(1, 0x81, 0x02, true, false, false, false)]
+        [TestCase(1, 0x42, 0x84, false, false, true, true)]
+        [TestCase(1, 0x84, 0x08, true, false, false, false)]
+        #endregion
+        public void Test_RLC_IX_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIxVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RlcAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+        [Test]
+        #region testcases
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x01, 0x02, false, false, false, false)]
+        [TestCase(-1, 0x81, 0x02, true, false, false, false)]
+        [TestCase(-1, 0x42, 0x84, false, false, true, true)]
+        [TestCase(-1, 0x84, 0x08, true, false, false, false)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x01, 0x02, false, false, false, false)]
+        [TestCase(0, 0x81, 0x02, true, false, false, false)]
+        [TestCase(0, 0x42, 0x84, false, false, true, true)]
+        [TestCase(0, 0x84, 0x08, true, false, false, false)]
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x01, 0x02, false, false, false, false)]
+        [TestCase(1, 0x81, 0x02, true, false, false, false)]
+        [TestCase(1, 0x42, 0x84, false, false, true, true)]
+        [TestCase(1, 0x84, 0x08, true, false, false, false)]
+        #endregion
+        public void Test_RLC_IY_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIyVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RlcAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x01, 0x02, false, false, false, false)]
+        [TestCase(0, 0x81, 0x02, true, false, false, false)]
+        [TestCase(0, 0x42, 0x84, false, false, true, true)]
+        [TestCase(1, 0x84, 0x08, true, false, false, false)]
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x01, 0x02, false, false, false, false)]
+        [TestCase(1, 0x81, 0x02, true, false, false, false)]
+        [TestCase(2, 0x42, 0x84, false, false, true, true)]
+        [TestCase(2, 0x84, 0x08, true, false, false, false)]
+        [TestCase(2, 0x00, 0x00, false, true, false, true)]
+        [TestCase(2, 0x01, 0x02, false, false, false, false)]
+        [TestCase(3, 0x81, 0x02, true, false, false, false)]
+        [TestCase(3, 0x42, 0x84, false, false, true, true)]
+        [TestCase(3, 0x84, 0x08, true, false, false, false)]
+        [TestCase(3, 0x00, 0x00, false, true, false, true)]
+        [TestCase(4, 0x01, 0x02, false, false, false, false)]
+        [TestCase(4, 0x81, 0x02, true, false, false, false)]
+        [TestCase(4, 0x42, 0x84, false, false, true, true)]
+        [TestCase(4, 0x84, 0x08, true, false, false, false)]
+        [TestCase(5, 0x00, 0x00, false, true, false, true)]
+        [TestCase(5, 0x01, 0x02, false, false, false, false)]
+        [TestCase(5, 0x81, 0x02, true, false, false, false)]
+        [TestCase(5, 0x42, 0x84, false, false, true, true)]
+        [TestCase(5, 0x84, 0x08, true, false, false, false)]
+        [TestCase(7, 0x00, 0x00, false, true, false, true)]
+        [TestCase(7, 0x01, 0x02, false, false, false, false)]
+        [TestCase(7, 0x81, 0x02, true, false, false, false)]
+        [TestCase(7, 0x42, 0x84, false, false, true, true)]
+        [TestCase(7, 0x84, 0x08, true, false, false, false)]
+        #endregion
+        public void Test_RL_r(byte register, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadRegVal(register, reg);
+            asm.RlReg(register);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, en.Reg8(register));
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x00, 0x01, false, false, false, false)]
+        [TestCase(0x01, 0x03, false, false, false, true)]
+        [TestCase(0x81, 0x03, true, false, false, true)]
+        [TestCase(0x42, 0x85, false, false, true, false)]
+        [TestCase(0x84, 0x09, true, false, false, true)]
+        #endregion
+        public void Test_RL_HL(byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Scf();
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(reg);
+            asm.RlAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(-1, 0x00, 0x01, false, false, false, false)]
+        [TestCase(-1, 0x01, 0x03, false, false, false, true)]
+        [TestCase(-1, 0x81, 0x03, true, false, false, true)]
+        [TestCase(-1, 0x42, 0x85, false, false, true, false)]
+        [TestCase(-1, 0x84, 0x09, true, false, false, true)]
+        [TestCase(0, 0x00, 0x01, false, false, false, false)]
+        [TestCase(0, 0x01, 0x03, false, false, false, true)]
+        [TestCase(0, 0x81, 0x03, true, false, false, true)]
+        [TestCase(0, 0x42, 0x85, false, false, true, false)]
+        [TestCase(0, 0x84, 0x09, true, false, false, true)]
+        [TestCase(1, 0x00, 0x01, false, false, false, false)]
+        [TestCase(1, 0x01, 0x03, false, false, false, true)]
+        [TestCase(1, 0x81, 0x03, true, false, false, true)]
+        [TestCase(1, 0x42, 0x85, false, false, true, false)]
+        [TestCase(1, 0x84, 0x09, true, false, false, true)]
+        #endregion
+        public void Test_RL_IX_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Scf();
+            asm.LoadIxVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RlAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+        [Test]
+        #region testcases
+        [TestCase(-1, 0x00, 0x01, false, false, false, false)]
+        [TestCase(-1, 0x01, 0x03, false, false, false, true)]
+        [TestCase(-1, 0x81, 0x03, true, false, false, true)]
+        [TestCase(-1, 0x42, 0x85, false, false, true, false)]
+        [TestCase(-1, 0x84, 0x09, true, false, false, true)]
+        [TestCase(0, 0x00, 0x01, false, false, false, false)]
+        [TestCase(0, 0x01, 0x03, false, false, false, true)]
+        [TestCase(0, 0x81, 0x03, true, false, false, true)]
+        [TestCase(0, 0x42, 0x85, false, false, true, false)]
+        [TestCase(0, 0x84, 0x09, true, false, false, true)]
+        [TestCase(1, 0x00, 0x01, false, false, false, false)]
+        [TestCase(1, 0x01, 0x03, false, false, false, true)]
+        [TestCase(1, 0x81, 0x03, true, false, false, true)]
+        [TestCase(1, 0x42, 0x85, false, false, true, false)]
+        [TestCase(1, 0x84, 0x09, true, false, false, true)]
+        #endregion
+        public void Test_RL_IY_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Scf();
+            asm.LoadIyVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RlAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(1, 0x81, 0x20, false, false, false, false)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(2, 0x00, 0x00, false, true, false, true)]
+        [TestCase(2, 0x80, 0x20, false, false, false, false)]
+        [TestCase(2, 0x81, 0x20, false, false, false, false)]
+        [TestCase(2, 0x42, 0x10, true, false, false, false)]
+        [TestCase(2, 0x21, 0x08, false, false, false, false)]
+        [TestCase(3, 0x00, 0x00, false, true, false, true)]
+        [TestCase(3, 0x80, 0x20, false, false, false, false)]
+        [TestCase(3, 0x81, 0x20, false, false, false, false)]
+        [TestCase(3, 0x42, 0x10, true, false, false, false)]
+        [TestCase(3, 0x21, 0x08, false, false, false, false)]
+        [TestCase(4, 0x00, 0x00, false, true, false, true)]
+        [TestCase(4, 0x80, 0x20, false, false, false, false)]
+        [TestCase(4, 0x81, 0x20, false, false, false, false)]
+        [TestCase(4, 0x42, 0x10, true, false, false, false)]
+        [TestCase(4, 0x21, 0x08, false, false, false, false)]
+        [TestCase(5, 0x00, 0x00, false, true, false, true)]
+        [TestCase(5, 0x80, 0x20, false, false, false, false)]
+        [TestCase(5, 0x81, 0x20, false, false, false, false)]
+        [TestCase(5, 0x42, 0x10, true, false, false, false)]
+        [TestCase(5, 0x21, 0x08, false, false, false, false)]
+        [TestCase(7, 0x00, 0x00, false, true, false, true)]
+        [TestCase(7, 0x80, 0x20, false, false, false, false)]
+        [TestCase(7, 0x81, 0x20, false, false, false, false)]
+        [TestCase(7, 0x42, 0x10, true, false, false, false)]
+        [TestCase(7, 0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_RRC_r(byte register, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadRegVal(register, reg);
+            asm.RrcReg(register);
+            asm.RrcReg(register);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, en.Reg8(register));
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x00, 0x00, false, true, false, true)]
+        [TestCase(0x80, 0x20, false, false, false, false)]
+        [TestCase(0x81, 0x20, false, false, false, false)]
+        [TestCase(0x42, 0x10, true, false, false, false)]
+        [TestCase(0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_RRC_HL(byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(reg);
+            asm.RrcAddrHl();
+            asm.RrcAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(1, 0x81, 0x20, false, false, false, false)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(-1, 0x81, 0x20, false, false, false, false)]
+        [TestCase(-1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(-1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x80, 0x20, false, false, false, false)]
+        [TestCase(0, 0x81, 0x20, false, false, false, false)]
+        [TestCase(0, 0x42, 0x10, true, false, false, false)]
+        [TestCase(0, 0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_RRC_IX_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIxVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RrcAddrIx(disp);
+            asm.RrcAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(1, 0x81, 0x20, false, false, false, false)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(-1, 0x81, 0x20, false, false, false, false)]
+        [TestCase(-1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(-1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x80, 0x20, false, false, false, false)]
+        [TestCase(0, 0x81, 0x20, false, false, false, false)]
+        [TestCase(0, 0x42, 0x10, true, false, false, false)]
+        [TestCase(0, 0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_RRC_IY_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIyVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RrcAddrIy(disp);
+            asm.RrcAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x80, 0x20, false, false, false, false)]
+        [TestCase(0, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(0, 0x42, 0x10, true, false, false, false)]
+        [TestCase(0, 0x21, 0x88, false, false, true, true)]
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(1, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x88, false, false, true, true)]
+        [TestCase(2, 0x00, 0x00, false, true, false, true)]
+        [TestCase(2, 0x80, 0x20, false, false, false, false)]
+        [TestCase(2, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(2, 0x42, 0x10, true, false, false, false)]
+        [TestCase(2, 0x21, 0x88, false, false, true, true)]
+        [TestCase(3, 0x00, 0x00, false, true, false, true)]
+        [TestCase(3, 0x80, 0x20, false, false, false, false)]
+        [TestCase(3, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(3, 0x42, 0x10, true, false, false, false)]
+        [TestCase(3, 0x21, 0x88, false, false, true, true)]
+        [TestCase(4, 0x00, 0x00, false, true, false, true)]
+        [TestCase(4, 0x80, 0x20, false, false, false, false)]
+        [TestCase(4, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(4, 0x42, 0x10, true, false, false, false)]
+        [TestCase(4, 0x21, 0x88, false, false, true, true)]
+        [TestCase(5, 0x00, 0x00, false, true, false, true)]
+        [TestCase(5, 0x80, 0x20, false, false, false, false)]
+        [TestCase(5, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(5, 0x42, 0x10, true, false, false, false)]
+        [TestCase(5, 0x21, 0x88, false, false, true, true)]
+        [TestCase(7, 0x00, 0x00, false, true, false, true)]
+        [TestCase(7, 0x80, 0x20, false, false, false, false)]
+        [TestCase(7, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(7, 0x42, 0x10, true, false, false, false)]
+        [TestCase(7, 0x21, 0x88, false, false, true, true)]
+        #endregion
+        public void Test_RR_r(byte register, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadRegVal(register, reg);
+            asm.RrReg(register);
+            asm.RrReg(register);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, en.Reg8(register));
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x00, 0x00, false, true, false, true)]
+        [TestCase(0x80, 0x20, false, false, false, false)]
+        [TestCase(0x81, 0xA0, false, false, true, true)]
+        [TestCase(0x42, 0x10, true, false, false, false)]
+        [TestCase(0x21, 0x88, false, false, true, true)]
+        #endregion
+        public void Test_RR_HL(byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(reg);
+            asm.RrAddrHl();
+            asm.RrAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(1, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x88, false, false, true, true)]
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(-1, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(-1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(-1, 0x21, 0x88, false, false, true, true)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x80, 0x20, false, false, false, false)]
+        [TestCase(0, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(0, 0x42, 0x10, true, false, false, false)]
+        [TestCase(0, 0x21, 0x88, false, false, true, true)]
+        #endregion
+        public void Test_RR_IX_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIxVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RrAddrIx(disp);
+            asm.RrAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(1, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x88, false, false, true, true)]
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x80, 0x20, false, false, false, false)]
+        [TestCase(-1, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(-1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(-1, 0x21, 0x88, false, false, true, true)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x80, 0x20, false, false, false, false)]
+        [TestCase(0, 0x81, 0xA0, false, false, true, true)]
+        [TestCase(0, 0x42, 0x10, true, false, false, false)]
+        [TestCase(0, 0x21, 0x88, false, false, true, true)]
+        #endregion
+        public void Test_RR_IY_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIyVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.RrAddrIy(disp);
+            asm.RrAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
     }
+
 }

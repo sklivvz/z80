@@ -59,6 +59,9 @@ namespace z80
             var r = (byte)((mc >> 3) & 0x07);
             switch (mc)
             {
+                case 0xCB:
+                    ParseCB();
+                    return;
                 case 0xDD:
                     ParseDD();
                     return;
@@ -1068,7 +1071,7 @@ namespace z80
                         f |= c;
                         registers[F] = f;
 #if (DEBUG)
-                        Log("RLCA");
+                        Log("RLA");
 #endif
                         Wait(4);
                         return;
@@ -1082,7 +1085,7 @@ namespace z80
                         registers[F] &= (byte)~(Fl.H | Fl.N | Fl.C);
                         registers[F] |= c;
 #if (DEBUG)
-                        Log("RLCA");
+                        Log("RRCA");
 #endif
                         Wait(4);
                         return;
@@ -1099,7 +1102,7 @@ namespace z80
                         f |= c;
                         registers[F] = f;
 #if (DEBUG)
-                        Log("RLCA");
+                        Log("RRA");
 #endif
                         Wait(4);
                         return;
@@ -1109,6 +1112,413 @@ namespace z80
 
 #if(DEBUG)
             Log("{3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
+            //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
+#endif
+            Halted = true;
+        }
+
+        private void ParseCB(byte mode = 00)
+        {
+            if (Halted) return;
+            var mc = Fetch();
+            var hi = (byte)(mc >> 6);
+            var lo = (byte)(mc & 0x07);
+            var r = (byte)((mc >> 3) & 0x07);
+
+
+            switch (mc)
+            {
+                case 0x00:
+                case 0x01:
+                case 0x02:
+                case 0x03:
+                case 0x04:
+                case 0x05:
+                case 0x07:
+                    {
+                        var reg = registers[lo];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        registers[lo] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log($"RLC {RName(lo)}");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x06:
+                    {
+
+                        var reg = mem[Hl];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        mem[Hl] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log("RLC (HL)");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x10:
+                case 0x11:
+                case 0x12:
+                case 0x13:
+                case 0x14:
+                case 0x15:
+                case 0x17:
+                    {
+                        var reg = registers[lo];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        var f = registers[F];
+                        reg |= (byte)(f & (byte)Fl.C);
+                        registers[lo] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"RL {RName(lo)}");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x16:
+                    {
+                        var reg = mem[Hl];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        var f = registers[F];
+                        reg |= (byte)(f & (byte)Fl.C);
+                        mem[Hl] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RL (HL)");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x08:
+                case 0x09:
+                case 0x0A:
+                case 0x0B:
+                case 0x0C:
+                case 0x0D:
+                case 0x0F:
+                    {
+                        var reg = registers[lo];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        registers[lo] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RRC " + RName(lo));
+#endif
+                        Wait(2);
+                        return;
+                    }
+                case 0x0E:
+                    {
+                        var reg = mem[Hl];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        mem[Hl] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RRC (HL)");
+#endif
+                        Wait(4);
+                        return;
+                    }
+                case 0x18:
+                case 0x19:
+                case 0x1A:
+                case 0x1B:
+                case 0x1C:
+                case 0x1D:
+                case 0x1F:
+                    {
+                        var reg = registers[lo];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        var f = registers[F];
+                        reg |= (byte)((f & (byte)Fl.C) << 7);
+                        registers[lo] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RR " + RName(lo));
+#endif
+                        Wait(2);
+                        return;
+                    }
+                case 0x1E:
+                    {
+                        var reg = mem[Hl];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        var f = registers[F];
+                        reg |= (byte)((f & (byte)Fl.C) << 7);
+                        mem[Hl] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RR (HL)");
+#endif
+                        Wait(4);
+                        return;
+                    }
+            }
+
+#if(DEBUG)  
+            Log("CB {3:X2}: {0:X2} {1:X2} {2:X2}", hi, lo, r, mc);
+            //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
+#endif
+            Halted = true;
+        }
+        private void ParseDDCB()
+        {
+            if (Halted) return;
+            var mc = Fetch();
+            var hi = (byte)(mc >> 6);
+            var lo = (byte)(mc & 0x07);
+            var r = (byte)((mc >> 3) & 0x07);
+
+
+            switch (mc)
+            {
+                case 0x06:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Ix + d)];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        mem[(ushort)(Ix + d)] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log($"RLC (IX{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
+                case 0x16:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Ix + d)];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        var f = registers[F];
+                        reg |= (byte)(f & (byte)Fl.C);
+                        mem[(ushort)(Ix + d)] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"RL (IX{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
+                case 0x0E:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Ix + d)];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        mem[(ushort)(Ix + d)] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"RRC (IX{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
+                case 0x1E:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Ix + d)];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        var f = registers[F];
+                        reg |= (byte)((f & (byte)Fl.C) << 7);
+                        mem[(ushort)(Ix + d)] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"RR (IX{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
+            }
+
+#if(DEBUG)  
+            Log($"DD CB {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
+            //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
+#endif
+            Halted = true;
+        }
+        private void ParseFDCB(byte mode = 00)
+        {
+            if (Halted) return;
+            var mc = Fetch();
+            var hi = (byte)(mc >> 6);
+            var lo = (byte)(mc & 0x07);
+            var r = (byte)((mc >> 3) & 0x07);
+
+
+            switch (mc)
+            {
+                case 0x06:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Iy + d)];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        mem[(ushort)(Iy + d)] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log($"RLC (IY{d:+0;-#})");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x16:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Iy + d)];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        var f = registers[F];
+                        reg |= (byte)(f & (byte)Fl.C);
+                        mem[(ushort)(Iy + d)] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"RL (IY{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
+                case 0x0E:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Iy + d)];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        mem[(ushort)(Iy + d)] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"RLC (IY{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
+                case 0x1E:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Iy + d)];
+                        var c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                        var f = registers[F];
+                        reg |= (byte)((f & (byte)Fl.C) << 7);
+                        mem[(ushort)(Iy + d)] = reg;
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"RR (IY{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
+            }
+
+#if(DEBUG)  
+            Log($"FD CB {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
             //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
 #endif
             Halted = true;
@@ -1806,6 +2216,11 @@ namespace z80
 
             switch (mc)
             {
+                case 0xCB:
+                    {
+                        ParseDDCB();
+                        return;
+                    }
                 case 0x21:
                     {
                         // LD IX, nn
@@ -2145,6 +2560,11 @@ namespace z80
 
             switch (mc)
             {
+                case 0xCB:
+                    {
+                        ParseFDCB();
+                        return;
+                    }
                 case 0x21:
                     {
                         // LD IY, nn

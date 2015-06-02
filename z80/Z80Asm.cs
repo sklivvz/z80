@@ -820,5 +820,102 @@ namespace z80
         {
             Write(0x1F);
         }
+
+        public void RlcReg(byte register)
+        {
+            Write(0xCB);
+            Write(register);
+        }
+        public void RlcAddrHl()
+        {
+            Write(0xCB);
+            Write(0x06);
+        }
+        public void RlcAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(0x06);
+            Write(displacement);
+        }
+        public void RlcAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(0x06);
+            Write(displacement);
+        }
+        public void RlReg(byte register)
+        {
+            Write(0xCB);
+            Write(0x10 + register);
+        }
+        public void RlAddrHl()
+        {
+            Write(0xCB);
+            Write(0x16);
+        }
+        public void RlAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(0x16);
+            Write(displacement);
+        }
+        public void RlAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(0x16);
+            Write(displacement);
+        }
+        public void RrcReg(byte register)
+        {
+            Write(0xCB);
+            Write(0x08 + register);
+        }
+        public void RrcAddrHl()
+        {
+            Write(0xCB);
+            Write(0x0E);
+        }
+        public void RrcAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(0x0E);
+            Write(displacement);
+        }
+        public void RrcAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(0x0E);
+            Write(displacement);
+        }
+        public void RrReg(byte register)
+        {
+            Write(0xCB);
+            Write(0x18 + register);
+        }
+        public void RrAddrHl()
+        {
+            Write(0xCB);
+            Write(0x1E);
+        }
+        public void RrAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(0x1E);
+            Write(displacement);
+        }
+        public void RrAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(0x1E);
+            Write(displacement);
+        }
     }
 }
