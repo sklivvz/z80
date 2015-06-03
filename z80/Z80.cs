@@ -1139,6 +1139,7 @@ namespace z80
                         var reg = registers[lo];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
+                        reg |= c;
                         registers[lo] = reg;
                         byte f = registers[F];
                         f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
@@ -1160,6 +1161,7 @@ namespace z80
                         var reg = mem[Hl];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
+                        reg |= c;
                         mem[Hl] = reg;
                         byte f = registers[F];
                         f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
@@ -1311,6 +1313,54 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0x20:
+                case 0x21:
+                case 0x22:
+                case 0x23:
+                case 0x24:
+                case 0x25:
+                case 0x27:
+                    {
+                        var reg = registers[lo];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        registers[lo] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log($"SLA {RName(lo)}");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0x26:
+                    {
+
+                        var reg = mem[Hl];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        mem[Hl] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log("SLA (HL)");
+#endif
+                        Wait(8);
+                        return;
+                    }
+
             }
 
 #if(DEBUG)  
@@ -1336,6 +1386,7 @@ namespace z80
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
+                        reg |= c;
                         mem[(ushort)(Ix + d)] = reg;
                         byte f = registers[F];
                         f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
@@ -1413,6 +1464,27 @@ namespace z80
                         Wait(23);
                         return;
                     }
+                case 0x26:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Ix + d)];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        mem[(ushort)(Ix + d)] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log($"SLA (IX{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
             }
 
 #if(DEBUG)  
@@ -1438,6 +1510,7 @@ namespace z80
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
+                        reg |= c;
                         mem[(ushort)(Iy + d)] = reg;
                         byte f = registers[F];
                         f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
@@ -1513,6 +1586,27 @@ namespace z80
                         Log($"RR (IY{d:+0;-#})");
 #endif
                         Wait(23);
+                        return;
+                    }
+                case 0x26:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Iy + d)];
+                        var c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                        mem[(ushort)(Iy + d)] = reg;
+                        byte f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log($"SLA (IY{d:+0;-#})");
+#endif
+                        Wait(8);
                         return;
                     }
             }

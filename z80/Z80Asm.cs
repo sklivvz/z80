@@ -917,5 +917,33 @@ namespace z80
             Write(0x1E);
             Write(displacement);
         }
+
+        public void SlaAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(0x26);
+            Write(displacement);
+        }
+
+        public void SlaAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(0x26);
+            Write(displacement);
+        }
+
+        public void SlaAddrHl()
+        {
+            Write(0xCB);
+            Write(0x26);
+        }
+
+        public void SlaReg(byte register)
+        {
+            Write(0xCB);
+            Write(0x20 + register);
+        }
     }
 }
