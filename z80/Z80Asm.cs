@@ -945,5 +945,29 @@ namespace z80
             Write(0xCB);
             Write(0x20 + register);
         }
+        public void SraReg(byte register)
+        {
+            Write(0xCB);
+            Write(0x28 + register);
+        }
+        public void SraAddrHl()
+        {
+            Write(0xCB);
+            Write(0x2E);
+        }
+        public void SraAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(0x2E);
+            Write(displacement);
+        }
+        public void SraAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(0x2E);
+            Write(displacement);
+        }
     }
 }

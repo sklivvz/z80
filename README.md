@@ -39,7 +39,7 @@ Console.WriteLine(myZ80.DumpState());
 
 ### Opcodes
 
-Progress: **6.8/12 (56%)**  
+Progress: **6.8/12 (57%)**  
 Coverage: **97.2%**  
 Spectrum ROM: **Does not work**, runs up to address `0x0005` (`JP nn`)
 
@@ -51,11 +51,11 @@ The following opcodes are supported
 * 8-Bit Arithmetic Group (e.g. `ADD 0x23`)
 * General-Purpose Arithmetic and CPU Control Groups (e.g. `NOP`, `HALT`, ...)
 * 16-Bit Arithmetic Group (e.g. `ADD HL, 0x2D5F`, ...)
-* Rotate and Shift Group (`RLCA`, `RLA`, `RRCA`, `RRA`, `RLC r`, `RLC (HL)`, `RLC (IX+d)`, `RLC (IY+d)`, `RL m`, `RRC m`, `RR m`, `SLA m`)
+* Rotate and Shift Group (`RLCA`, `RLA`, `RRCA`, `RRA`, `RLC r`, `RLC (HL)`, `RLC (IX+d)`, `RLC (IY+d)`, `RL m`, `RRC m`, `RR m`, `SLA m`, `SRL m`)
 
 The following opcodes are not done
 
-* Rotate and Shift Group (`SRA m`, `SRL m`, `RLD`, `RRD`)
+* Rotate and Shift Group (`SRA m`, `RLD`, `RRD`)
 * Bit Set, Reset, and Test Group
 * Jump Group
 * Call and Return Group
