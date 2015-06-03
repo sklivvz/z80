@@ -1363,6 +1363,54 @@ namespace z80
                         Wait(8);
                         return;
                     }
+                case 0x28:
+                case 0x29:
+                case 0x2A:
+                case 0x2B:
+                case 0x2C:
+                case 0x2D:
+                case 0x2F:
+                    {
+                        var reg = registers[lo];
+                        var c = (byte)(reg & 0x01);
+                        var s = (byte) (reg & 0x80);
+                        reg >>= 1;
+                        reg |= s;
+                        registers[lo] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("SRA " + RName(lo));
+#endif
+                        Wait(2);
+                        return;
+                    }
+                case 0x2E:
+                    {
+                        var reg = mem[Hl];
+                        var c = (byte)(reg & 0x01);
+                        var s = (byte)(reg & 0x80);
+                        reg >>= 1;
+                        reg |= s;
+                        mem[Hl] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("SRA (HL)");
+#endif
+                        Wait(4);
+                        return;
+                    }
                 case 0x38:
                 case 0x39:
                 case 0x3A:
@@ -1533,6 +1581,28 @@ namespace z80
                         Wait(23);
                         return;
                     }
+                case 0x2E:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Ix + d)];
+                        var c = (byte)(reg & 0x01);
+                        var s = (byte)(reg & 0x80);
+                        reg >>= 1;
+                        reg |= s;
+                        mem[(ushort)(Ix + d)] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"SRA (IX{d:+0;-#})");
+#endif
+                        Wait(23);
+                        return;
+                    }
                 case 0x3E:
                     {
                         var d = (sbyte)Fetch();
@@ -1676,6 +1746,28 @@ namespace z80
                         Log($"SLA (IY{d:+0;-#})");
 #endif
                         Wait(8);
+                        return;
+                    }
+                case 0x2E:
+                    {
+                        var d = (sbyte)Fetch();
+                        var reg = mem[(ushort)(Iy + d)];
+                        var c = (byte)(reg & 0x01);
+                        var s = (byte)(reg & 0x80);
+                        reg >>= 1;
+                        reg |= s;
+                        mem[(ushort)(Iy + d)] = reg;
+                        var f = registers[F];
+                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                        f |= (byte)(reg & (byte)Fl.S);
+                        if (reg == 0) f |= (byte)Fl.Z;
+                        if (Parity(reg)) f |= (byte)Fl.PV;
+                        f |= c;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"SRA (IY{d:+0;-#})");
+#endif
+                        Wait(23);
                         return;
                     }
                 case 0x3E:

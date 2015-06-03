@@ -905,6 +905,168 @@ namespace z80.Tests
         [Test]
         #region testcases
         [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(1, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(2, 0x00, 0x00, false, true, false, true)]
+        [TestCase(2, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(2, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(2, 0x42, 0x10, true, false, false, false)]
+        [TestCase(2, 0x21, 0x08, false, false, false, false)]
+        [TestCase(3, 0x00, 0x00, false, true, false, true)]
+        [TestCase(3, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(3, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(3, 0x42, 0x10, true, false, false, false)]
+        [TestCase(3, 0x21, 0x08, false, false, false, false)]
+        [TestCase(4, 0x00, 0x00, false, true, false, true)]
+        [TestCase(4, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(4, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(4, 0x42, 0x10, true, false, false, false)]
+        [TestCase(4, 0x21, 0x08, false, false, false, false)]
+        [TestCase(5, 0x00, 0x00, false, true, false, true)]
+        [TestCase(5, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(5, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(5, 0x42, 0x10, true, false, false, false)]
+        [TestCase(5, 0x21, 0x08, false, false, false, false)]
+        [TestCase(7, 0x00, 0x00, false, true, false, true)]
+        [TestCase(7, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(7, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(7, 0x42, 0x10, true, false, false, false)]
+        [TestCase(7, 0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_SRA_r(byte register, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadRegVal(register, reg);
+            asm.SraReg(register);
+            asm.SraReg(register);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, en.Reg8(register));
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(0x00, 0x00, false, true, false, true)]
+        [TestCase(0x80, 0xE0, false, false, true, false)]
+        [TestCase(0x81, 0xE0, false, false, true, false)]
+        [TestCase(0x42, 0x10, true, false, false, false)]
+        [TestCase(0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_SRA_HL(byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadAtHLVal(reg);
+            asm.SraAddrHl();
+            asm.SraAddrHl();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(1, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(-1, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(-1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(-1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(0, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(0, 0x42, 0x10, true, false, false, false)]
+        [TestCase(0, 0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_SRA_IX_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIxVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.SraAddrIx(disp);
+            asm.SraAddrIx(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(1, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(1, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(-1, 0x00, 0x00, false, true, false, true)]
+        [TestCase(-1, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(-1, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(-1, 0x42, 0x10, true, false, false, false)]
+        [TestCase(-1, 0x21, 0x08, false, false, false, false)]
+        [TestCase(0, 0x00, 0x00, false, true, false, true)]
+        [TestCase(0, 0x80, 0xE0, false, false, true, false)]
+        [TestCase(0, 0x81, 0xE0, false, false, true, false)]
+        [TestCase(0, 0x42, 0x10, true, false, false, false)]
+        [TestCase(0, 0x21, 0x08, false, false, false, false)]
+        #endregion
+        public void Test_SRA_IY_d(sbyte disp, byte reg, byte res, bool carry, bool zero, bool sign, bool parity)
+        {
+            asm.Ccf();
+            asm.LoadIyVal(0x0040);
+            asm.LoadReg16Val(2, (ushort)(0x0040 + disp));
+            asm.LoadAtHLVal(reg);
+            asm.SraAddrIy(disp);
+            asm.SraAddrIy(disp);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(res, _ram[0x0040 + disp]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
+        }
+
+
+        [Test]
+        #region testcases
+        [TestCase(1, 0x00, 0x00, false, true, false, true)]
         [TestCase(1, 0x80, 0x20, false, false, false, false)]
         [TestCase(1, 0x81, 0x20, false, false, false, false)]
         [TestCase(1, 0x42, 0x10, true, false, false, false)]

@@ -969,5 +969,29 @@ namespace z80
             Write(0x2E);
             Write(displacement);
         }
+        public void SrlReg(byte register)
+        {
+            Write(0xCB);
+            Write(0x38 + register);
+        }
+        public void SrlAddrHl()
+        {
+            Write(0xCB);
+            Write(0x3E);
+        }
+        public void SrlAddrIx(sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(0x3E);
+            Write(displacement);
+        }
+        public void SrlAddrIy(sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(0x3E);
+            Write(displacement);
+        }
     }
 }
