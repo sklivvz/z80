@@ -1117,7 +1117,7 @@ namespace z80
             Halted = true;
         }
 
-        private void ParseCB(byte mode = 00)
+        private void ParseCB()
         {
             if (Halted) return;
             var mc = Fetch();
@@ -1421,7 +1421,7 @@ namespace z80
 #endif
             Halted = true;
         }
-        private void ParseFDCB(byte mode = 00)
+        private void ParseFDCB()
         {
             if (Halted) return;
             var mc = Fetch();
