@@ -2478,9 +2478,9 @@ namespace z80
                     {
                         var a = registers[A];
                         var b = mem[Hl];
-                        mem[Hl] = (byte)((b << 4) & (a & 0x0F));
-                        a = (byte)((a & 0x0F) & (b >> 4));
-                        registers[A] = A; 
+                        mem[Hl] = (byte)((b << 4) | (a & 0x0F));
+                        a = (byte)((a & 0xF0) | (b >> 4));
+                        registers[A] = a;
                         var f = (byte)(registers[F] & 0x29);
                         if ((a & 0x80) > 0) f |= (byte)Fl.S;
                         if (a == 0) f |= (byte)Fl.Z;

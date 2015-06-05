@@ -993,5 +993,11 @@ namespace z80
             Write(0x3E);
             Write(displacement);
         }
+
+        public void Rld()
+        {
+            Write(0xCB);
+            Write(0X6F);
+        }
     }
 }

@@ -51,11 +51,11 @@ The following opcodes are supported
 * 8-Bit Arithmetic Group (e.g. `ADD 0x23`)
 * General-Purpose Arithmetic and CPU Control Groups (e.g. `NOP`, `HALT`, ...)
 * 16-Bit Arithmetic Group (e.g. `ADD HL, 0x2D5F`, ...)
-* Rotate and Shift Group (`RLCA`, `RLA`, `RRCA`, `RRA`, `RLC r`, `RLC (HL)`, `RLC (IX+d)`, `RLC (IY+d)`, `RL m`, `RRC m`, `RR m`, `SLA m`, `SRA m`, `SRL m`)
+* Rotate and Shift Group (`RLCA`, `RLA`, `RRCA`, `RRA`, `RLC r`, `RLC (HL)`, `RLC (IX+d)`, `RLC (IY+d)`, `RL m`, `RRC m`, `RR m`, `SLA m`, `SRA m`, `SRL m`, `RLD`)
 
 The following opcodes are not done
 
-* Rotate and Shift Group (`RLD`, `RRD`)
+* Rotate and Shift Group (`RRD`)
 * Bit Set, Reset, and Test Group
 * Jump Group
 * Call and Return Group

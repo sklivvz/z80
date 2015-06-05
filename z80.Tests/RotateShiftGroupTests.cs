@@ -1225,6 +1225,27 @@ namespace z80.Tests
             Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
         }
 
+        [Test]
+        [TestCase(0x7A, 0x31, 0x73, 0x1A, false, false, false)]
+        public void Test_RLD(byte a, byte b, byte ra, byte rb, bool zero, bool sign, bool parity)
+        {
+            asm.LoadReg16Val(2,0x0040);
+            asm.LoadAtHLVal(b);
+            asm.LoadRegVal(7,a);
+            asm.Rld();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(ra, en.A);
+            Assert.AreEqual(rb, _ram[0x0040]);
+            Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+        }
 
     }
 
