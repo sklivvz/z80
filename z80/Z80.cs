@@ -1373,7 +1373,7 @@ namespace z80
                     {
                         var reg = registers[lo];
                         var c = (byte)(reg & 0x01);
-                        var s = (byte) (reg & 0x80);
+                        var s = (byte)(reg & 0x80);
                         reg >>= 1;
                         reg |= s;
                         registers[lo] = reg;
@@ -2474,6 +2474,24 @@ namespace z80
                         return;
                     }
 
+                case 0x6F:
+                    {
+                        var a = registers[A];
+                        var b = mem[Hl];
+                        mem[Hl] = (byte)((b << 4) & (a & 0x0F));
+                        a = (byte)((a & 0x0F) & (b >> 4));
+                        registers[A] = A; 
+                        var f = (byte)(registers[F] & 0x29);
+                        if ((a & 0x80) > 0) f |= (byte)Fl.S;
+                        if (a == 0) f |= (byte)Fl.Z;
+                        if (Parity(a)) f |= (byte)Fl.PV;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RLD");
+#endif
+                        Wait(18);
+                        return;
+                    }
             }
 #if(DEBUG)
             Log($"ED {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
