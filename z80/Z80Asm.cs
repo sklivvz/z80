@@ -835,15 +835,15 @@ namespace z80
         {
             Write(0xDD);
             Write(0xCB);
-            Write(0x06);
             Write(displacement);
+            Write(0x06);
         }
         public void RlcAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0xCB);
-            Write(0x06);
             Write(displacement);
+            Write(0x06);
         }
         public void RlReg(byte register)
         {
@@ -859,15 +859,15 @@ namespace z80
         {
             Write(0xDD);
             Write(0xCB);
-            Write(0x16);
             Write(displacement);
+            Write(0x16);
         }
         public void RlAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0xCB);
-            Write(0x16);
             Write(displacement);
+            Write(0x16);
         }
         public void RrcReg(byte register)
         {
@@ -883,15 +883,15 @@ namespace z80
         {
             Write(0xDD);
             Write(0xCB);
-            Write(0x0E);
             Write(displacement);
+            Write(0x0E);
         }
         public void RrcAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0xCB);
-            Write(0x0E);
             Write(displacement);
+            Write(0x0E);
         }
         public void RrReg(byte register)
         {
@@ -907,31 +907,31 @@ namespace z80
         {
             Write(0xDD);
             Write(0xCB);
-            Write(0x1E);
             Write(displacement);
+            Write(0x1E);
         }
         public void RrAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0xCB);
-            Write(0x1E);
             Write(displacement);
+            Write(0x1E);
         }
 
         public void SlaAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0xCB);
-            Write(0x26);
             Write(displacement);
+            Write(0x26);
         }
 
         public void SlaAddrIx(sbyte displacement)
         {
             Write(0xDD);
             Write(0xCB);
-            Write(0x26);
             Write(displacement);
+            Write(0x26);
         }
 
         public void SlaAddrHl()
@@ -959,15 +959,15 @@ namespace z80
         {
             Write(0xDD);
             Write(0xCB);
-            Write(0x2E);
             Write(displacement);
+            Write(0x2E);
         }
         public void SraAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0xCB);
-            Write(0x2E);
             Write(displacement);
+            Write(0x2E);
         }
         public void SrlReg(byte register)
         {
@@ -983,21 +983,52 @@ namespace z80
         {
             Write(0xDD);
             Write(0xCB);
-            Write(0x3E);
             Write(displacement);
+            Write(0x3E);
         }
         public void SrlAddrIy(sbyte displacement)
         {
             Write(0xFD);
             Write(0xCB);
-            Write(0x3E);
             Write(displacement);
+            Write(0x3E);
         }
 
         public void Rld()
         {
+            Write(0xED);
+            Write(0x6F);
+        }
+
+        public void Rrd()
+        {
+            Write(0xED);
+            Write(0x67);
+        }
+
+        public void BitNReg(byte bit, byte register)
+        {
             Write(0xCB);
-            Write(0X6F);
+            Write(0x40 + bit * 8 + register);
+        }
+        public void BitNAtHl(byte bit)
+        {
+            Write(0xCB);
+            Write(0x46 + bit * 8);
+        }
+        public void BitNAtIxd(byte bit, sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(displacement);
+            Write(0x46 + bit * 8);
+        }
+        public void BitNAtIyd(byte bit, sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(displacement);
+            Write(0x46 + bit * 8);
         }
     }
 }

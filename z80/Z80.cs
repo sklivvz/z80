@@ -1126,6 +1126,25 @@ namespace z80
             var lo = (byte)(mc & 0x07);
             var r = (byte)((mc >> 3) & 0x07);
 
+            if (mc>=64 && mc < 128)
+            {
+                if (lo == 6)
+                {
+                    Bit(r, mem[Hl]);
+#if (DEBUG)
+                    Log($"BIT {r}, (HL)");
+#endif
+                    Wait(12);
+                    return;
+                }
+
+                Bit(r, registers[lo]);
+#if (DEBUG)
+                Log($"BIT {r}, {RName(lo)}");
+#endif
+                Wait(8);
+                return;
+            }
 
             switch (mc)
             {
@@ -1464,9 +1483,19 @@ namespace z80
 #endif
             Halted = true;
         }
+
+        private void Bit(byte bit, byte value)
+        {
+            var f = (byte) (registers[F] & (byte) ~(Fl.Z | Fl.H | Fl.N));
+            if ((value & (0x01 << bit)) == 0) f |= (byte) Fl.Z;
+            f |= (byte) Fl.H;
+            registers[F] = f;
+        }
+
         private void ParseDDCB()
         {
             if (Halted) return;
+            var d = (sbyte)Fetch();
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
@@ -1477,7 +1506,6 @@ namespace z80
             {
                 case 0x06:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
@@ -1499,7 +1527,6 @@ namespace z80
                     }
                 case 0x16:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
@@ -1520,7 +1547,6 @@ namespace z80
                     }
                 case 0x0E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)(reg & 0x01);
                         reg >>= 1;
@@ -1541,7 +1567,6 @@ namespace z80
                     }
                 case 0x1E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)(reg & 0x01);
                         reg >>= 1;
@@ -1562,7 +1587,6 @@ namespace z80
                     }
                 case 0x26:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
@@ -1583,7 +1607,6 @@ namespace z80
                     }
                 case 0x2E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)(reg & 0x01);
                         var s = (byte)(reg & 0x80);
@@ -1605,7 +1628,6 @@ namespace z80
                     }
                 case 0x3E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Ix + d)];
                         var c = (byte)(reg & 0x01);
                         reg >>= 1;
@@ -1623,6 +1645,23 @@ namespace z80
                         Wait(23);
                         return;
                     }
+                case 0x46:
+                case 0x4E:
+                case 0x56:
+                case 0x5E:
+                case 0x66:
+                case 0x6E:
+                case 0x76:
+                case 0x7E:
+                    {
+                        Bit(r, mem[(ushort)(Ix+d)]);
+#if (DEBUG)
+                        Log($"BIT {r}, (IX{d:+0;-#})");
+#endif
+                        Wait(20);
+                        return;
+                    }
+
             }
 
 #if(DEBUG)  
@@ -1634,6 +1673,7 @@ namespace z80
         private void ParseFDCB()
         {
             if (Halted) return;
+            var d = (sbyte)Fetch();
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
@@ -1644,7 +1684,6 @@ namespace z80
             {
                 case 0x06:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
@@ -1666,7 +1705,6 @@ namespace z80
                     }
                 case 0x16:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
@@ -1687,7 +1725,6 @@ namespace z80
                     }
                 case 0x0E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)(reg & 0x01);
                         reg >>= 1;
@@ -1708,7 +1745,6 @@ namespace z80
                     }
                 case 0x1E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)(reg & 0x01);
                         reg >>= 1;
@@ -1729,7 +1765,6 @@ namespace z80
                     }
                 case 0x26:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)((reg & 0x80) >> 7);
                         reg <<= 1;
@@ -1750,7 +1785,6 @@ namespace z80
                     }
                 case 0x2E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)(reg & 0x01);
                         var s = (byte)(reg & 0x80);
@@ -1772,7 +1806,6 @@ namespace z80
                     }
                 case 0x3E:
                     {
-                        var d = (sbyte)Fetch();
                         var reg = mem[(ushort)(Iy + d)];
                         var c = (byte)(reg & 0x01);
                         reg >>= 1;
@@ -1790,6 +1823,23 @@ namespace z80
                         Wait(23);
                         return;
                     }
+                case 0x46:
+                case 0x4E:
+                case 0x56:
+                case 0x5E:
+                case 0x66:
+                case 0x6E:
+                case 0x76:
+                case 0x7E:
+                    {
+                        Bit(r, mem[(ushort)(Iy + d)]);
+#if (DEBUG)
+                        Log($"BIT {r}, (IY{d:+0;-#})");
+#endif
+                        Wait(20);
+                        return;
+                    }
+
             }
 
 #if(DEBUG)  
@@ -2480,6 +2530,24 @@ namespace z80
                         var b = mem[Hl];
                         mem[Hl] = (byte)((b << 4) | (a & 0x0F));
                         a = (byte)((a & 0xF0) | (b >> 4));
+                        registers[A] = a;
+                        var f = (byte)(registers[F] & 0x29);
+                        if ((a & 0x80) > 0) f |= (byte)Fl.S;
+                        if (a == 0) f |= (byte)Fl.Z;
+                        if (Parity(a)) f |= (byte)Fl.PV;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("RLD");
+#endif
+                        Wait(18);
+                        return;
+                    }
+                case 0x67:
+                    {
+                        var a = registers[A];
+                        var b = mem[Hl];
+                        mem[Hl] = (byte)((b >> 4) | (a << 4));
+                        a = (byte)((a & 0xF0) | (b & 0x0F));
                         registers[A] = a;
                         var f = (byte)(registers[F] & 0x29);
                         if ((a & 0x80) > 0) f |= (byte)Fl.S;
