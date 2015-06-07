@@ -58,6 +58,30 @@ namespace z80
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
             var r = (byte)((mc >> 3) & 0x07);
+            if (hi == 1)
+            {
+                var useHL1 = r == 6;
+                var useHL2 = lo == 6;
+                if (useHL2 && useHL1)
+                {
+#if(DEBUG)
+                    Log("HALT");
+#endif
+                    Halted = true;
+                    return;
+                }
+                var reg = useHL2 ? mem[Hl] : registers[lo];
+
+                if (useHL1)
+                    mem[Hl] = reg;
+                else
+                    registers[r] = reg;
+                Wait(useHL1 || useHL2 ? 7 : 4);
+#if (DEBUG)
+                Log($"LD {(useHL1 ? "(HL)" : RName(r))}, {(useHL2 ? "(HL)" : RName(lo))}");
+#endif
+                return;
+            }
             switch (mc)
             {
                 case 0xCB:
@@ -102,64 +126,6 @@ namespace z80
                         Wait(10);
                         return;
                     }
-                case 0x40:
-                case 0x41:
-                case 0x42:
-                case 0x43:
-                case 0x44:
-                case 0x45:
-                case 0x47:
-                case 0x48:
-                case 0x49:
-                case 0x4a:
-                case 0x4b:
-                case 0x4c:
-                case 0x4d:
-                case 0x4f:
-                case 0x50:
-                case 0x51:
-                case 0x52:
-                case 0x53:
-                case 0x54:
-                case 0x55:
-                case 0x57:
-                case 0x58:
-                case 0x59:
-                case 0x5a:
-                case 0x5b:
-                case 0x5c:
-                case 0x5d:
-                case 0x5f:
-                case 0x60:
-                case 0x61:
-                case 0x62:
-                case 0x63:
-                case 0x64:
-                case 0x65:
-                case 0x67:
-                case 0x68:
-                case 0x69:
-                case 0x6a:
-                case 0x6b:
-                case 0x6c:
-                case 0x6d:
-                case 0x6f:
-                case 0x78:
-                case 0x79:
-                case 0x7a:
-                case 0x7b:
-                case 0x7c:
-                case 0x7d:
-                case 0x7f:
-                    {
-                        // LD r, r'
-#if (DEBUG)
-                        Log($"LD {RName(r)}, {RName(lo)}");
-#endif
-                        registers[r] = registers[lo];
-                        Wait(4);
-                        return;
-                    }
                 case 0x06:
                 case 0x0e:
                 case 0x16:
@@ -177,38 +143,6 @@ namespace z80
                         Wait(7);
                         return;
                     }
-                case 0x46:
-                case 0x4e:
-                case 0x56:
-                case 0x5e:
-                case 0x66:
-                case 0x6e:
-                case 0x7e:
-                    {
-                        // LD r, (HL)
-                        registers[r] = mem[Hl];
-#if (DEBUG)
-                        Log($"LD {RName(r)}, (HL)");
-#endif
-                        Wait(7);
-                        return;
-                    }
-                case 0x70:
-                case 0x71:
-                case 0x72:
-                case 0x73:
-                case 0x74:
-                case 0x75:
-                case 0x77:
-                    {
-                        // LD (HL), r
-                        mem[Hl] = registers[lo];
-#if (DEBUG)
-                        Log($"LD (HL), {RName(lo)}");
-#endif
-                        Wait(7);
-                        return;
-                    }
                 case 0x36:
                     {
                         // LD (HL), n
@@ -220,13 +154,6 @@ namespace z80
                         Wait(10);
                         return;
                     }
-                case 0x76:
-                    //HALT
-#if(DEBUG)
-                    Log("HALT");
-#endif
-                    Halted = true;
-                    return;
                 case 0x0A:
                     {
                         // LD A, (BC)
@@ -1108,745 +1035,193 @@ namespace z80
                         Wait(4);
                         return;
                     }
-
             }
 
 #if(DEBUG)
-            Log($"{mc:X2}: {hi:X2} {lo:X2} {r:X2}");
+            Log($"{mc:X2}: {hi:X} {r:X} {lo:X}");
             //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
 #endif
             Halted = true;
         }
 
-        private void ParseCB()
+        private void ParseCB(byte mode = 0)
         {
+            sbyte d = 0;
+            if (mode != 0)
+            {
+                d = (sbyte)Fetch();
+            }
             if (Halted) return;
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
             var r = (byte)((mc >> 3) & 0x07);
-
-            if (mc>=64 && mc < 128)
+            var useHL = lo == 6;
+            var useIX = mode == 0xDD;
+            var useIY = mode == 0XFD;
+            var reg = useHL ? useIX ? mem[(ushort)(Ix + d)] : useIY ? mem[(ushort)(Iy + d)] : mem[Hl] : registers[lo];
+#if (DEBUG)
+            string debug_target;
+            if (useHL)
+                if (useIX) debug_target = $"(IX{d:+0;-#})";
+                else debug_target = useIY ? $"(IY{d:+0;-#})" : "(HL)";
+            else
+                debug_target = useIX ? $"(IX{d:+0;-#}), {RName(lo)}" : useIY ? $"(IY{d:+0;-#}), {RName(lo)}" : RName(lo);
+#endif
+            switch (hi)
             {
-                if (lo == 6)
+                case 0:
+                    byte c;
+                    if ((r & 1) == 1)
+                    {
+                        c = (byte)(reg & 0x01);
+                        reg >>= 1;
+                    }
+                    else
+                    {
+                        c = (byte)((reg & 0x80) >> 7);
+                        reg <<= 1;
+                    }
+                    var f = registers[F];
+                    switch (r)
+                    {
+                        case 0:
+                            {
+                                reg |= c;
+#if (DEBUG)
+                                Log($"RLC {debug_target}");
+#endif
+                                break;
+                            }
+                        case 1:
+                            {
+                                reg |= (byte)(c << 7);
+#if (DEBUG)
+                                Log($"RRC {debug_target}");
+#endif
+                                break;
+                            }
+                        case 2:
+                            {
+                                reg |= (byte)(f & (byte)Fl.C);
+#if (DEBUG)
+                                Log($"RL {debug_target}");
+#endif
+                                break;
+                            }
+                        case 3:
+                            {
+                                reg |= (byte)((f & (byte)Fl.C) << 7);
+#if (DEBUG)
+                                Log($"RR {debug_target}");
+#endif
+                                break;
+                            }
+                        case 4:
+                            {
+#if (DEBUG)
+                                Log($"SLA {debug_target}");
+#endif
+                                break;
+                            }
+                        case 5:
+                            {
+                                reg |= (byte)((reg & 0x40) << 1);
+#if (DEBUG)
+                                Log($"SRA {debug_target}");
+
+#endif
+                                break;
+                            }
+                        case 6:
+                            {
+                                reg |= 1;
+#if (DEBUG)
+                                Log($"SLL {debug_target}");
+#endif
+                                break;
+                            }
+                        case 7:
+                            {
+#if (DEBUG)
+                                Log($"SRL {debug_target}");
+#endif
+                                break;
+                            }
+                    }
+                    f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
+                    f |= (byte)(reg & (byte)Fl.S);
+                    if (reg == 0) f |= (byte)Fl.Z;
+                    if (Parity(reg)) f |= (byte)Fl.PV;
+                    f |= c;
+                    registers[F] = f;
+
+                    break;
+                case 1:
+                    {
+                        Bit(r, reg);
+#if (DEBUG)
+                        Log($"BIT {r} {debug_target}");
+#endif
+                        Wait(useHL ? 12 : 8);
+                        return;
+                    }
+                case 2:
+                    reg &= (byte)~(0x01 << r);
+#if (DEBUG)
+                    Log($"RES {r} {debug_target}");
+#endif
+                    Wait(useHL ? 12 : 8);
+                    break;
+                case 3:
+                    reg |= (byte)(0x01 << r);
+#if (DEBUG)
+                    Log($"SET {r} {debug_target}");
+#endif
+                    Wait(useHL ? 12 : 8);
+                    break;
+            }
+            if (useHL)
+            {
+                if (useIX)
                 {
-                    Bit(r, mem[Hl]);
-#if (DEBUG)
-                    Log($"BIT {r}, (HL)");
-#endif
-                    Wait(12);
-                    return;
+                    mem[(ushort)(Ix + d)] = reg;
+                    Wait(23);
                 }
-
-                Bit(r, registers[lo]);
-#if (DEBUG)
-                Log($"BIT {r}, {RName(lo)}");
-#endif
-                Wait(8);
-                return;
+                else if (useIY)
+                {
+                    mem[(ushort)(Iy + d)] = reg;
+                    Wait(23);
+                }
+                else
+                {
+                    mem[Hl] = reg;
+                    Wait(15);
+                }
             }
-
-            switch (mc)
+            else
             {
-                case 0x00:
-                case 0x01:
-                case 0x02:
-                case 0x03:
-                case 0x04:
-                case 0x05:
-                case 0x07:
-                    {
-                        var reg = registers[lo];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        reg |= c;
-                        registers[lo] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log($"RLC {RName(lo)}");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x06:
-                    {
-
-                        var reg = mem[Hl];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        reg |= c;
-                        mem[Hl] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log("RLC (HL)");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x10:
-                case 0x11:
-                case 0x12:
-                case 0x13:
-                case 0x14:
-                case 0x15:
-                case 0x17:
-                    {
-                        var reg = registers[lo];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        var f = registers[F];
-                        reg |= (byte)(f & (byte)Fl.C);
-                        registers[lo] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"RL {RName(lo)}");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x16:
-                    {
-                        var reg = mem[Hl];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        var f = registers[F];
-                        reg |= (byte)(f & (byte)Fl.C);
-                        mem[Hl] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("RL (HL)");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x08:
-                case 0x09:
-                case 0x0A:
-                case 0x0B:
-                case 0x0C:
-                case 0x0D:
-                case 0x0F:
-                    {
-                        var reg = registers[lo];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        reg |= (byte)(c << 7);
-                        registers[lo] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("RRC " + RName(lo));
-#endif
-                        Wait(2);
-                        return;
-                    }
-                case 0x0E:
-                    {
-                        var reg = mem[Hl];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        reg |= (byte)(c << 7);
-                        mem[Hl] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("RRC (HL)");
-#endif
-                        Wait(4);
-                        return;
-                    }
-                case 0x18:
-                case 0x19:
-                case 0x1A:
-                case 0x1B:
-                case 0x1C:
-                case 0x1D:
-                case 0x1F:
-                    {
-                        var reg = registers[lo];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        var f = registers[F];
-                        reg |= (byte)((f & (byte)Fl.C) << 7);
-                        registers[lo] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("RR " + RName(lo));
-#endif
-                        Wait(2);
-                        return;
-                    }
-                case 0x1E:
-                    {
-                        var reg = mem[Hl];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        var f = registers[F];
-                        reg |= (byte)((f & (byte)Fl.C) << 7);
-                        mem[Hl] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("RR (HL)");
-#endif
-                        Wait(4);
-                        return;
-                    }
-                case 0x20:
-                case 0x21:
-                case 0x22:
-                case 0x23:
-                case 0x24:
-                case 0x25:
-                case 0x27:
-                    {
-                        var reg = registers[lo];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        registers[lo] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log($"SLA {RName(lo)}");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x26:
-                    {
-
-                        var reg = mem[Hl];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        mem[Hl] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log("SLA (HL)");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x28:
-                case 0x29:
-                case 0x2A:
-                case 0x2B:
-                case 0x2C:
-                case 0x2D:
-                case 0x2F:
-                    {
-                        var reg = registers[lo];
-                        var c = (byte)(reg & 0x01);
-                        var s = (byte)(reg & 0x80);
-                        reg >>= 1;
-                        reg |= s;
-                        registers[lo] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("SRA " + RName(lo));
-#endif
-                        Wait(2);
-                        return;
-                    }
-                case 0x2E:
-                    {
-                        var reg = mem[Hl];
-                        var c = (byte)(reg & 0x01);
-                        var s = (byte)(reg & 0x80);
-                        reg >>= 1;
-                        reg |= s;
-                        mem[Hl] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("SRA (HL)");
-#endif
-                        Wait(4);
-                        return;
-                    }
-                case 0x38:
-                case 0x39:
-                case 0x3A:
-                case 0x3B:
-                case 0x3C:
-                case 0x3D:
-                case 0x3F:
-                    {
-                        var reg = registers[lo];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        registers[lo] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("SRL " + RName(lo));
-#endif
-                        Wait(2);
-                        return;
-                    }
-                case 0x3E:
-                    {
-                        var reg = mem[Hl];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        mem[Hl] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log("SRL (HL)");
-#endif
-                        Wait(4);
-                        return;
-                    }
-
+                if (useIX)
+                {
+                    mem[(ushort)(Ix + d)] = reg;
+                    Wait(23);
+                }
+                else if (useIY)
+                {
+                    mem[(ushort)(Iy + d)] = reg;
+                    Wait(23);
+                }
+                registers[lo] = reg;
+                Wait(8);
             }
-
-#if(DEBUG)  
-            Log($"CB {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
-            //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
-#endif
-            Halted = true;
         }
 
         private void Bit(byte bit, byte value)
         {
-            var f = (byte) (registers[F] & (byte) ~(Fl.Z | Fl.H | Fl.N));
-            if ((value & (0x01 << bit)) == 0) f |= (byte) Fl.Z;
-            f |= (byte) Fl.H;
+            var f = (byte)(registers[F] & (byte)~(Fl.Z | Fl.H | Fl.N));
+            if ((value & (0x01 << bit)) == 0) f |= (byte)Fl.Z;
+            f |= (byte)Fl.H;
             registers[F] = f;
-        }
-
-        private void ParseDDCB()
-        {
-            if (Halted) return;
-            var d = (sbyte)Fetch();
-            var mc = Fetch();
-            var hi = (byte)(mc >> 6);
-            var lo = (byte)(mc & 0x07);
-            var r = (byte)((mc >> 3) & 0x07);
-
-
-            switch (mc)
-            {
-                case 0x06:
-                    {
-                        var reg = mem[(ushort)(Ix + d)];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        reg |= c;
-                        mem[(ushort)(Ix + d)] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log($"RLC (IX{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x16:
-                    {
-                        var reg = mem[(ushort)(Ix + d)];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        var f = registers[F];
-                        reg |= (byte)(f & (byte)Fl.C);
-                        mem[(ushort)(Ix + d)] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"RL (IX{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x0E:
-                    {
-                        var reg = mem[(ushort)(Ix + d)];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        reg |= (byte)(c << 7);
-                        mem[(ushort)(Ix + d)] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"RRC (IX{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x1E:
-                    {
-                        var reg = mem[(ushort)(Ix + d)];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        var f = registers[F];
-                        reg |= (byte)((f & (byte)Fl.C) << 7);
-                        mem[(ushort)(Ix + d)] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"RR (IX{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x26:
-                    {
-                        var reg = mem[(ushort)(Ix + d)];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        mem[(ushort)(Ix + d)] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log($"SLA (IX{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x2E:
-                    {
-                        var reg = mem[(ushort)(Ix + d)];
-                        var c = (byte)(reg & 0x01);
-                        var s = (byte)(reg & 0x80);
-                        reg >>= 1;
-                        reg |= s;
-                        mem[(ushort)(Ix + d)] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"SRA (IX{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x3E:
-                    {
-                        var reg = mem[(ushort)(Ix + d)];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        mem[(ushort)(Ix + d)] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"SRL (IX{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x46:
-                case 0x4E:
-                case 0x56:
-                case 0x5E:
-                case 0x66:
-                case 0x6E:
-                case 0x76:
-                case 0x7E:
-                    {
-                        Bit(r, mem[(ushort)(Ix+d)]);
-#if (DEBUG)
-                        Log($"BIT {r}, (IX{d:+0;-#})");
-#endif
-                        Wait(20);
-                        return;
-                    }
-
-            }
-
-#if(DEBUG)  
-            Log($"DD CB {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
-            //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
-#endif
-            Halted = true;
-        }
-        private void ParseFDCB()
-        {
-            if (Halted) return;
-            var d = (sbyte)Fetch();
-            var mc = Fetch();
-            var hi = (byte)(mc >> 6);
-            var lo = (byte)(mc & 0x07);
-            var r = (byte)((mc >> 3) & 0x07);
-
-
-            switch (mc)
-            {
-                case 0x06:
-                    {
-                        var reg = mem[(ushort)(Iy + d)];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        reg |= c;
-                        mem[(ushort)(Iy + d)] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log($"RLC (IY{d:+0;-#})");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x16:
-                    {
-                        var reg = mem[(ushort)(Iy + d)];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        var f = registers[F];
-                        reg |= (byte)(f & (byte)Fl.C);
-                        mem[(ushort)(Iy + d)] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"RL (IY{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x0E:
-                    {
-                        var reg = mem[(ushort)(Iy + d)];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        reg |= (byte)(c << 7);
-                        mem[(ushort)(Iy + d)] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"RRC (IY{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x1E:
-                    {
-                        var reg = mem[(ushort)(Iy + d)];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        var f = registers[F];
-                        reg |= (byte)((f & (byte)Fl.C) << 7);
-                        mem[(ushort)(Iy + d)] = reg;
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"RR (IY{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x26:
-                    {
-                        var reg = mem[(ushort)(Iy + d)];
-                        var c = (byte)((reg & 0x80) >> 7);
-                        reg <<= 1;
-                        mem[(ushort)(Iy + d)] = reg;
-                        byte f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-
-#if (DEBUG)
-                        Log($"SLA (IY{d:+0;-#})");
-#endif
-                        Wait(8);
-                        return;
-                    }
-                case 0x2E:
-                    {
-                        var reg = mem[(ushort)(Iy + d)];
-                        var c = (byte)(reg & 0x01);
-                        var s = (byte)(reg & 0x80);
-                        reg >>= 1;
-                        reg |= s;
-                        mem[(ushort)(Iy + d)] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"SRA (IY{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x3E:
-                    {
-                        var reg = mem[(ushort)(Iy + d)];
-                        var c = (byte)(reg & 0x01);
-                        reg >>= 1;
-                        mem[(ushort)(Iy + d)] = reg;
-                        var f = registers[F];
-                        f &= (byte)~(Fl.H | Fl.N | Fl.C | Fl.PV | Fl.S | Fl.Z);
-                        f |= (byte)(reg & (byte)Fl.S);
-                        if (reg == 0) f |= (byte)Fl.Z;
-                        if (Parity(reg)) f |= (byte)Fl.PV;
-                        f |= c;
-                        registers[F] = f;
-#if (DEBUG)
-                        Log($"SRL (IY{d:+0;-#})");
-#endif
-                        Wait(23);
-                        return;
-                    }
-                case 0x46:
-                case 0x4E:
-                case 0x56:
-                case 0x5E:
-                case 0x66:
-                case 0x6E:
-                case 0x76:
-                case 0x7E:
-                    {
-                        Bit(r, mem[(ushort)(Iy + d)]);
-#if (DEBUG)
-                        Log($"BIT {r}, (IY{d:+0;-#})");
-#endif
-                        Wait(20);
-                        return;
-                    }
-
-            }
-
-#if(DEBUG)  
-            Log($"FD CB {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
-            //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
-#endif
-            Halted = true;
         }
 
         private void AddHl(ushort value)
@@ -1906,6 +1281,7 @@ namespace z80
             registers[F] = f;
             return (ushort)sum;
         }
+
         private void SbcHl(ushort value)
         {
             var sum = Sbc(Hl, value);
@@ -1967,15 +1343,15 @@ namespace z80
                         // LD A, I
 
                         /*
-                                 * Condition Bits Affected
-                                 * S is set if the I Register is negative; otherwise, it is reset.
-                                 * Z is set if the I Register is 0; otherwise, it is reset.
-                                 * H is reset.
-                                 * P/V contains contents of IFF2.
-                                 * N is reset.
-                                 * C is not affected.
-                                 * If an interrupt occurs during execution of this instruction, the Parity flag contains a 0.
-                                 */
+                                     * Condition Bits Affected
+                                     * S is set if the I Register is negative; otherwise, it is reset.
+                                     * Z is set if the I Register is 0; otherwise, it is reset.
+                                     * H is reset.
+                                     * P/V contains contents of IFF2.
+                                     * N is reset.
+                                     * C is not affected.
+                                     * If an interrupt occurs during execution of this instruction, the Parity flag contains a 0.
+                                     */
                         var i = registers[I];
                         registers[A] = i;
                         var f = (byte)(registers[F] & (~(byte)(Fl.H | Fl.PV | Fl.N | Fl.S | Fl.Z | Fl.PV)));
@@ -2003,15 +1379,15 @@ namespace z80
                         // LD A, R
 
                         /*
-                                 * Condition Bits Affected
-                                 * S is set if, R-Register is negative; otherwise, it is reset.
-                                 * Z is set if the R Register is 0; otherwise, it is reset.
-                                 * H is reset.
-                                 * P/V contains contents of IFF2.
-                                 * N is reset.
-                                 * C is not affected.
-                                 * If an interrupt occurs during execution of this instruction, the parity flag contains a 0. 
-                                 */
+                                     * Condition Bits Affected
+                                     * S is set if, R-Register is negative; otherwise, it is reset.
+                                     * Z is set if the R Register is 0; otherwise, it is reset.
+                                     * H is reset.
+                                     * P/V contains contents of IFF2.
+                                     * N is reset.
+                                     * C is not affected.
+                                     * If an interrupt occurs during execution of this instruction, the parity flag contains a 0. 
+                                     */
                         var reg = registers[R];
                         registers[A] = reg;
                         var f = (byte)(registers[F] & (~(byte)(Fl.H | Fl.PV | Fl.N | Fl.S | Fl.Z | Fl.PV)));
@@ -2561,7 +1937,7 @@ namespace z80
                         return;
                     }
             }
-#if(DEBUG)
+#if (DEBUG)
             Log($"ED {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
 #endif
             Halted = true;
@@ -2579,7 +1955,7 @@ namespace z80
             {
                 case 0xCB:
                     {
-                        ParseDDCB();
+                        ParseCB(0xDD);
                         return;
                     }
                 case 0x21:
@@ -2905,8 +2281,8 @@ namespace z80
                         return;
                     }
             }
-#if(DEBUG)
-            Log($"DD {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
+#if (DEBUG)
+            Log($"DD {mc:X2}: {hi:X} {r:X} {lo:X}");
 #endif
             Halted = true;
         }
@@ -2923,7 +2299,7 @@ namespace z80
             {
                 case 0xCB:
                     {
-                        ParseFDCB();
+                        ParseCB(0xFD);
                         return;
                     }
                 case 0x21:
@@ -3246,7 +2622,7 @@ namespace z80
                         return;
                     }
             }
-#if(DEBUG)
+#if (DEBUG)
             Log($"FD {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
 #endif
             Halted = true;
@@ -3486,10 +2862,13 @@ namespace z80
         public string DumpState()
         {
             var ret = " BC   DE   HL  SZ-H-PNC A" + Environment.NewLine;
-            ret += $"{registers[B]:X2}{registers[C]:X2} {registers[D]:X2}{registers[E]:X2} {registers[H]:X2}{registers[L]:X2} {(registers[F] & 0x80) >> 7}{(registers[F] & 0x40) >> 6}{(registers[F] & 0x20) >> 5}{(registers[F] & 0x10) >> 4}{(registers[F] & 0x08) >> 3}{(registers[F] & 0x04) >> 2}{(registers[F] & 0x02) >> 1}{(registers[F] & 0x01)} {registers[A]:X2}";
-            ret += $"\n{registers[Bp]:X2}{registers[Cp]:X2} {registers[Dp]:X2}{registers[Ep]:X2} {registers[Hp]:X2}{registers[Lp]:X2} {(registers[Fp] & 0x80) >> 7}{(registers[Fp] & 0x40) >> 6}{(registers[Fp] & 0x20) >> 5}{(registers[Fp] & 0x10) >> 4}{(registers[Fp] & 0x08) >> 3}{(registers[Fp] & 0x04) >> 2}{(registers[Fp] & 0x02) >> 1}{registers[Fp] & 0x01} {registers[Ap]:X2}";
+            ret +=
+                $"{registers[B]:X2}{registers[C]:X2} {registers[D]:X2}{registers[E]:X2} {registers[H]:X2}{registers[L]:X2} {(registers[F] & 0x80) >> 7}{(registers[F] & 0x40) >> 6}{(registers[F] & 0x20) >> 5}{(registers[F] & 0x10) >> 4}{(registers[F] & 0x08) >> 3}{(registers[F] & 0x04) >> 2}{(registers[F] & 0x02) >> 1}{(registers[F] & 0x01)} {registers[A]:X2}";
+            ret +=
+                $"\n{registers[Bp]:X2}{registers[Cp]:X2} {registers[Dp]:X2}{registers[Ep]:X2} {registers[Hp]:X2}{registers[Lp]:X2} {(registers[Fp] & 0x80) >> 7}{(registers[Fp] & 0x40) >> 6}{(registers[Fp] & 0x20) >> 5}{(registers[Fp] & 0x10) >> 4}{(registers[Fp] & 0x08) >> 3}{(registers[Fp] & 0x04) >> 2}{(registers[Fp] & 0x02) >> 1}{registers[Fp] & 0x01} {registers[Ap]:X2}";
             ret += Environment.NewLine + Environment.NewLine + "I  R   IX   IY   SP   PC" + Environment.NewLine;
-            ret += $"{registers[I]:X2} {registers[R]:X2} {registers[IX]:X2}{registers[IX + 1]:X2} {registers[IY]:X2}{registers[IY + 1]:X2} {registers[SP]:X2}{registers[SP + 1]:X2} {registers[PC]:X2}{registers[PC + 1]:X2} ";
+            ret +=
+                $"{registers[I]:X2} {registers[R]:X2} {registers[IX]:X2}{registers[IX + 1]:X2} {registers[IY]:X2}{registers[IY + 1]:X2} {registers[SP]:X2}{registers[SP + 1]:X2} {registers[PC]:X2}{registers[PC + 1]:X2} ";
 
             ret += Environment.NewLine;
             return ret;
@@ -3508,7 +2887,7 @@ namespace z80
             }
             else
             {
-#if(DEBUG)
+#if (DEBUG)
                 log +=
                     $"Clock expected {((double)ticks) / realTicksPerTick:0.00} but was {((double)elapsed) / realTicksPerTick:0.00}";
 #endif
@@ -3537,7 +2916,7 @@ namespace z80
             All = 0xD7
         }
 
-#if(DEBUG)
+#if (DEBUG)
         private static void Log(string text)
         {
             Console.WriteLine(text);

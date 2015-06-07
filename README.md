@@ -39,8 +39,8 @@ Console.WriteLine(myZ80.DumpState());
 
 ### Opcodes
 
-Progress: **7.4/12 (62%)**  
-Coverage: **97.6%**  
+Progress: **8.5/13 (65%)**  
+Coverage: **96.6%**  
 Spectrum ROM: **Does not work**, runs up to address `0x0005` (`JP nn`)
 
 The following opcodes are supported
@@ -52,15 +52,16 @@ The following opcodes are supported
 * General-Purpose Arithmetic and CPU Control Groups (e.g. `NOP`, `HALT`, ...)
 * 16-Bit Arithmetic Group (e.g. `ADD HL, 0x2D5F`, ...)
 * Rotate and Shift Group (e.g. `RLCA`, `RLA`, ...)
-* Bit Set, Reset, and Test Group (`BIT b,  r`, `BIT b,  (HL)`, `BIT b,  (IX+d)`, `BIT b,  (IY+d)`)
+* Bit Set, Reset, and Test Group (`BIT`, `SET`, `RES`)
+* Undocumented opcodes (`CB`, `DD CB`, `FD CB`)
 
 The following opcodes are not done
 
-* Bit Set, Reset, and Test Group (`SET b,  r`, `SET b,  (HL)`, `SET b,  (IX+d)`, `SET b,  (IY+d)`, `SET b,  (IY+d)`, `RES b,  m`)
 * Jump Group
 * Call and Return Group
 * Input and Output Group
-* Undocumented opcodes & flags
+* Undocumented opcodes (`DD`, `FD`, `ED`)
+* Undocumented effects (`BIT`, Memory Block Instructions, I/O Block Instructions, 16 Bit I/O ports, Block Instructions, Bit Additions, DAA Instruction)
 
 ### Other features
 
@@ -68,10 +69,10 @@ Progress: **0/4 (0%)**
 
 Other features that need implementation
 
-* R register auto-incrementing
-* Interrupts
 * Data bus
 * External Clock
+* Interrupts
+* R register
 
 ## The future
 
