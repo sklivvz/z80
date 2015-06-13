@@ -1078,5 +1078,12 @@ namespace z80
             Write(displacement);
             Write(0x86 + bit * 8);
         }
+
+        public void Jp(ushort address)
+        {
+            Write(0xC3);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
     }
 }

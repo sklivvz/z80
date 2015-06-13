@@ -41,7 +41,7 @@ Console.WriteLine(myZ80.DumpState());
 
 Progress: **8.5/13 (65%)**  
 Coverage: **97%**  
-Spectrum ROM: **Does not work**, runs up to address `0x0005` (`JP nn`)
+Spectrum ROM: **Does not work**, runs up to address `0x11CE` (`OUT (n), A`)
 
 The following opcodes are supported
 
@@ -53,11 +53,12 @@ The following opcodes are supported
 * 16-Bit Arithmetic Group (e.g. `ADD HL, 0x2D5F`, ...)
 * Rotate and Shift Group (e.g. `RLCA`, `RLA`, ...)
 * Bit Set, Reset, and Test Group (`BIT`, `SET`, `RES`)
+* Jump Group (`JP nn`)
 * Undocumented opcodes (`CB`, `DD CB`, `FD CB`)
 
 The following opcodes are not done
 
-* Jump Group
+* Jump Group (`JP cc, nn`, `JR e`, `JR cc, e`, `JP (HL)`, `JP (IX)`, `JP (IY)`, `DJNZ, e`)
 * Call and Return Group
 * Input and Output Group
 * Undocumented opcodes (`DD`, `FD`, `ED`)

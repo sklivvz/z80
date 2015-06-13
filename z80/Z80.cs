@@ -49,6 +49,7 @@ namespace z80
         private ushort Iy => (ushort)(registers[IY + 1] + (registers[IY] << 8));
         private ushort Bc => (ushort)((registers[B] << 8) + registers[C]);
         private ushort De => (ushort)((registers[D] << 8) + registers[E]);
+        private ushort Pc => (ushort)(registers[PC + 1] + (registers[PC] << 8));
         public bool Halted { get; private set; }
 
         public void Parse()
@@ -1033,6 +1034,17 @@ namespace z80
                         Log("RRA");
 #endif
                         Wait(4);
+                        return;
+                    }
+                case 0xC3:
+                    {
+                        var addr = Fetch16();
+                        registers[PC] = (byte) (addr >> 8);
+                        registers[PC + 1] = (byte)(addr);
+#if (DEBUG)
+                        Log($"JP 0x{addr:X4}");
+#endif
+                        Wait(10);
                         return;
                     }
             }
@@ -2820,8 +2832,11 @@ namespace z80
         /// <returns></returns>
         private byte Fetch()
         {
-            var pc = (ushort)((registers[PC] << 8) + registers[PC + 1]);
+            var pc = Pc;
             var ret = mem[pc];
+#if (DEBUG)
+            LogMemRead(pc, ret);
+#endif
             pc++;
             registers[PC] = (byte)(pc >> 8);
             registers[PC + 1] = (byte)(pc & 0xFF);
@@ -2917,9 +2932,27 @@ namespace z80
         }
 
 #if (DEBUG)
+        private static bool debug_atStart = true;
+        private static void LogMemRead(ushort addr, byte val)
+        {
+            if (debug_atStart)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write($"{addr:X4} ");
+                debug_atStart = false;
+            }
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"{val:X2} ");
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
         private static void Log(string text)
         {
+            Console.CursorLeft = 20;
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(text);
+            Console.ForegroundColor = ConsoleColor.White;
+            debug_atStart = true;
         }
 
         private static string RName(byte n)
