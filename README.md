@@ -40,7 +40,7 @@ Console.WriteLine(myZ80.DumpState());
 ### Opcodes
 
 Progress: **8.5/13 (65%)**  
-Coverage: **96.6%**  
+Coverage: **97%**  
 Spectrum ROM: **Does not work**, runs up to address `0x0005` (`JP nn`)
 
 The following opcodes are supported

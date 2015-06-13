@@ -1161,7 +1161,7 @@ namespace z80
                     {
                         Bit(r, reg);
 #if (DEBUG)
-                        Log($"BIT {r} {debug_target}");
+                        Log($"BIT {r}, {debug_target}");
 #endif
                         Wait(useHL ? 12 : 8);
                         return;
@@ -1169,14 +1169,14 @@ namespace z80
                 case 2:
                     reg &= (byte)~(0x01 << r);
 #if (DEBUG)
-                    Log($"RES {r} {debug_target}");
+                    Log($"RES {r}, {debug_target}");
 #endif
                     Wait(useHL ? 12 : 8);
                     break;
                 case 3:
                     reg |= (byte)(0x01 << r);
 #if (DEBUG)
-                    Log($"SET {r} {debug_target}");
+                    Log($"SET {r}, {debug_target}");
 #endif
                     Wait(useHL ? 12 : 8);
                     break;

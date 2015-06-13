@@ -1030,5 +1030,53 @@ namespace z80
             Write(displacement);
             Write(0x46 + bit * 8);
         }
+        public void SetNReg(byte bit, byte register)
+        {
+            Write(0xCB);
+            Write(0xC0 + bit * 8 + register);
+        }
+        public void SetNAtHl(byte bit)
+        {
+            Write(0xCB);
+            Write(0xC6 + bit * 8);
+        }
+        public void SetNAtIxd(byte bit, sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(displacement);
+            Write(0xC6 + bit * 8);
+        }
+        public void SetNAtIyd(byte bit, sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(displacement);
+            Write(0xC6 + bit * 8);
+        }
+        public void ResNReg(byte bit, byte register)
+        {
+            Write(0xCB);
+            Write(0x80 + bit * 8 + register);
+        }
+        public void ResNAtHl(byte bit)
+        {
+            Write(0xCB);
+            Write(0x86 + bit * 8);
+        }
+        public void ResNAtIxd(byte bit, sbyte displacement)
+        {
+            Write(0xDD);
+            Write(0xCB);
+            Write(displacement);
+            Write(0x86 + bit * 8);
+        }
+        public void ResNAtIyd(byte bit, sbyte displacement)
+        {
+            Write(0xFD);
+            Write(0xCB);
+            Write(displacement);
+            Write(0x86 + bit * 8);
+        }
     }
 }
