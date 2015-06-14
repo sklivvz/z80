@@ -477,5 +477,45 @@ namespace z80.Tests
             Assert.AreEqual(0xFFFF, en.SP);
             Assert.AreEqual(en.Iff2, en.Iff1);
         }
+        [Test]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        [TestCase(6)]
+        [TestCase(7)]
+        public void Test_RST_nn(byte page)
+        {
+            asm.CpVal(0xFF);
+            asm.JpZ(0x1000);
+            asm.Halt();
+            asm.Position = 0x0008;
+            asm.Halt();
+            asm.Position = 0x0010;
+            asm.Halt();
+            asm.Position = 0x0018;
+            asm.Halt();
+            asm.Position = 0x0020;
+            asm.Halt();
+            asm.Position = 0x0028;
+            asm.Halt();
+            asm.Position = 0x0030;
+            asm.Halt();
+            asm.Position = 0x0038;
+            asm.Halt();
+            asm.Position = 0x1000;
+            asm.XorReg(7);
+            asm.Rst(page);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(page, en.PC / 8);
+            Assert.AreEqual(0xFFFD, en.SP);
+            Assert.AreEqual(0x02, _ram[0xFFFD]);
+            Assert.AreEqual(0x10, _ram[0xFFFE]);
+        }
     }
 }

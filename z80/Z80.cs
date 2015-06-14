@@ -1228,6 +1228,28 @@ namespace z80
                         return;
 
                     }
+                case 0xC7:
+                case 0xCF:
+                case 0xD7:
+                case 0xDF:
+                case 0xE7:
+                case 0xEF:
+                case 0xF7:
+                case 0xFF:
+                    {
+                        var stack = Sp;
+                        mem[--stack] = (byte)(Pc >> 8);
+                        mem[--stack] = (byte)(Pc);
+                        registers[SP] = (byte)(stack >> 8);
+                        registers[SP + 1] = (byte)(stack);
+                        registers[PC] = 0;
+                        registers[PC + 1] = (byte)(mc & 0x38);
+#if (DEBUG)
+                        Log($"RST 0x{mc & 0x38:X4}");
+#endif
+                        Wait(17);
+                        return;
+                    }
             }
 
 #if(DEBUG)

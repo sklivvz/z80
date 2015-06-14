@@ -39,7 +39,7 @@ Console.WriteLine(myZ80.DumpState());
 
 ### Opcodes
 
-Progress: **10.5/13 (81%)**  
+Progress: **10.7/13 (82%)**  
 Coverage: **97.2%**  
 Spectrum ROM: **Does not work**, runs up to address `0x11CE` (`OUT (n), A`)
 
@@ -54,13 +54,11 @@ The following opcodes are supported
 * Rotate and Shift Group (e.g. `RLCA`, `RLA`, ...)
 * Bit Set, Reset, and Test Group (`BIT`, `SET`, `RES`)
 * Jump Group (`JP nn`, `JR e`, `DJNZ e`, ...)
-* Call and Return Group (`CALL nn`, `CALL cc nn`, `RET`, `RET cc`, `RETI`, `RETN`)
+* Call and Return Group (`CALL`, `RET`, `RST`)
 * Undocumented opcodes (`CB`, `DDCB`, `FDCB`, `ED`)
 
 The following opcodes are not done
 
-* Call and Return Group
-  - `RST p`
 * Input and Output Group
   - `IN A, (n)`
   - `IN r (C)`

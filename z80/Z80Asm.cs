@@ -7,12 +7,8 @@ namespace z80
     public class Z80Asm
     {
         private readonly byte[] _ram;
-        private ushort _address;
 
-        public ushort Position
-        {
-            get { return _address; }
-        }
+        public ushort Position { get; set; }
 
         public Z80Asm(byte[] ram)
         {
@@ -22,7 +18,7 @@ namespace z80
         public void Reset()
         {
             Array.Clear(_ram, 0, _ram.Length);
-            _address = 0;
+            Position = 0;
         }
 
         public void Halt()
@@ -37,8 +33,8 @@ namespace z80
 
         private void Write(byte value)
         {
-            _ram[_address] = value;
-            _address++;
+            _ram[Position] = value;
+            Position++;
         }
 
         public void Noop()
@@ -1086,7 +1082,7 @@ namespace z80
             Write(address >> 8);
         }
 
-     
+
 
         public void Jr(sbyte displacement)
         {
@@ -1305,6 +1301,10 @@ namespace z80
         {
             Write(0xED);
             Write(0x45);
+        }
+        public void Rst(byte page)
+        {
+            Write(0xC7 + page * 8);
         }
     }
 }
