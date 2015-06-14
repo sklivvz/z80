@@ -1086,6 +1086,57 @@ namespace z80
             Write(address >> 8);
         }
 
+     
+
+        public void Jr(sbyte displacement)
+        {
+            Write(0x18);
+            Write(displacement - 2);
+        }
+
+        public void JrNz(sbyte displacement)
+        {
+            Write(0x20);
+            Write(displacement - 2);
+        }
+
+        public void JrZ(sbyte displacement)
+        {
+            Write(0x28);
+            Write(displacement - 2);
+        }
+
+        public void JrNc(sbyte displacement)
+        {
+            Write(0x30);
+            Write(displacement - 2);
+        }
+
+        public void JrC(sbyte displacement)
+        {
+            Write(0x38);
+            Write(displacement - 2);
+        }
+        public void JpHl()
+        {
+            Write(0xE9);
+        }
+        public void JpIx()
+        {
+            Write(0xDD);
+            Write(0xE9);
+        }
+        public void JpIy()
+        {
+            Write(0xFD);
+            Write(0xE9);
+        }
+        public void Djnz(sbyte displacement)
+        {
+            Write(0x10);
+            Write(displacement - 2);
+        }
+
         public void JpNz(ushort address)
         {
             Write(0xC2);
@@ -1141,49 +1192,127 @@ namespace z80
             Write(address & 0xFF);
             Write(address >> 8);
         }
-
-        public void Jr(sbyte displacement)
+        public void Call(ushort address)
         {
-            Write(0x18);
-            Write(displacement - 2);
+            Write(0xCD);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+        public void CallNz(ushort address)
+        {
+            Write(0xC4);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
 
-        public void JrNz(sbyte displacement)
+        public void CallZ(ushort address)
         {
-            Write(0x20);
-            Write(displacement - 2);
+            Write(0xCC);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
 
-        public void JrZ(sbyte displacement)
+        public void CallNc(ushort address)
         {
-            Write(0x28);
-            Write(displacement - 2);
+            Write(0xD4);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
 
-        public void JrNc(sbyte displacement)
+        public void CallC(ushort address)
         {
-            Write(0x30);
-            Write(displacement - 2);
+            Write(0xDC);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
 
-        public void JrC(sbyte displacement)
+        public void CallPo(ushort address)
         {
-            Write(0x38);
-            Write(displacement - 2);
+            Write(0xE4);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
-        public void JpHl()
+
+        public void CallPe(ushort address)
         {
-            Write(0xE9);
+            Write(0xEC);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
-        public void JpIx()
+
+        public void CallP(ushort address)
         {
-            Write(0xDD);
-            Write(0xE9);
+            Write(0xF4);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
-        public void JpIy()
+
+        public void CallM(ushort address)
         {
-            Write(0xFD);
-            Write(0xE9);
+            Write(0xFC);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+        public void Ret(ushort address)
+        {
+            Write(0xC9);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+        public void RetNz(ushort address)
+        {
+            Write(0xC0);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void RetZ(ushort address)
+        {
+            Write(0xC8);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void RetNc(ushort address)
+        {
+            Write(0xD0);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void RetC(ushort address)
+        {
+            Write(0xD8);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void RetPo(ushort address)
+        {
+            Write(0xE0);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void RetPe(ushort address)
+        {
+            Write(0xE8);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void RetP(ushort address)
+        {
+            Write(0xF0);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void RetM(ushort address)
+        {
+            Write(0xF8);
+            Write(address & 0xFF);
+            Write(address >> 8);
         }
     }
 }

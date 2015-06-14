@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitSetResetTestGroupTests.cs" />
+    <Compile Include="CallReturnGroupTests.cs" />
     <Compile Include="EightBitArithmeticGroupTests.cs" />
     <Compile Include="EightBitLoadGroupTests.cs" />
     <Compile Include="ExchangeBlockTransferSearchGroupTests.cs" />

@@ -1139,6 +1139,94 @@ namespace z80
 #endif
                         return;
                     }
+                case 0xCD:
+                    {
+                        var addr = Fetch16();
+                        var stack = Sp;
+                        mem[--stack] = (byte)(Pc >> 8);
+                        mem[--stack] = (byte)(Pc);
+                        registers[SP] = (byte)(stack >> 8);
+                        registers[SP + 1] = (byte)(stack);
+                        registers[PC] = (byte)(addr >> 8);
+                        registers[PC + 1] = (byte)(addr);
+#if (DEBUG)
+                        Log($"CALL 0x{addr:X4}");
+#endif
+                        Wait(17);
+                        return;
+                    }
+                case 0xC4:
+                case 0xCC:
+                case 0xD4:
+                case 0xDC:
+                case 0xE4:
+                case 0xEC:
+                case 0xF4:
+                case 0xFC:
+                    {
+                        var addr = Fetch16();
+                        if (JumpCondition(r))
+                        {
+                            var stack = Sp;
+                            mem[--stack] = (byte) (Pc >> 8);
+                            mem[--stack] = (byte) (Pc);
+                            registers[SP] = (byte) (stack >> 8);
+                            registers[SP + 1] = (byte) (stack);
+                            registers[PC] = (byte) (addr >> 8);
+                            registers[PC + 1] = (byte) (addr);
+                            Wait(17);
+                        }
+                        else
+                        {
+                            Wait(10);
+                        }
+#if (DEBUG)
+                        Log($"CALL {JCName(r)}, 0x{addr:X4}");
+#endif
+                        return;
+
+                    }
+                case 0xC9:
+                    {
+                        var stack = Sp;
+                        registers[PC + 1] = mem[stack++];
+                        registers[PC] = mem[stack++];
+                        registers[SP] = (byte)(stack >> 8);
+                        registers[SP + 1] = (byte)(stack);
+#if (DEBUG)
+                        Log("RET");
+#endif
+                        Wait(10);
+                        return;
+                    }
+                case 0xC0:
+                case 0xC8:
+                case 0xD0:
+                case 0xD8:
+                case 0xE0:
+                case 0xE8:
+                case 0xF0:
+                case 0xF8:
+                    {
+                        if (JumpCondition(r))
+                        {
+                            var stack = Sp;
+                            registers[PC + 1] = mem[stack++];
+                            registers[PC] = mem[stack++];
+                            registers[SP] = (byte)(stack >> 8);
+                            registers[SP + 1] = (byte)(stack);
+                            Wait(11);
+                        }
+                        else
+                        {
+                            Wait(5);
+                        }
+#if (DEBUG)
+                        Log($"RET {JCName(r)}");
+#endif
+                        return;
+
+                    }
             }
 
 #if(DEBUG)
