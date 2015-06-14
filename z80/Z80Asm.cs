@@ -1085,5 +1085,105 @@ namespace z80
             Write(address & 0xFF);
             Write(address >> 8);
         }
+
+        public void JpNz(ushort address)
+        {
+            Write(0xC2);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void JpZ(ushort address)
+        {
+            Write(0xCA);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void JpNc(ushort address)
+        {
+            Write(0xD2);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void JpC(ushort address)
+        {
+            Write(0xDA);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void JpPo(ushort address)
+        {
+            Write(0xE2);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void JpPe(ushort address)
+        {
+            Write(0xEA);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void JpP(ushort address)
+        {
+            Write(0xF2);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void JpM(ushort address)
+        {
+            Write(0xFA);
+            Write(address & 0xFF);
+            Write(address >> 8);
+        }
+
+        public void Jr(sbyte displacement)
+        {
+            Write(0x18);
+            Write(displacement - 2);
+        }
+
+        public void JrNz(sbyte displacement)
+        {
+            Write(0x20);
+            Write(displacement - 2);
+        }
+
+        public void JrZ(sbyte displacement)
+        {
+            Write(0x28);
+            Write(displacement - 2);
+        }
+
+        public void JrNc(sbyte displacement)
+        {
+            Write(0x30);
+            Write(displacement - 2);
+        }
+
+        public void JrC(sbyte displacement)
+        {
+            Write(0x38);
+            Write(displacement - 2);
+        }
+        public void JpHl()
+        {
+            Write(0xE9);
+        }
+        public void JpIx()
+        {
+            Write(0xDD);
+            Write(0xE9);
+        }
+        public void JpIy()
+        {
+            Write(0xFD);
+            Write(0xE9);
+        }
     }
 }

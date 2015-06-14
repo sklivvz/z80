@@ -1039,12 +1039,82 @@ namespace z80
                 case 0xC3:
                     {
                         var addr = Fetch16();
-                        registers[PC] = (byte) (addr >> 8);
+                        registers[PC] = (byte)(addr >> 8);
                         registers[PC + 1] = (byte)(addr);
 #if (DEBUG)
                         Log($"JP 0x{addr:X4}");
 #endif
                         Wait(10);
+                        return;
+                    }
+                case 0xC2:
+                case 0xCA:
+                case 0xD2:
+                case 0xDA:
+                case 0xE2:
+                case 0xEA:
+                case 0xF2:
+                case 0xFA:
+                    {
+                        var addr = Fetch16();
+                        if (JumpCondition(r))
+                        {
+                            registers[PC] = (byte)(addr >> 8);
+                            registers[PC + 1] = (byte)(addr);
+                        }
+#if (DEBUG)
+                        Log($"JP {JCName(r)}, 0x{addr:X4}");
+#endif
+                        Wait(10);
+                        return;
+
+                    }
+                case 0x18:
+                    {
+                        // order is important here
+                        var d = (sbyte)Fetch();
+                        var addr = Pc + d;
+                        registers[PC] = (byte)(addr >> 8);
+                        registers[PC + 1] = (byte)(addr);
+#if (DEBUG)
+                        Log($"JR 0x{addr:X4}");
+#endif
+                        Wait(12);
+                        return;
+                    }
+                case 0x20:
+                case 0x28:
+                case 0x30:
+                case 0x38:
+                    {
+                        // order is important here
+                        var d = (sbyte)Fetch();
+                        var addr = Pc + d;
+                        if (JumpCondition((byte)(r & 3)))
+                        {
+                            registers[PC] = (byte)(addr >> 8);
+                            registers[PC + 1] = (byte)(addr);
+                            Wait(12);
+                        }
+                        else
+                        {
+                            Wait(7);
+                        }
+#if (DEBUG)
+                        Log($"JR {JCName((byte)(r & 3))}, 0x{addr:X4}");
+#endif
+                        return;
+
+                    }
+                case 0xE9:
+                    {
+                        var addr = Hl;
+                        registers[PC] = (byte)(addr >> 8);
+                        registers[PC + 1] = (byte)(addr);
+#if (DEBUG)
+                        Log("JP HL");
+#endif
+                        Wait(4);
                         return;
                     }
             }
@@ -1054,6 +1124,30 @@ namespace z80
             //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
 #endif
             Halted = true;
+        }
+
+        private string JCName(byte condition)
+        {
+            switch (condition)
+            {
+                case 0:
+                    return "NZ";
+                case 1:
+                    return "Z";
+                case 2:
+                    return "NC";
+                case 3:
+                    return "C";
+                case 4:
+                    return "PO";
+                case 5:
+                    return "PE";
+                case 6:
+                    return "P";
+                case 7:
+                    return "M";
+            }
+            return "";
         }
 
         private void ParseCB(byte mode = 0)
@@ -1961,7 +2055,7 @@ namespace z80
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
-            var r = (byte)((mc >> 3) & 0x07);
+            var mid = (byte)((mc >> 3) & 0x07);
 
             switch (mc)
             {
@@ -1991,9 +2085,9 @@ namespace z80
                     {
                         // LD r, (IX+d)
                         var d = (sbyte)Fetch();
-                        registers[r] = mem[(ushort)(Ix + d)];
+                        registers[mid] = mem[(ushort)(Ix + d)];
 #if (DEBUG)
-                        Log($"LD {RName(r)}, (IX{d:+0;-#})");
+                        Log($"LD {RName(mid)}, (IX{d:+0;-#})");
 #endif
                         Wait(19);
                         return;
@@ -2292,9 +2386,21 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0xE9:
+                    {
+                        var addr = Ix;
+                        registers[PC] = (byte)(addr >> 8);
+                        registers[PC + 1] = (byte)(addr);
+#if (DEBUG)
+                        Log("JP IX");
+#endif
+                        Wait(8);
+                        return;
+                    }
+
             }
 #if (DEBUG)
-            Log($"DD {mc:X2}: {hi:X} {r:X} {lo:X}");
+            Log($"DD {mc:X2}: {hi:X} {mid:X} {lo:X}");
 #endif
             Halted = true;
         }
@@ -2633,6 +2739,18 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0xE9:
+                    {
+                        var addr = Iy;
+                        registers[PC] = (byte)(addr >> 8);
+                        registers[PC + 1] = (byte)(addr);
+#if (DEBUG)
+                        Log("JP IY");
+#endif
+                        Wait(8);
+                        return;
+                    }
+
             }
 #if (DEBUG)
             Log($"FD {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
@@ -2824,6 +2942,30 @@ namespace z80
                 value = (byte)(value >> 1);
             }
             return parity;
+        }
+
+        private bool JumpCondition(byte condition)
+        {
+            Fl mask;
+            switch (condition & 0xFE)
+            {
+                case 0:
+                    mask = Fl.Z;
+                    break;
+                case 2:
+                    mask = Fl.C;
+                    break;
+                case 4:
+                    mask = Fl.PV;
+                    break;
+                case 6:
+                    mask = Fl.S;
+                    break;
+                default:
+                    return false;
+            }
+            return ((registers[F] & (byte)mask) > 0) == ((condition & 1) == 1);
+
         }
 
         /// <summary>
