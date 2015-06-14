@@ -62,6 +62,99 @@ namespace z80.Tests
             Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
         }
 
+        [Test]
+        [TestCase(0x03, false)]
+        [TestCase(0x01, true)]
+        public void Test_INI(byte b, bool zero)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadReg16Val(0, (ushort)(b * 256 + 0x34));
+            asm.Ini();
+            asm.Halt();
+
+            en.SetInput((ushort)(b * 256 + 0x34), 0x01);
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(0x01, _ram[0x0040]);
+            Assert.AreEqual(b - 1, en.B);
+            Assert.AreEqual(0x34, en.C);
+            Assert.AreEqual(0x0041, en.HL);
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
+        }
+
+        [Test]
+        [TestCase(0x03, false)]
+        [TestCase(0x01, true)]
+        public void Test_IND(byte b, bool zero)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadReg16Val(0, (ushort)(b * 256 + 0x34));
+            asm.Ind();
+            asm.Halt();
+
+            en.SetInput((ushort)(b * 256 + 0x34), 0x01);
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(0x01, _ram[0x0040]);
+            Assert.AreEqual(b - 1, en.B);
+            Assert.AreEqual(0x34, en.C);
+            Assert.AreEqual(0x003F, en.HL);
+            Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
+        }
+        [Test]
+        [TestCase(0x03)]
+        [TestCase(0x01)]
+        public void Test_INIR(byte b)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadReg16Val(0, (ushort)(b * 256 + 0x34));
+            asm.Inir();
+            asm.Halt();
+
+            for (byte i = b; i > 0; i--)
+                en.SetInput((ushort)(i * 256 + 0x34), i);
+            en.Run();
+            en.DumpRam();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            for (byte i = 0; i < b; i++)
+                Assert.AreEqual(b - i, _ram[(ushort)(0x0040 + i)]);
+            Assert.AreEqual(0, en.B);
+            Assert.AreEqual(0x34, en.C);
+            Assert.AreEqual(0x0040 + b, en.HL);
+            Assert.AreEqual(true, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
+        }
+
+        [Test]
+        [TestCase(0x03)]
+        [TestCase(0x01)]
+        public void Test_INDR(byte b)
+        {
+            asm.LoadReg16Val(2, 0x0040);
+            asm.LoadReg16Val(0, (ushort)(b * 256 + 0x34));
+            asm.Indr();
+            asm.Halt();
+
+            for (byte i = b; i > 0; i--)
+                en.SetInput((ushort)(i * 256 + 0x34), i);
+            en.Run();
+
+            en.DumpRam();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            for (byte i = 0; i < b; i++)
+                Assert.AreEqual(b-i, _ram[(ushort)(0x0040 - i)]);
+            Assert.AreEqual(0, en.B);
+            Assert.AreEqual(0x34, en.C);
+            Assert.AreEqual(0x0040 - b, en.HL);
+            Assert.AreEqual(true, en.FlagZ, "Flag Z contained the wrong value");
+            Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
+        }
         private void generator()
         {
             Func<bool, string> l = b => b.ToString().ToLower();
@@ -80,7 +173,7 @@ namespace z80.Tests
                     ((val & 0x04) >> 2) +
                     ((val & 0x02) >> 1) +
                     (val & 0x01);
-                Console.WriteLine($"[TestCase({reg}, 0x{val:X2}, {l(val > 127)}, {l(val == 0)}, {l(p%2==0)})]");
+                Console.WriteLine($"[TestCase({reg}, 0x{val:X2}, {l(val > 127)}, {l(val == 0)}, {l(p % 2 == 0)})]");
             }
             Assert.Fail();
         }

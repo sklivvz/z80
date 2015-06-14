@@ -2256,6 +2256,104 @@ namespace z80
                         Wait(8);
                         return;
                     }
+                case 0xA2:
+                    {
+                        var a = inPorts(this, Bc);
+                        var hl = Hl;
+                        mem[hl++] = a;
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        var f = (byte)(registers[F] & (byte)~(Fl.N | Fl.Z));
+                        if (b == 0) f |= (byte)Fl.Z;
+                        f |= (byte)Fl.N;
+                        registers[F] = f;
+
+#if (DEBUG)
+                        Log("INI");
+#endif
+                        Wait(16);
+                        return;
+                    }
+                case 0xB2:
+                    {
+                        var a = inPorts(this, Bc);
+                        var hl = Hl;
+                        mem[hl++] = a;
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        if (b != 0)
+                        {
+                            var pc = Pc - 2;
+                            registers[PC] = (byte) (pc >> 8);
+                            registers[PC + 1] = (byte) pc;
+#if (DEBUG)
+                            Log("(INIR)");
+#endif
+                            Wait(21);
+                        }
+                        else
+                        {
+                            registers[F] = (byte) (registers[F] | (byte) (Fl.N | Fl.Z));
+#if (DEBUG)
+                            Log("INIR");
+#endif
+                            Wait(16);
+                        }
+                        return;
+                    }
+                case 0xAA:
+                    {
+                        var a = inPorts(this, Bc);
+                        var hl = Hl;
+                        mem[hl--] = a;
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        var f = (byte)(registers[F] & (byte)~(Fl.N | Fl.Z));
+                        if (b == 0) f |= (byte)Fl.Z;
+                        f |= (byte)Fl.N;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("IND");
+#endif
+                        Wait(16);
+                        return;
+                    }
+                case 0xBA:
+                    {
+                        var a = inPorts(this, Bc);
+                        var hl = Hl;
+                        mem[hl--] = a;
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        if (b != 0)
+                        {
+                            var pc = Pc - 2;
+                            registers[PC] = (byte)(pc >> 8);
+                            registers[PC + 1] = (byte)pc;
+#if (DEBUG)
+                            Log("(INDR)");
+#endif
+                            Wait(21);
+                        }
+                        else
+                        {
+                            registers[F] = (byte)(registers[F] | (byte)(Fl.N | Fl.Z));
+#if (DEBUG)
+                            Log("INDR");
+#endif
+                            Wait(16);
+                        }
+                        return;
+                    }
+
             }
 #if (DEBUG)
             Log($"ED {mc:X2}: {hi:X2} {lo:X2} {r:X2}");

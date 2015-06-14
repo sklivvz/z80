@@ -1316,5 +1316,26 @@ namespace z80
             Write(0xED);
             Write(0x40 + register * 8);
         }
+        public void Ini()
+        {
+            Write(0xED);
+            Write(0xA2);
+        }
+        public void Inir()
+        {
+            Write(0xED);
+            Write(0xB2);
+        }
+        public void Ind()
+        {
+            Write(0xED);
+            Write(0xAA);
+        }
+        public void Indr()
+        {
+            Write(0xED);
+            Write(0xBA);
+        }
+
     }
 }

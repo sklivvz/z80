@@ -39,8 +39,8 @@ Console.WriteLine(myZ80.DumpState());
 
 ### Opcodes
 
-Progress: **10.7/13 (82%)**  
-Coverage: **97.2%**  
+Progress: **11.2/13 (86%)**  
+Coverage: **97.3%**  
 Spectrum ROM: **Does not work**, runs up to address `0x11CE` (`OUT (n), A`)
 
 The following opcodes are supported
@@ -56,15 +56,11 @@ The following opcodes are supported
 * Jump Group (`JP nn`, `JR e`, `DJNZ e`, ...)
 * Call and Return Group (`CALL`, `RET`, `RST`)
 * Undocumented opcodes (`CB`, `DDCB`, `FDCB`, `ED`)
-* Input and Output Group (`IN A, (n)`, `IN r (C)`)
+* Input and Output Group (`IN A, (n)`, `IN r (C)`, `INI`, `INIR`, `IND`, `INDR`)
 
 The following opcodes are not done
 
 * Input and Output Group
-  - `INI`
-  - `INIR`
-  - `IND`
-  - `INDR`
   - `OUT (n), A`
   - `OUT (C), r`
   - `OUTI`
@@ -76,11 +72,14 @@ The following opcodes are not done
 
 ### Other features
 
-Progress: **0/4 (0%)**
+Progress: **1/4 (25%)**
+
+These other features are supported
+
+* Address and Data bus
 
 Other features that need implementation
 
-* Address and Data bus
 * Interrupts
 * R register
 * Other pins
