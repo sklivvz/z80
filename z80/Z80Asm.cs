@@ -1253,66 +1253,58 @@ namespace z80
             Write(address & 0xFF);
             Write(address >> 8);
         }
-        public void Ret(ushort address)
+        public void Ret()
         {
             Write(0xC9);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
-        public void RetNz(ushort address)
+        public void RetNz()
         {
             Write(0xC0);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
 
-        public void RetZ(ushort address)
+        public void RetZ()
         {
             Write(0xC8);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
 
-        public void RetNc(ushort address)
+        public void RetNc()
         {
             Write(0xD0);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
 
-        public void RetC(ushort address)
+        public void RetC()
         {
             Write(0xD8);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
 
-        public void RetPo(ushort address)
+        public void RetPo()
         {
             Write(0xE0);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
 
-        public void RetPe(ushort address)
+        public void RetPe()
         {
             Write(0xE8);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
 
-        public void RetP(ushort address)
+        public void RetP()
         {
             Write(0xF0);
-            Write(address & 0xFF);
-            Write(address >> 8);
         }
 
-        public void RetM(ushort address)
+        public void RetM()
         {
             Write(0xF8);
-            Write(address & 0xFF);
-            Write(address >> 8);
+        }
+        public void RetI()
+        {
+            Write(0xED);
+            Write(0x4D);
+        }
+        public void RetN()
+        {
+            Write(0xED);
+            Write(0x45);
         }
     }
 }

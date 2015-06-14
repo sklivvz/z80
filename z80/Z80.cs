@@ -102,6 +102,7 @@ namespace z80
 #if(DEBUG)
                     Log("NOP");
 #endif
+                    Wait(4);
                     return;
                 case 0x01:
                 case 0x11:
@@ -1989,6 +1990,13 @@ namespace z80
                         return;
                     }
                 case 0x44:
+                case 0x54:
+                case 0x64:
+                case 0x74:
+                case 0x4C:
+                case 0x5C:
+                case 0x6C:
+                case 0x7C:
                     {
                         // NEG
                         var a = registers[A];
@@ -2012,6 +2020,7 @@ namespace z80
                         return;
                     }
                 case 0x46:
+                case 0x66:
                     {
                         // IM 0
                         interruptMode = 0;
@@ -2022,6 +2031,7 @@ namespace z80
                         return;
                     }
                 case 0x56:
+                case 0x76:
                     {
                         // IM 1
                         interruptMode = 1;
@@ -2032,6 +2042,7 @@ namespace z80
                         return;
                     }
                 case 0x5E:
+                case 0x7E:
                     {
                         // IM 2
                         interruptMode = 2;
@@ -2147,11 +2158,46 @@ namespace z80
                         if (Parity(a)) f |= (byte)Fl.PV;
                         registers[F] = f;
 #if (DEBUG)
-                        Log("RLD");
+                        Log("RRD");
 #endif
                         Wait(18);
                         return;
                     }
+                case 0x45:
+                case 0x4D:
+                case 0x55:
+                case 0x5D:
+                case 0x65:
+                case 0x6D:
+                case 0x75:
+                case 0x7D:
+                    {
+                        var stack = Sp;
+                        registers[PC + 1] = mem[stack++];
+                        registers[PC] = mem[stack++];
+                        registers[SP] = (byte)(stack >> 8);
+                        registers[SP + 1] = (byte)(stack);
+                        IFF1 = IFF2;
+#if (DEBUG)
+                        if (mc == 0x4D)
+                            Log("RETN");
+                        else
+                            Log("RETI");
+#endif
+                        Wait(10);
+                        return;
+                    }
+
+                case 0x77:
+                case 0x7F:
+                    {
+#if (DEBUG)
+                        Log("NOP");
+#endif
+                        Wait(8);
+                        return;
+                    }
+
             }
 #if (DEBUG)
             Log($"ED {mc:X2}: {hi:X2} {lo:X2} {r:X2}");

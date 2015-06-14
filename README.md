@@ -39,8 +39,8 @@ Console.WriteLine(myZ80.DumpState());
 
 ### Opcodes
 
-Progress: **10.1/13 (77%)**  
-Coverage: **97.3%**  
+Progress: **10.5/13 (81%)**  
+Coverage: **97.2%**  
 Spectrum ROM: **Does not work**, runs up to address `0x11CE` (`OUT (n), A`)
 
 The following opcodes are supported
@@ -54,14 +54,12 @@ The following opcodes are supported
 * Rotate and Shift Group (e.g. `RLCA`, `RLA`, ...)
 * Bit Set, Reset, and Test Group (`BIT`, `SET`, `RES`)
 * Jump Group (`JP nn`, `JR e`, `DJNZ e`, ...)
-* Call and Return Group (`CALL nn`, `CALL cc, nn`, `RET`, `RET cc`)
-* Undocumented opcodes (`CB`, `DD CB`, `FD CB`)
+* Call and Return Group (`CALL nn`, `CALL cc nn`, `RET`, `RET cc`, `RETI`, `RETN`)
+* Undocumented opcodes (`CB`, `DDCB`, `FDCB`, `ED`)
 
 The following opcodes are not done
 
 * Call and Return Group
-  - `RETI`
-  - `RETN`
   - `RST p`
 * Input and Output Group
   - `IN A, (n)`
@@ -76,7 +74,7 @@ The following opcodes are not done
   - `OTIR`
   - `OUTD`
   - `OTDR`
-* Undocumented opcodes (`DD`, `FD`, `ED`)
+* Undocumented opcodes (`DD`, `FD`)
 * Undocumented effects (`BIT`, Memory Block Instructions, I/O Block Instructions, 16 Bit I/O ports, Block Instructions, Bit Additions, DAA Instruction)
 
 ### Other features
@@ -85,10 +83,10 @@ Progress: **0/4 (0%)**
 
 Other features that need implementation
 
-* Data bus
-* External Clock
+* Address and Data bus
 * Interrupts
 * R register
+* Other pins
 
 ## The future
 

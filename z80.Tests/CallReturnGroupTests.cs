@@ -226,7 +226,7 @@ namespace z80.Tests
         }
 
         [Test]
-        public void Test_RET_NZ_nn()
+        public void Test_RET_nn()
         {
             asm.Call(0x0004);
             asm.Halt();
@@ -447,6 +447,35 @@ namespace z80.Tests
                 Assert.AreEqual(0x00, _ram[0xFFFE]);
             }
         }
+        [Test]
+        public void Test_RETI_nn()
+        {
+            asm.Ei();
+            asm.Call(0x0005);
+            asm.Halt();
+            asm.RetI();
+            asm.Halt();
 
+            en.Run();
+
+            Assert.AreEqual(0x05, en.PC);
+            Assert.AreEqual(0xFFFF, en.SP);
+            Assert.AreEqual(en.Iff2, en.Iff1);
+        }
+        [Test]
+        public void Test_RETN_nn()
+        {
+            asm.Ei();
+            asm.Call(0x0005);
+            asm.Halt();
+            asm.RetN();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(0x05, en.PC);
+            Assert.AreEqual(0xFFFF, en.SP);
+            Assert.AreEqual(en.Iff2, en.Iff1);
+        }
     }
 }
