@@ -1117,6 +1117,28 @@ namespace z80
                         Wait(4);
                         return;
                     }
+                case 0x10:
+                    {
+                        // order is important here
+                        var d = (sbyte)Fetch();
+                        var addr = Pc + d;
+                        var b = registers[B];
+                        registers[B] = --b;
+                        if (b != 0)
+                        {
+                            registers[PC] = (byte) (addr >> 8);
+                            registers[PC + 1] = (byte) (addr);
+                            Wait(13);
+                        }
+                        else
+                        {
+                            Wait(8);
+                        }
+#if (DEBUG)
+                        Log($"DJNZ 0x{addr:X4}");
+#endif
+                        return;
+                    }
             }
 
 #if(DEBUG)

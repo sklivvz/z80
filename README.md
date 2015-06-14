@@ -39,7 +39,7 @@ Console.WriteLine(myZ80.DumpState());
 
 ### Opcodes
 
-Progress: **9.4/13 (72%)**  
+Progress: **9.5/13 (73%)**  
 Coverage: **97.2%**  
 Spectrum ROM: **Does not work**, runs up to address `0x11CE` (`OUT (n), A`)
 
@@ -53,14 +53,32 @@ The following opcodes are supported
 * 16-Bit Arithmetic Group (e.g. `ADD HL, 0x2D5F`, ...)
 * Rotate and Shift Group (e.g. `RLCA`, `RLA`, ...)
 * Bit Set, Reset, and Test Group (`BIT`, `SET`, `RES`)
-* Jump Group (`JP nn`, `JP cc, nn`, `JR e`, `JR cc, e`, `JP (HL)`, `JP (IX)`, `JP (IY)`)
+* Jump Group (`JP nn`, `JR e`, `DJNZ e`, ...)
 * Undocumented opcodes (`CB`, `DD CB`, `FD CB`)
 
 The following opcodes are not done
 
-* Jump Group (`DJNZ, e`)
 * Call and Return Group
+  - `CALL nn`
+  - `CALL cc, nn`
+  - `RET`
+  - `RET cc`
+  - `RETI`
+  - `RETN`
+  - `RST p`
 * Input and Output Group
+  - `IN A, (n)`
+  - `IN r (C)`
+  - `INI`
+  - `INIR`
+  - `IND`
+  - `INDR`
+  - `OUT (n), A`
+  - `OUT (C), r`
+  - `OUTI`
+  - `OTIR`
+  - `OUTD`
+  - `OTDR`
 * Undocumented opcodes (`DD`, `FD`, `ED`)
 * Undocumented effects (`BIT`, Memory Block Instructions, I/O Block Instructions, 16 Bit I/O ports, Block Instructions, Bit Additions, DAA Instruction)
 

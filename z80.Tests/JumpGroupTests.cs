@@ -265,6 +265,23 @@ namespace z80.Tests
 
             Assert.AreEqual(0x09, en.PC);
         }
+        [Test]
+        [TestCase(0x01)]
+        [TestCase(0x42)]
+        public void Test_DJNZ_e(byte loops)
+        {
+            asm.LoadRegVal(0,loops);
+            asm.XorReg(7);
+            asm.IncReg(7);
+            asm.Djnz(-1);
+            asm.Halt();
+
+            en.Run();
+
+            Assert.AreEqual(asm.Position, en.PC);
+            Assert.AreEqual(loops, en.A);
+            Assert.AreEqual(0, en.B);
+        }
     }
 }
 
