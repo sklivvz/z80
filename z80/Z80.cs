@@ -1266,6 +1266,16 @@ namespace z80
                         Wait(11);
                         return;
                     }
+                case 0xD3:
+                    {
+                        var port = Fetch() + (registers[A] << 8);
+                        outPorts(this, (ushort)port, registers[A]);
+#if (DEBUG)
+                        Log($"OUT (0x{port:X2}), A");
+#endif
+                        Wait(11);
+                        return;
+                    }
             }
 
 #if(DEBUG)
@@ -2288,8 +2298,8 @@ namespace z80
                         if (b != 0)
                         {
                             var pc = Pc - 2;
-                            registers[PC] = (byte) (pc >> 8);
-                            registers[PC + 1] = (byte) pc;
+                            registers[PC] = (byte)(pc >> 8);
+                            registers[PC + 1] = (byte)pc;
 #if (DEBUG)
                             Log("(INIR)");
 #endif
@@ -2297,7 +2307,7 @@ namespace z80
                         }
                         else
                         {
-                            registers[F] = (byte) (registers[F] | (byte) (Fl.N | Fl.Z));
+                            registers[F] = (byte)(registers[F] | (byte)(Fl.N | Fl.Z));
 #if (DEBUG)
                             Log("INIR");
 #endif
@@ -2353,7 +2363,124 @@ namespace z80
                         }
                         return;
                     }
+                case 0x41:
+                case 0x49:
+                case 0x51:
+                case 0x59:
+                case 0x61:
+                case 0x69:
+                case 0x79:
+                    {
+                        var a = registers[r];
+                        outPorts(this, Bc, a);
+                        var f = (byte)(registers[F] & 0x29);
+                        if ((a & 0x80) > 0) f |= (byte)Fl.S;
+                        if (a == 0) f |= (byte)Fl.Z;
+                        if (Parity(a)) f |= (byte)Fl.PV;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"OUT (BC), {RName(r)}");
+#endif
+                        Wait(8);
+                        return;
+                    }
+                case 0xA3:
+                    {
+                        var hl = Hl;
+                        var a = mem[hl++];
+                        outPorts(this, Bc, a);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        var f = (byte)(registers[F] & (byte)~(Fl.N | Fl.Z));
+                        if (b == 0) f |= (byte)Fl.Z;
+                        f |= (byte)Fl.N;
+                        registers[F] = f;
 
+#if (DEBUG)
+                        Log("OUTI");
+#endif
+                        Wait(16);
+                        return;
+                    }
+                case 0xB3:
+                    {
+                        var hl = Hl;
+                        var a = mem[hl++];
+                        outPorts(this, Bc, a);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        if (b != 0)
+                        {
+                            var pc = Pc - 2;
+                            registers[PC] = (byte)(pc >> 8);
+                            registers[PC + 1] = (byte)pc;
+#if (DEBUG)
+                            Log("(OUTIR)");
+#endif
+                            Wait(21);
+                        }
+                        else
+                        {
+                            registers[F] = (byte)(registers[F] | (byte)(Fl.N | Fl.Z));
+#if (DEBUG)
+                            Log("OUTIR");
+#endif
+                            Wait(16);
+                        }
+                        return;
+                    }
+                case 0xAB:
+                    {
+                        var hl = Hl;
+                        var a = mem[hl--];
+                        outPorts(this, Bc, a);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        var f = (byte)(registers[F] & (byte)~(Fl.N | Fl.Z));
+                        if (b == 0) f |= (byte)Fl.Z;
+                        f |= (byte)Fl.N;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log("OUTD");
+#endif
+                        Wait(16);
+                        return;
+                    }
+                case 0xBB:
+                    {
+                        var hl = Hl;
+                        var a = mem[hl--];
+                        outPorts(this, Bc, a);
+                        registers[H] = (byte)(hl >> 8);
+                        registers[L] = (byte)hl;
+                        var b = (byte)(registers[B] - 1);
+                        registers[B] = b;
+                        if (b != 0)
+                        {
+                            var pc = Pc - 2;
+                            registers[PC] = (byte)(pc >> 8);
+                            registers[PC + 1] = (byte)pc;
+#if (DEBUG)
+                            Log("(OUTDR)");
+#endif
+                            Wait(21);
+                        }
+                        else
+                        {
+                            registers[F] = (byte)(registers[F] | (byte)(Fl.N | Fl.Z));
+#if (DEBUG)
+                            Log("OUTDR");
+#endif
+                            Wait(16);
+                        }
+                        return;
+                    }
             }
 #if (DEBUG)
             Log($"ED {mc:X2}: {hi:X2} {lo:X2} {r:X2}");

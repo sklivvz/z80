@@ -48,6 +48,7 @@
     <Compile Include="EightBitLoadGroupTests.cs" />
     <Compile Include="ExchangeBlockTransferSearchGroupTests.cs" />
     <Compile Include="GeneralPurposeArithmeticCpuControlGroupTests.cs" />
+    <Compile Include="InputOutputGroupTests.cs" />
     <Compile Include="JumpGroupTests.cs" />
     <Compile Include="MemoryTests.cs" />
     <Compile Include="OpCodeTestBase.cs" />

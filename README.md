@@ -39,9 +39,9 @@ Console.WriteLine(myZ80.DumpState());
 
 ### Opcodes
 
-Progress: **11.2/13 (86%)**  
-Coverage: **97.3%**  
-Spectrum ROM: **Does not work**, runs up to address `0x11CE` (`OUT (n), A`)
+Progress: **11.7/13 (90%)**  
+Coverage: **97.4%**  
+Spectrum ROM: **_Apparently_ it works**
 
 The following opcodes are supported
 
@@ -56,17 +56,10 @@ The following opcodes are supported
 * Jump Group (`JP nn`, `JR e`, `DJNZ e`, ...)
 * Call and Return Group (`CALL`, `RET`, `RST`)
 * Undocumented opcodes (`CB`, `DDCB`, `FDCB`, `ED`)
-* Input and Output Group (`IN A, (n)`, `IN r (C)`, `INI`, `INIR`, `IND`, `INDR`)
+* Input and Output Group (`IN`, `OUT`, ...)
 
 The following opcodes are not done
 
-* Input and Output Group
-  - `OUT (n), A`
-  - `OUT (C), r`
-  - `OUTI`
-  - `OTIR`
-  - `OUTD`
-  - `OTDR`
 * Undocumented opcodes (`DD`, `FD`)
 * Undocumented effects (`BIT`, Memory Block Instructions, I/O Block Instructions, 16 Bit I/O ports, Block Instructions, Bit Additions, DAA Instruction)
 

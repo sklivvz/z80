@@ -1336,6 +1336,36 @@ namespace z80
             Write(0xED);
             Write(0xBA);
         }
+        public void OutPortA(byte port)
+        {   
+            Write(0xD3);
+            Write(port);
+        }
+        public void OutBcReg(byte register)
+        {
+            Write(0xED);
+            Write(0x41 + register * 8);
+        }
+        public void Outi()
+        {
+            Write(0xED);
+            Write(0xA3);
+        }
+        public void Outir()
+        {
+            Write(0xED);
+            Write(0xB3);
+        }
+        public void Outd()
+        {
+            Write(0xED);
+            Write(0xAB);
+        }
+        public void Outdr()
+        {
+            Write(0xED);
+            Write(0xBB);
+        }
 
     }
 }
