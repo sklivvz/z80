@@ -56,12 +56,11 @@ The following opcodes are supported
 * Jump Group (`JP nn`, `JR e`, `DJNZ e`, ...)
 * Call and Return Group (`CALL`, `RET`, `RST`)
 * Undocumented opcodes (`CB`, `DDCB`, `FDCB`, `ED`)
+* Input and Output Group (`IN A, (n)`, `IN r (C)`)
 
 The following opcodes are not done
 
 * Input and Output Group
-  - `IN A, (n)`
-  - `IN r (C)`
   - `INI`
   - `INIR`
   - `IND`

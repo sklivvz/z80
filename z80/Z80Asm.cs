@@ -1306,5 +1306,15 @@ namespace z80
         {
             Write(0xC7 + page * 8);
         }
+        public void InAPort(byte port)
+        {
+            Write(0xDB);
+            Write(port);
+        }
+        public void InRegBc(byte register)
+        {
+            Write(0xED);
+            Write(0x40 + register * 8);
+        }
     }
 }

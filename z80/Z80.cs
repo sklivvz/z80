@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 // ReSharper disable InconsistentNaming
@@ -37,9 +38,14 @@ namespace z80
         private bool IFF2;
         private int interruptMode;
 
-        public Z80(Memory memory)
+        private Func<Z80, ushort, byte> inPorts;
+        private Action<Z80, ushort, byte> outPorts;
+
+        public Z80(Memory memory, Func<Z80, ushort, byte> inputs = null, Action<Z80, ushort, byte> outputs = null)
         {
             mem = memory;
+            inPorts = inputs ?? ((_, __) => 0);
+            outPorts = outputs ?? ((_, __, ___) => { });
             Reset();
         }
 
@@ -50,11 +56,11 @@ namespace z80
         private ushort Bc => (ushort)((registers[B] << 8) + registers[C]);
         private ushort De => (ushort)((registers[D] << 8) + registers[E]);
         private ushort Pc => (ushort)(registers[PC + 1] + (registers[PC] << 8));
-        public bool Halted { get; private set; }
+        public bool Halt { get; private set; }
 
         public void Parse()
         {
-            if (Halted) return;
+            if (Halt) return;
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
@@ -68,7 +74,7 @@ namespace z80
 #if(DEBUG)
                     Log("HALT");
 #endif
-                    Halted = true;
+                    Halt = true;
                     return;
                 }
                 var reg = useHL2 ? mem[Hl] : registers[lo];
@@ -1127,8 +1133,8 @@ namespace z80
                         registers[B] = --b;
                         if (b != 0)
                         {
-                            registers[PC] = (byte) (addr >> 8);
-                            registers[PC + 1] = (byte) (addr);
+                            registers[PC] = (byte)(addr >> 8);
+                            registers[PC + 1] = (byte)(addr);
                             Wait(13);
                         }
                         else
@@ -1169,12 +1175,12 @@ namespace z80
                         if (JumpCondition(r))
                         {
                             var stack = Sp;
-                            mem[--stack] = (byte) (Pc >> 8);
-                            mem[--stack] = (byte) (Pc);
-                            registers[SP] = (byte) (stack >> 8);
-                            registers[SP + 1] = (byte) (stack);
-                            registers[PC] = (byte) (addr >> 8);
-                            registers[PC + 1] = (byte) (addr);
+                            mem[--stack] = (byte)(Pc >> 8);
+                            mem[--stack] = (byte)(Pc);
+                            registers[SP] = (byte)(stack >> 8);
+                            registers[SP + 1] = (byte)(stack);
+                            registers[PC] = (byte)(addr >> 8);
+                            registers[PC + 1] = (byte)(addr);
                             Wait(17);
                         }
                         else
@@ -1250,13 +1256,23 @@ namespace z80
                         Wait(17);
                         return;
                     }
+                case 0xDB:
+                    {
+                        var port = Fetch() + (registers[A] << 8);
+                        registers[A] = inPorts(this, (ushort)port);
+#if (DEBUG)
+                        Log($"IN A, (0x{port:X2})");
+#endif
+                        Wait(11);
+                        return;
+                    }
             }
 
 #if(DEBUG)
             Log($"{mc:X2}: {hi:X} {r:X} {lo:X}");
             //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
 #endif
-            Halted = true;
+            Halt = true;
         }
 
         private string JCName(byte condition)
@@ -1290,7 +1306,7 @@ namespace z80
             {
                 d = (sbyte)Fetch();
             }
-            if (Halted) return;
+            if (Halt) return;
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
@@ -1549,7 +1565,7 @@ namespace z80
 
         private void ParseED()
         {
-            if (Halted) return;
+            if (Halt) return;
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
@@ -2219,17 +2235,37 @@ namespace z80
                         Wait(8);
                         return;
                     }
-
+                case 0x40:
+                case 0x48:
+                case 0x50:
+                case 0x58:
+                case 0x60:
+                case 0x68:
+                case 0x78:
+                    {
+                        var a = inPorts(this, Bc);
+                        registers[r] = a;
+                        var f = (byte)(registers[F] & 0x29);
+                        if ((a & 0x80) > 0) f |= (byte)Fl.S;
+                        if (a == 0) f |= (byte)Fl.Z;
+                        if (Parity(a)) f |= (byte)Fl.PV;
+                        registers[F] = f;
+#if (DEBUG)
+                        Log($"IN {RName(r)}, (BC)");
+#endif
+                        Wait(8);
+                        return;
+                    }
             }
 #if (DEBUG)
             Log($"ED {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
 #endif
-            Halted = true;
+            Halt = true;
         }
 
         private void ParseDD()
         {
-            if (Halted) return;
+            if (Halt) return;
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
@@ -2580,12 +2616,12 @@ namespace z80
 #if (DEBUG)
             Log($"DD {mc:X2}: {hi:X} {mid:X} {lo:X}");
 #endif
-            Halted = true;
+            Halt = true;
         }
 
         private void ParseFD()
         {
-            if (Halted) return;
+            if (Halt) return;
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
             var lo = (byte)(mc & 0x07);
@@ -2933,7 +2969,7 @@ namespace z80
 #if (DEBUG)
             Log($"FD {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
 #endif
-            Halted = true;
+            Halt = true;
         }
 
         private void Add(byte b)
@@ -3253,6 +3289,7 @@ namespace z80
 
 #if (DEBUG)
         private static bool debug_atStart = true;
+
         private static void LogMemRead(ushort addr, byte val)
         {
             if (debug_atStart)

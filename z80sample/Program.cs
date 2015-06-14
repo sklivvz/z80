@@ -15,8 +15,15 @@ namespace z80Sample
 
             Array.Copy(inp, ram, 16384);
 
-            var myZ80 = new Z80(new Memory(ram, 16384));
-            while (!myZ80.Halted)
+            var myZ80 = new Z80(new Memory(ram, 16384), (that, port) => 
+            {
+                Console.WriteLine($"IN 0x{port:X4}"); return 0;
+            }, (that, port, value) =>
+            {
+                Console.WriteLine($"OUT 0x{port:X4}, 0x{value:X2}");
+            }
+            );
+            while (!myZ80.Halt)
             {
                 myZ80.Parse();
                 //Console.Write(Z80.DumpState());

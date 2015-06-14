@@ -93,17 +93,39 @@ namespace z80.Tests
             return (ushort)ret;
         }
 
+        private byte[] inputs = new byte[0x10000];
+        private byte[] outputs = new byte[0x10000];
+
+        private byte GetInput(Z80 _, ushort address)
+        {
+            return inputs[address];
+        }
+
+        public void SetInput(ushort address, byte value)
+        {
+            inputs[address] = value;
+        }
+
+        public byte GetOutput(ushort address)
+        {
+            return outputs[address];
+        }
+
+        private void SetOutput(Z80 _, ushort address, byte value)
+        {
+            outputs[address] = value;
+        }
         public TestSystem(byte[] ram)
         {
             _ram = ram;
-            _myZ80 = new Z80(new Memory(ram, 0));
+            _myZ80 = new Z80(new Memory(ram, 0), GetInput, SetOutput);
         }
 
         public void Run()
         {
             int bailout = 1000;
 
-            while (!_myZ80.Halted && bailout > 0)
+            while (!_myZ80.Halt && bailout > 0)
             {
                 _myZ80.Parse();
                 bailout--;
@@ -112,7 +134,7 @@ namespace z80.Tests
             }
             _dumpedState = _myZ80.GetState();
             _hasDump = true;
-            if (!_myZ80.Halted) Console.WriteLine("BAILOUT!");
+            if (!_myZ80.Halt) Console.WriteLine("BAILOUT!");
         }
 
         public void Reset()
