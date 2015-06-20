@@ -56,6 +56,7 @@
     <Compile Include="RotateShiftGroupTests.cs" />
     <Compile Include="SixteenBitArithmeticGroupTests.cs" />
     <Compile Include="SixteenBitLoadGroupTests.cs" />
+    <Compile Include="TestPorts.cs" />
     <Compile Include="TestSystem.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -80,6 +80,11 @@ namespace z80.Tests
         public bool Iff1 => Reg8(_IFF1) > 0;
         public bool Iff2 => Reg8(_IFF2) > 0;
 
+        public TestPorts TestPorts
+        {
+            get { return _testPorts; }
+        }
+
 
         public byte Reg8(int reg)
         {
@@ -93,32 +98,12 @@ namespace z80.Tests
             return (ushort)ret;
         }
 
-        private byte[] inputs = new byte[0x10000];
-        private byte[] outputs = new byte[0x10000];
+        private readonly TestPorts _testPorts = new TestPorts();
 
-        private byte GetInput(Z80 _, ushort address)
-        {
-            return inputs[address];
-        }
-
-        public void SetInput(ushort address, byte value)
-        {
-            inputs[address] = value;
-        }
-
-        public byte GetOutput(ushort address)
-        {
-            return outputs[address];
-        }
-
-        private void SetOutput(Z80 _, ushort address, byte value)
-        {
-            outputs[address] = value;
-        }
         public TestSystem(byte[] ram)
         {
             _ram = ram;
-            _myZ80 = new Z80(new Memory(ram, 0), GetInput, SetOutput);
+            _myZ80 = new Z80(new Memory(ram, 0), _testPorts);
         }
 
         public void Run()

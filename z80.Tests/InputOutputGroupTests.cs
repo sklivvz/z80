@@ -19,7 +19,7 @@ namespace z80.Tests
             asm.InAPort(0x34);
             asm.Halt();
 
-            en.SetInput((ushort)(val * 256 + 0x34), 0x56);
+            en.TestPorts.SetInput((ushort)(val * 256 + 0x34), 0x56);
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
@@ -51,7 +51,7 @@ namespace z80.Tests
             asm.InRegBc(reg);
             asm.Halt();
 
-            en.SetInput(0x1234, val);
+            en.TestPorts.SetInput(0x1234, val);
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
@@ -73,7 +73,7 @@ namespace z80.Tests
             asm.Ini();
             asm.Halt();
 
-            en.SetInput((ushort)(b * 256 + 0x34), 0x01);
+            en.TestPorts.SetInput((ushort)(b * 256 + 0x34), 0x01);
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
@@ -95,7 +95,7 @@ namespace z80.Tests
             asm.Ind();
             asm.Halt();
 
-            en.SetInput((ushort)(b * 256 + 0x34), 0x01);
+            en.TestPorts.SetInput((ushort)(b * 256 + 0x34), 0x01);
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
@@ -118,7 +118,7 @@ namespace z80.Tests
             asm.Halt();
 
             for (byte i = b; i > 0; i--)
-                en.SetInput((ushort)(i * 256 + 0x34), i);
+                en.TestPorts.SetInput((ushort)(i * 256 + 0x34), i);
             en.Run();
             en.DumpRam();
 
@@ -143,7 +143,7 @@ namespace z80.Tests
             asm.Halt();
 
             for (byte i = b; i > 0; i--)
-                en.SetInput((ushort)(i * 256 + 0x34), i);
+                en.TestPorts.SetInput((ushort)(i * 256 + 0x34), i);
             en.Run();
 
             en.DumpRam();
@@ -170,7 +170,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual(val, en.GetOutput((ushort)(val * 256 + 0x34)));
+            Assert.AreEqual(val, en.TestPorts.GetOutput((ushort)(val * 256 + 0x34)));
         }
 
         [Test]
@@ -202,7 +202,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual(val, en.GetOutput(0x1234));
+            Assert.AreEqual(val, en.TestPorts.GetOutput(0x1234));
             Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
             Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
@@ -224,7 +224,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual(0x01, en.GetOutput((ushort)(b * 256 + 0x34)));
+            Assert.AreEqual(0x01, en.TestPorts.GetOutput((ushort)(b * 256 + 0x34)));
             Assert.AreEqual(b - 1, en.B);
             Assert.AreEqual(0x34, en.C);
             Assert.AreEqual(0x0041, en.HL);
@@ -246,7 +246,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual(0x01, en.GetOutput((ushort)(b * 256 + 0x34)));
+            Assert.AreEqual(0x01, en.TestPorts.GetOutput((ushort)(b * 256 + 0x34)));
             Assert.AreEqual(b - 1, en.B);
             Assert.AreEqual(0x34, en.C);
             Assert.AreEqual(0x003F, en.HL);
@@ -272,7 +272,7 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             for (byte i = b; i > 0; i--)
-                Assert.AreEqual(i, en.GetOutput((ushort)(i * 256 + 0x34)));
+                Assert.AreEqual(i, en.TestPorts.GetOutput((ushort)(i * 256 + 0x34)));
             Assert.AreEqual(0, en.B);
             Assert.AreEqual(0x34, en.C);
             Assert.AreEqual(0x0040 + b, en.HL);
@@ -298,7 +298,7 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             for (byte i = b; i > 0; i--)
-                Assert.AreEqual(i, en.GetOutput((ushort)(i * 256 + 0x34)));
+                Assert.AreEqual(i, en.TestPorts.GetOutput((ushort)(i * 256 + 0x34)));
             Assert.AreEqual(0, en.B);
             Assert.AreEqual(0x34, en.C);
             Assert.AreEqual(0x0040 - b, en.HL);

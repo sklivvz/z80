@@ -15,18 +15,11 @@ namespace z80Sample
 
             Array.Copy(inp, ram, 16384);
 
-            var myZ80 = new Z80(new Memory(ram, 16384), (that, port) => 
-            {
-                Console.WriteLine($"IN 0x{port:X4}"); return 0;
-            }, (that, port, value) =>
-            {
-                Console.WriteLine($"OUT 0x{port:X4}, 0x{value:X2}");
-            }
-            );
-            while (!myZ80.Halt)
+            var myZ80 = new Z80(new Memory(ram, 16384), new SamplePorts());
+            Console.Clear();
+            while (!myZ80.Halt && !Console.KeyAvailable)
             {
                 myZ80.Parse();
-                //Console.Write(Z80.DumpState());
             }
 
 
@@ -39,7 +32,7 @@ namespace z80Sample
                 if (i % 16 == 15) Console.WriteLine();
             }
             Console.WriteLine();
-            for (var i = 0x8080; i < 0x80A0; i++)
+            for (var i = 0x4000; i < 0x4100; i++)
             {
                 if (i % 16 == 0) Console.Write("{0:X4} | ", i);
                 Console.Write("{0:x2} ", ram[i]);
@@ -47,6 +40,19 @@ namespace z80Sample
                 if (i % 16 == 15) Console.WriteLine();
             }
             Console.ReadLine();
+        }
+    }
+
+    class SamplePorts : IPorts
+    {
+        public byte Read(ushort port)
+        {
+            Console.WriteLine($"IN 0x{port:X4}");
+            return 0;
+        }
+        public void Write(ushort port, byte value)
+        {
+            Console.WriteLine($"OUT 0x{port:X4}, 0x{value:X2}");
         }
     }
 }
