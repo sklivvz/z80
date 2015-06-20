@@ -514,13 +514,14 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual(66, en.R);
+            //R is incremented by 3 machine cycles by the end.
+            Assert.AreEqual(69, en.R);
         }
 
         [Test]
         [TestCase(23, false, false)]
-        [TestCase(0, false, true)]
-        [TestCase(-1, true, false)]
+        [TestCase(-5, false, true)]
+        [TestCase(-6, true, false)]
         public void Test_LD_A_R(sbyte val, bool sign, bool zero)
         {
             asm.LoadRegVal(7, (byte)val);
@@ -532,7 +533,8 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.AreEqual((byte)val, en.A);
+            //R is incremented by 5 machine cycles by the end.
+            Assert.AreEqual(val+5, (sbyte)en.A);
             Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
             Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");

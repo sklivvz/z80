@@ -65,16 +65,16 @@ The following opcodes are not done
 
 ### Other features
 
-Progress: **1/4 (25%)**
+Progress: **2/4 (50%)**
 
 These other features are supported
 
 * Address and Data bus
+* R register counts machine cycles (approximately)
 
 Other features that need implementation
 
 * Interrupts
-* R register
 * Other pins
 
 ## The future

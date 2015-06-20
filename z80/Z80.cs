@@ -3472,6 +3472,7 @@ namespace z80
 
         private void Wait(int t)
         {
+            registers[R] += (byte)((t + 3) / 4);
             const int realTicksPerTick = 250; // 4MHz
             var ticks = t * realTicksPerTick;
             var elapsed = (DateTime.UtcNow - _clock).Ticks;
