@@ -8,7 +8,6 @@ namespace z80
 {
     public class Z80
     {
-        private static string log = "";
         private const byte B = 0;
         private const byte C = 1;
         private const byte D = 2;
@@ -3485,8 +3484,7 @@ namespace z80
             else
             {
 #if (DEBUG)
-                log +=
-                    $"Clock expected {((double)ticks) / realTicksPerTick:0.00} but was {((double)elapsed) / realTicksPerTick:0.00}";
+                Log($"Clock expected {((double)ticks) / realTicksPerTick:0.00} but was {((double)elapsed) / realTicksPerTick:0.00}");
 #endif
                 _clock = DateTime.UtcNow;
             }
