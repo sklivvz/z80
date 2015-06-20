@@ -88,13 +88,14 @@ Also, the project should have NuGet packages at some point.
 
 ## Bibliography
 
-The following resources have bee useful documentation:
+The following resources have been useful documentation:
 
 * [Z80 CPU User Manual](http://www.zilog.com/manage_directlink.php?filepath=docs/z80/um0080) by Zilog
 * [ZEMU - Z80 Emulator](http://www.z80.info/zip/zemu.zip) by Joe Moore
 * [The Undocumented Z80 Documented](http://www.myquest.nl/z80undocumented/z80-documented-v0.91.pdf) by Sean Young
 * [comp.sys.sinclair FAQ](http://www.worldofspectrum.org/faq/reference/z80reference.htm)
 * [jsspeccy](https://github.com/gasman/jsspeccy) by Matt Westcott
+* [The Complete Spectrum ROM Disassembly](http://dac.escet.urjc.es/~csanchez/pfcs/zxspectrum/CompleteSpectrumROMDisassemblyThe.pdf) by Dr Ian Logan & Dr Frank O&apos;Hara
 
 ## License
 
