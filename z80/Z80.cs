@@ -3470,6 +3470,7 @@ namespace z80
         private void Wait(int t)
         {
             registers[R] += (byte)((t + 3) / 4);
+#if (DEBUG)
             const int realTicksPerTick = 250; // 4MHz
             var ticks = t * realTicksPerTick;
             var elapsed = (DateTime.UtcNow - _clock).Ticks;
@@ -3481,11 +3482,10 @@ namespace z80
             }
             else
             {
-#if (DEBUG)
                 Log($"Clock expected {((double)ticks) / realTicksPerTick:0.00} but was {((double)elapsed) / realTicksPerTick:0.00}");
-#endif
-                _clock = DateTime.UtcNow;
+            _clock = DateTime.UtcNow;
             }
+#endif
         }
 
         private void SwapReg8(byte r1, byte r2)

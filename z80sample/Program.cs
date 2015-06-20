@@ -17,9 +17,16 @@ namespace z80Sample
 
             var myZ80 = new Z80(new Memory(ram, 16384), new SamplePorts());
             Console.Clear();
+            var counter = 0;
             while (!myZ80.Halt && !Console.KeyAvailable)
             {
                 myZ80.Parse();
+                counter++;
+                if (counter % 1000 == 1)
+                {
+                    var registers = myZ80.GetState();
+                    Console.WriteLine($"0x{(ushort)(registers[25] + (registers[24] << 8)):X4}");
+                }
             }
 
 
