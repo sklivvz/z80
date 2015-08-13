@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("z80")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A csharp Zilog Z80 emulator")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("http://sklivvz.com")]
 [assembly: AssemblyProduct("z80")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCopyright("Copyright © 2015, Marco Cecconi")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

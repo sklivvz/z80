@@ -1,17 +1,19 @@
 # z80
-A csharp z80 emulator.
+A csharp emulator for the Zilog Z80 CPU.
 
 ## The project
 
-The project's goal is to write a Z80 emulator that works in real time.
+z80 a Z80 emulator that works in real time written in C#.
 
-At the moment, I'm working in parallel on:
+These are contained:
 
-* Z80 Emulator & step debugger
-* Z80 Assembler backend
-* Zilog-based Z80 tests
+* Z80 Emulator (`Z80`)
+* Z80 Assembler backend (`Z80Asm`)
+* Zilog-based Z80 tests (`z80.Tests`)
 
-The tests are a translation of the documentation, the assembler backend is needed to write tests and stay sane and the emulator is the whole point. The step debugger comes for free with it. Currently developed but still work in progress, see the "Status" section to see what's currently implemented.
+The tests are a translation of the documentation, the assembler backend is needed to write tests and stay sane and the emulator is the whole point. 
+
+There's a very basic step debugger in the tests (`TestSystem`) which basically came for free with them.
 
 ## Usage example
 
@@ -22,8 +24,11 @@ var ram = new byte[65536];
 Array.Clear(ram, 0, ram.Length);
 Array.Copy(File.ReadAllBytes("48.rom"), ram, 16384);
 
+// Ports is something you supply to emulate I/O ports
+var ports = new SamplePorts();
+
 // Set up memory layout
-var myZ80 = new Z80(new Memory(ram, 16384));
+var myZ80 = new Z80(new Memory(ram, 16384), ports);
 
 // Run
 while (!myZ80.Halted)
@@ -37,11 +42,11 @@ Console.WriteLine(myZ80.DumpState());
 
 ## Status
 
+Test Coverage: **98.29%**  
+Spectrum ROM: **_Apparently_ it works**, but needs a ULA to work.
+
 ### Opcodes
 
-Progress: **11.7/13 (90%)**  
-Coverage: **97.4%**  
-Spectrum ROM: **_Apparently_ it works**
 
 The following opcodes are supported
 
@@ -58,28 +63,24 @@ The following opcodes are supported
 * Undocumented opcodes (`CB`, `DDCB`, `FDCB`, `ED`)
 * Input and Output Group (`IN`, `OUT`, ...)
 
-The following opcodes are not done
-
-* Undocumented opcodes (`DD`, `FD`)
-* Undocumented effects (`BIT`, Memory Block Instructions, I/O Block Instructions, 16 Bit I/O ports, Block Instructions, Bit Additions, DAA Instruction)
-
 ### Other features
-
-Progress: **2/4 (50%)**
 
 These other features are supported
 
 * Address and Data bus
 * R register counts machine cycles (approximately)
-
-Other features that need implementation
-
 * Interrupts
 * Other pins
 
+
 ## The future
 
-After these are done it should be "easy" to add:
+The following opcodes are not done
+
+* Undocumented opcodes (`DD`, `FD`)
+* Undocumented effects (`BIT`, Memory Block Instructions, I/O Block Instructions, 16 Bit I/O ports, Block Instructions, Bit Additions, DAA Instruction)
+
+These new features are highly desirable
 
 * An assembler frontend thus having a full z80 assembler
 * A disassembler based on the current CPU emulator code

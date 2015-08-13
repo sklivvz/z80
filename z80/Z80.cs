@@ -41,6 +41,8 @@ namespace z80
 
         public Z80(Memory memory, IPorts ports)
         {
+            if (memory == null) throw new ArgumentNullException(nameof(memory));
+            if (ports == null) throw new ArgumentNullException(nameof(ports));
             mem = memory;
             this.ports = ports;
             Reset();
@@ -57,6 +59,87 @@ namespace z80
 
         public void Parse()
         {
+            if (ports.NMI)
+            {
+                var stack = Sp;
+                mem[--stack] = (byte)(Pc >> 8);
+                mem[--stack] = (byte)(Pc);
+                registers[SP] = (byte)(stack >> 8);
+                registers[SP + 1] = (byte)(stack);
+                registers[PC] = 0x00;
+                registers[PC + 1] = 0x66;
+                IFF1 = IFF2;
+                IFF1 = false;
+#if (DEBUG)
+                Log("NMI");
+#endif
+                Wait(17);
+                Halt = false;
+                return;
+            }
+            if (IFF1 && ports.MI)
+            {
+                IFF1 = false;
+                IFF2 = false;
+                switch (interruptMode)
+                {
+                    case 0:
+                        {
+                            // This is not quite correct, as it only runs a RST xx
+                            // Instead, it should also support any other instruction
+                            var instruction = ports.Data;
+                            var stack = Sp;
+                            mem[--stack] = (byte)(Pc >> 8);
+                            mem[--stack] = (byte)(Pc);
+                            registers[SP] = (byte)(stack >> 8);
+                            registers[SP + 1] = (byte)(stack);
+                            registers[PC] = 0x00;
+                            registers[PC + 1] = (byte)(instruction & 0x38);
+                            Wait(17);
+
+#if (DEBUG)
+                            Log("MI 0");
+#endif
+                            Halt = false;
+                            return;
+                        }
+                    case 1:
+                        {
+                            var stack = Sp;
+                            mem[--stack] = (byte)(Pc >> 8);
+                            mem[--stack] = (byte)(Pc);
+                            registers[SP] = (byte)(stack >> 8);
+                            registers[SP + 1] = (byte)(stack);
+                            registers[PC] = 0x00;
+                            registers[PC + 1] = 0x38;
+#if (DEBUG)
+                            Log("MI 1");
+#endif
+                            Wait(17);
+                            Halt = false;
+                            return;
+                        }
+                    case 2:
+                        {
+                            var vector = ports.Data;
+                            var stack = Sp;
+                            mem[--stack] = (byte)(Pc >> 8);
+                            mem[--stack] = (byte)(Pc);
+                            registers[SP] = (byte)(stack >> 8);
+                            registers[SP + 1] = (byte)(stack);
+                            var address = (ushort)((registers[I] << 8) + vector);
+                            registers[PC] = mem[address++];
+                            registers[PC + 1] = mem[address];
+#if (DEBUG)
+                            Log("MI 2");
+#endif
+                            Wait(17);
+                            Halt = false;
+                            return;
+                        }
+                }
+                return;
+            }
             if (Halt) return;
             var mc = Fetch();
             var hi = (byte)(mc >> 6);
@@ -1256,7 +1339,7 @@ namespace z80
                 case 0xDB:
                     {
                         var port = Fetch() + (registers[A] << 8);
-                        registers[A] = ports.Read((ushort)port);
+                        registers[A] = ports.ReadPort((ushort)port);
 #if (DEBUG)
                         Log($"IN A, (0x{port:X2})");
 #endif
@@ -1266,7 +1349,7 @@ namespace z80
                 case 0xD3:
                     {
                         var port = Fetch() + (registers[A] << 8);
-                        ports.Write((ushort)port, registers[A]);
+                        ports.WritePort((ushort)port, registers[A]);
 #if (DEBUG)
                         Log($"OUT (0x{port:X2}), A");
 #endif
@@ -1574,8 +1657,6 @@ namespace z80
         {
             if (Halt) return;
             var mc = Fetch();
-            var hi = (byte)(mc >> 6);
-            var lo = (byte)(mc & 0x07);
             var r = (byte)((mc >> 3) & 0x07);
 
             switch (mc)
@@ -2250,7 +2331,7 @@ namespace z80
                 case 0x68:
                 case 0x78:
                     {
-                        var a = (byte) ports.Read(Bc);
+                        var a = (byte)ports.ReadPort(Bc);
                         registers[r] = a;
                         var f = (byte)(registers[F] & 0x29);
                         if ((a & 0x80) > 0) f |= (byte)Fl.S;
@@ -2265,7 +2346,7 @@ namespace z80
                     }
                 case 0xA2:
                     {
-                        var a = (byte) ports.Read(Bc);
+                        var a = (byte)ports.ReadPort(Bc);
                         var hl = Hl;
                         mem[hl++] = a;
                         registers[H] = (byte)(hl >> 8);
@@ -2285,7 +2366,7 @@ namespace z80
                     }
                 case 0xB2:
                     {
-                        var a = (byte) ports.Read(Bc);
+                        var a = (byte)ports.ReadPort(Bc);
                         var hl = Hl;
                         mem[hl++] = a;
                         registers[H] = (byte)(hl >> 8);
@@ -2314,7 +2395,7 @@ namespace z80
                     }
                 case 0xAA:
                     {
-                        var a = (byte) ports.Read(Bc);
+                        var a = (byte)ports.ReadPort(Bc);
                         var hl = Hl;
                         mem[hl--] = a;
                         registers[H] = (byte)(hl >> 8);
@@ -2333,7 +2414,7 @@ namespace z80
                     }
                 case 0xBA:
                     {
-                        var a = (byte) ports.Read(Bc);
+                        var a = (byte)ports.ReadPort(Bc);
                         var hl = Hl;
                         mem[hl--] = a;
                         registers[H] = (byte)(hl >> 8);
@@ -2369,7 +2450,7 @@ namespace z80
                 case 0x79:
                     {
                         var a = registers[r];
-                        ports.Write(Bc, a);
+                        ports.WritePort(Bc, a);
                         var f = (byte)(registers[F] & 0x29);
                         if ((a & 0x80) > 0) f |= (byte)Fl.S;
                         if (a == 0) f |= (byte)Fl.Z;
@@ -2385,7 +2466,7 @@ namespace z80
                     {
                         var hl = Hl;
                         var a = mem[hl++];
-                        ports.Write(Bc, a);
+                        ports.WritePort(Bc, a);
                         registers[H] = (byte)(hl >> 8);
                         registers[L] = (byte)hl;
                         var b = (byte)(registers[B] - 1);
@@ -2405,7 +2486,7 @@ namespace z80
                     {
                         var hl = Hl;
                         var a = mem[hl++];
-                        ports.Write(Bc, a);
+                        ports.WritePort(Bc, a);
                         registers[H] = (byte)(hl >> 8);
                         registers[L] = (byte)hl;
                         var b = (byte)(registers[B] - 1);
@@ -2434,7 +2515,7 @@ namespace z80
                     {
                         var hl = Hl;
                         var a = mem[hl--];
-                        ports.Write(Bc, a);
+                        ports.WritePort(Bc, a);
                         registers[H] = (byte)(hl >> 8);
                         registers[L] = (byte)hl;
                         var b = (byte)(registers[B] - 1);
@@ -2453,7 +2534,7 @@ namespace z80
                     {
                         var hl = Hl;
                         var a = mem[hl--];
-                        ports.Write(Bc, a);
+                        ports.WritePort(Bc, a);
                         registers[H] = (byte)(hl >> 8);
                         registers[L] = (byte)hl;
                         var b = (byte)(registers[B] - 1);
@@ -2480,7 +2561,7 @@ namespace z80
                     }
             }
 #if (DEBUG)
-            Log($"ED {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
+            Log($"ED {mc:X2}: {r:X2}");
 #endif
             Halt = true;
         }
@@ -3470,7 +3551,6 @@ namespace z80
         private void Wait(int t)
         {
             registers[R] += (byte)((t + 3) / 4);
-#if (DEBUG)
             const int realTicksPerTick = 250; // 4MHz
             var ticks = t * realTicksPerTick;
             var elapsed = (DateTime.UtcNow - _clock).Ticks;
@@ -3482,10 +3562,11 @@ namespace z80
             }
             else
             {
+#if (DEBUG)
                 Log($"Clock expected {((double)ticks) / realTicksPerTick:0.00} but was {((double)elapsed) / realTicksPerTick:0.00}");
-            _clock = DateTime.UtcNow;
-            }
 #endif
+                _clock = DateTime.UtcNow;
+            }
         }
 
         private void SwapReg8(byte r1, byte r2)

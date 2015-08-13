@@ -80,11 +80,7 @@ namespace z80.Tests
         public bool Iff1 => Reg8(_IFF1) > 0;
         public bool Iff2 => Reg8(_IFF2) > 0;
 
-        public TestPorts TestPorts
-        {
-            get { return _testPorts; }
-        }
-
+        public TestPorts TestPorts { get; } = new TestPorts();
 
         public byte Reg8(int reg)
         {
@@ -98,12 +94,10 @@ namespace z80.Tests
             return (ushort)ret;
         }
 
-        private readonly TestPorts _testPorts = new TestPorts();
-
         public TestSystem(byte[] ram)
         {
             _ram = ram;
-            _myZ80 = new Z80(new Memory(ram, 0), _testPorts);
+            _myZ80 = new Z80(new Memory(ram, 0), TestPorts);
         }
 
         public void Run()
@@ -121,6 +115,16 @@ namespace z80.Tests
             _hasDump = true;
             if (!_myZ80.Halt) Console.WriteLine("BAILOUT!");
         }
+
+        public bool Step()
+        {
+            _myZ80.Parse();
+            _dumpedState = _myZ80.GetState();
+            _hasDump = true;
+            return _myZ80.Halt;
+        }
+
+
 
         public void Reset()
         {
@@ -153,6 +157,22 @@ namespace z80.Tests
                 if (i % 16 == 15) Console.WriteLine();
             }
 
+        }
+
+        public void RaiseInterrupt(bool maskable, byte data = 0x00)
+        {
+            if (maskable)
+            {
+                TestPorts.MI = true;
+                TestPorts.NMI = false;
+                TestPorts.Data = data;
+            }
+            else
+            {
+                TestPorts.MI = false;
+                TestPorts.NMI = true;
+                TestPorts.Data = data;
+            }
         }
     }
 }

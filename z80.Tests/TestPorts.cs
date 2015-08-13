@@ -4,8 +4,11 @@ namespace z80.Tests
     {
         private readonly byte[] inputs = new byte[0x10000];
         private readonly byte[] outputs = new byte[0x10000];
+        private byte _data;
+        private bool _mi;
+        private bool _nmi;
 
-        public byte Read(ushort address)
+        public byte ReadPort(ushort address)
         {
             return inputs[address];
         }
@@ -20,9 +23,43 @@ namespace z80.Tests
             return outputs[address];
         }
 
-        public void Write(ushort address, byte value)
+        public void WritePort(ushort address, byte value)
         {
             outputs[address] = value;
         }
+
+        public bool NMI
+        {
+            get
+            {
+                var ret = _nmi;
+                _nmi = false;
+                return ret;
+            }
+            set { _nmi = value; }
+        }
+
+        public bool MI
+        {
+            get
+            {
+                var ret = _mi;
+                _mi = false;
+                return ret;
+            }
+            set { _mi = value; }
+        }
+
+        public byte Data
+        {
+            get
+            {
+                var ret = _data;
+                _data = 0x00;
+                return ret;
+            }
+            set { _data = value; }
+        }
+
     }
 }
