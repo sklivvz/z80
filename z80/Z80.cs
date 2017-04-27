@@ -3329,7 +3329,7 @@ namespace z80
             if ((a >= 0x80 && b >= 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0))
                 f |= (byte)Fl.PV;
             f |= (byte)Fl.N;
-            if (diff > 0xFF)
+            if (diff < 0)
                 f |= (byte)Fl.C;
             registers[F] = f;
         }
