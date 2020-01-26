@@ -31,7 +31,7 @@ var ports = new SamplePorts();
 var myZ80 = new Z80(new Memory(ram, 16384), ports);
 
 // Run
-while (!myZ80.Halted)
+while (!myZ80.Halt)
 {
     myZ80.Parse();
 }
