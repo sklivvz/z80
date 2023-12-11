@@ -3408,7 +3408,7 @@ namespace z80
             if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0))
                 f = (byte)(f | 0x04);
             f = (byte)(f | 0x02);
-            if (diff > 0xFF)
+            if ((diff & 0x100) != 0)
                 f = (byte)(f | 0x01);
             registers[F] = f;
         }
