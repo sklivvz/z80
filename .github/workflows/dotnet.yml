@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: .NET Framework
 
 on:
   push:
@@ -12,14 +9,19 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest  # Ändere das von ubuntu-latest zu windows-latest
 
     steps:
     - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 4.5.x
+    - name: Setup .NET Framework
+      run: |
+        # Stelle sicher, dass die richtige Version von .NET Framework installiert ist.
+        # Normalerweise ist .NET Framework 4.x auf den Windows-Images bereits vorinstalliert.
+        # Falls du eine spezielle Version benötigst, kannst du sie hier installieren.
+        # Beispiel für .NET Framework 4.5:
+        Invoke-WebRequest -Uri https://aka.ms/dotnet/5.0/runtime/5.0.10/dotnet-runtime-5.0.10-win-x64.zip -OutFile "dotnet.zip"
+        Expand-Archive -Path "dotnet.zip" -DestinationPath "C:\Program Files\dotnet"
+        echo "Das .NET Framework ist auf diesem Image bereits vorinstalliert."
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
