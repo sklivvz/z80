@@ -2,28 +2,196 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Redesign the Z80 emulator's public API to mirror the real Z80 chip's 40-pin pinout, with a unified IBus interface replacing Memory and IPorts.
+**Goal:** Redesign the Z80 emulator's public API to mirror the real Z80 chip's 40-pin pinout, with `IMemory` for fast memory access and `IBus` for I/O and signals.
 
-**Architecture:** Single `IBus` interface with semantic methods for bus operations and interrupt signals. `SimpleBus` helper class replaces both `Memory` and `TestPorts`. Z80 gets public register properties and `Parse()` returns T-states. See `docs/plans/2026-02-19-pinout-api-design.md` for the full design.
+**Architecture:** `IMemory` interface with indexer for hot-path memory access (devirtualizable when sealed). `IBus` interface for I/O operations and interrupt/control signals. `SimpleMemory` and `SimpleBus` helper classes for common use. See `docs/plans/2026-02-19-pinout-api-design.md` for the full design.
 
 **Tech Stack:** C# / .NET 10, NUnit 4
 
 ---
 
-### Task 1: Create IBus Interface
+### Task 1: Create IMemory Interface and SimpleMemory
+
+**Files:**
+- Create: `z80/IMemory.cs`
+- Create: `z80/SimpleMemory.cs`
+- Create: `z80.Tests/SimpleMemoryTests.cs`
+
+**Step 1: Write failing tests for SimpleMemory**
+
+```csharp
+using NUnit.Framework;
+
+namespace z80.Tests
+{
+    [TestFixture]
+    public class SimpleMemoryTests
+    {
+        [Test]
+        public void Read_ReturnsValue()
+        {
+            var ram = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            var mem = new SimpleMemory(ram);
+
+            for (ushort i = 0; i < ram.Length; i++)
+                Assert.AreEqual(i, mem[i]);
+        }
+
+        [Test]
+        public void Write_StoresValue()
+        {
+            var ram = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            var mem = new SimpleMemory(ram);
+
+            for (ushort i = 0; i < ram.Length; i++)
+            {
+                mem[i] = (byte)(0xFF ^ i);
+                Assert.AreEqual((byte)(0xFF ^ i), mem[i]);
+            }
+        }
+
+        [Test]
+        public void Write_ModifiesBackingArray()
+        {
+            var ram = new byte[10];
+            var mem = new SimpleMemory(ram);
+
+            mem[5] = 0x42;
+            Assert.AreEqual(0x42, ram[5]);
+        }
+    }
+}
+```
+
+**Step 2: Run tests to verify they fail**
+
+Run: `dotnet test z80.Tests/z80.Tests.csproj --filter SimpleMemoryTests --verbosity quiet`
+Expected: Build error — `SimpleMemory` does not exist yet.
+
+**Step 3: Create IMemory interface**
+
+```csharp
+namespace z80
+{
+    public interface IMemory
+    {
+        byte this[ushort address] { get; set; }
+    }
+}
+```
+
+**Step 4: Create SimpleMemory**
+
+```csharp
+namespace z80
+{
+    public sealed class SimpleMemory : IMemory
+    {
+        private readonly byte[] _memory;
+
+        public SimpleMemory(byte[] memory)
+        {
+            _memory = memory;
+        }
+
+        public byte this[ushort address]
+        {
+            get => _memory[address];
+            set => _memory[address] = value;
+        }
+    }
+}
+```
+
+**Step 5: Run tests to verify they pass**
+
+Run: `dotnet test z80.Tests/z80.Tests.csproj --filter SimpleMemoryTests --verbosity quiet`
+Expected: All 3 tests pass.
+
+**Step 6: Commit**
+
+```bash
+git add z80/IMemory.cs z80/SimpleMemory.cs z80.Tests/SimpleMemoryTests.cs
+git commit -m "feat: add IMemory interface and SimpleMemory implementation"
+```
+
+---
+
+### Task 2: Create IBus Interface and SimpleBus
 
 **Files:**
 - Create: `z80/IBus.cs`
+- Create: `z80/SimpleBus.cs`
+- Create: `z80.Tests/SimpleBusTests.cs`
 
-**Step 1: Create the IBus interface file**
+**Step 1: Write failing tests for SimpleBus**
+
+```csharp
+using NUnit.Framework;
+
+namespace z80.Tests
+{
+    [TestFixture]
+    public class SimpleBusTests
+    {
+        [Test]
+        public void IoRead_ReturnsSetInputValue()
+        {
+            var bus = new SimpleBus();
+            bus.SetInput(0x42, 0xAB);
+            Assert.AreEqual(0xAB, bus.IoRead(0x42));
+        }
+
+        [Test]
+        public void IoWrite_IsReadableViaGetOutput()
+        {
+            var bus = new SimpleBus();
+            bus.IoWrite(0x42, 0xCD);
+            Assert.AreEqual(0xCD, bus.GetOutput(0x42));
+        }
+
+        [Test]
+        public void NMI_AutoClearsOnRead()
+        {
+            var bus = new SimpleBus();
+            bus.NMI = true;
+            Assert.IsTrue(bus.NMI);
+            Assert.IsFalse(bus.NMI);
+        }
+
+        [Test]
+        public void INT_DoesNotAutoClear()
+        {
+            var bus = new SimpleBus();
+            bus.INT = true;
+            Assert.IsTrue(bus.INT);
+            Assert.IsTrue(bus.INT);
+        }
+
+        [Test]
+        public void StubbedSignals_ReturnFalse()
+        {
+            var bus = new SimpleBus();
+            Assert.IsFalse(bus.WAIT);
+            Assert.IsFalse(bus.BUSRQ);
+            Assert.IsFalse(bus.RESET);
+        }
+    }
+}
+```
+
+**Step 2: Run tests to verify they fail**
+
+Run: `dotnet test z80.Tests/z80.Tests.csproj --filter SimpleBusTests --verbosity quiet`
+Expected: Build error — `SimpleBus` does not exist yet.
+
+**Step 3: Create IBus interface**
 
 ```csharp
 namespace z80
 {
     public interface IBus
     {
-        byte MemoryRead(ushort address);
-        void MemoryWrite(ushort address, byte data);
         byte IoRead(ushort address);
         void IoWrite(ushort address, byte data);
 
@@ -38,150 +206,17 @@ namespace z80
 }
 ```
 
-**Step 2: Verify it compiles**
-
-Run: `dotnet build z80/z80.csproj --verbosity quiet`
-Expected: Build succeeded.
-
-**Step 3: Commit**
-
-```bash
-git add z80/IBus.cs
-git commit -m "feat: add IBus interface for pinout-based bus abstraction"
-```
-
----
-
-### Task 2: Create SimpleBus
-
-**Files:**
-- Create: `z80/SimpleBus.cs`
-- Test: `z80.Tests/SimpleBusTests.cs`
-
-**Step 1: Write failing tests for SimpleBus**
-
-```csharp
-using NUnit.Framework;
-
-namespace z80.Tests
-{
-    [TestFixture]
-    public class SimpleBusTests
-    {
-        [Test]
-        public void MemoryRead_ReturnsValue()
-        {
-            var mem = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var bus = new SimpleBus(mem, 0);
-
-            for (ushort i = 0; i < mem.Length; i++)
-                Assert.AreEqual(i, bus.MemoryRead(i));
-        }
-
-        [Test]
-        public void MemoryWrite_InRam_WritesValue()
-        {
-            var mem = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var bus = new SimpleBus(mem, 0);
-
-            for (ushort i = 0; i < mem.Length; i++)
-            {
-                bus.MemoryWrite(i, (byte)(0xFF ^ i));
-                Assert.AreEqual((byte)(0xFF ^ i), bus.MemoryRead(i));
-            }
-        }
-
-        [Test]
-        public void MemoryWrite_InRom_IsIgnored()
-        {
-            var mem = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var bus = new SimpleBus(mem, 10);
-
-            for (ushort i = 0; i < mem.Length; i++)
-            {
-                bus.MemoryWrite(i, (byte)(0xFF ^ i));
-                Assert.AreEqual(i, bus.MemoryRead(i));
-            }
-        }
-
-        [Test]
-        public void IoRead_ReturnsSetInputValue()
-        {
-            var bus = new SimpleBus(new byte[10], 0);
-            bus.SetInput(0x42, 0xAB);
-            Assert.AreEqual(0xAB, bus.IoRead(0x42));
-        }
-
-        [Test]
-        public void IoWrite_IsReadableViaGetOutput()
-        {
-            var bus = new SimpleBus(new byte[10], 0);
-            bus.IoWrite(0x42, 0xCD);
-            Assert.AreEqual(0xCD, bus.GetOutput(0x42));
-        }
-
-        [Test]
-        public void NMI_AutoClearsOnRead()
-        {
-            var bus = new SimpleBus(new byte[10], 0);
-            bus.NMI = true;
-            Assert.IsTrue(bus.NMI);
-            Assert.IsFalse(bus.NMI);
-        }
-
-        [Test]
-        public void INT_DoesNotAutoClear()
-        {
-            var bus = new SimpleBus(new byte[10], 0);
-            bus.INT = true;
-            Assert.IsTrue(bus.INT);
-            Assert.IsTrue(bus.INT);
-        }
-
-        [Test]
-        public void StubbedSignals_ReturnFalse()
-        {
-            var bus = new SimpleBus(new byte[10], 0);
-            Assert.IsFalse(bus.WAIT);
-            Assert.IsFalse(bus.BUSRQ);
-            Assert.IsFalse(bus.RESET);
-        }
-    }
-}
-```
-
-**Step 2: Run tests to verify they fail**
-
-Run: `dotnet test z80.Tests/z80.Tests.csproj --filter SimpleBusTests --verbosity quiet`
-Expected: Build error — `SimpleBus` does not exist yet.
-
-**Step 3: Implement SimpleBus**
+**Step 4: Create SimpleBus**
 
 ```csharp
 namespace z80
 {
-    public class SimpleBus : IBus
+    public sealed class SimpleBus : IBus
     {
-        private readonly byte[] _memory;
-        private readonly ushort _ramStart;
         private readonly byte[] _inputs = new byte[0x10000];
         private readonly byte[] _outputs = new byte[0x10000];
         private bool _nmi;
         private byte _data;
-
-        public SimpleBus(byte[] memory, ushort ramStart)
-        {
-            _memory = memory;
-            _ramStart = ramStart;
-        }
-
-        public byte MemoryRead(ushort address) => _memory[address];
-
-        public void MemoryWrite(ushort address, byte data)
-        {
-            if (address >= _ramStart)
-                _memory[address] = data;
-        }
 
         public byte IoRead(ushort address) => _inputs[address];
 
@@ -211,23 +246,23 @@ namespace z80
 }
 ```
 
-**Step 4: Run tests to verify they pass**
+**Step 5: Run tests to verify they pass**
 
 Run: `dotnet test z80.Tests/z80.Tests.csproj --filter SimpleBusTests --verbosity quiet`
-Expected: All 8 tests pass.
+Expected: All 5 tests pass.
 
-**Step 5: Commit**
+**Step 6: Commit**
 
 ```bash
-git add z80/SimpleBus.cs z80.Tests/SimpleBusTests.cs
-git commit -m "feat: add SimpleBus implementing IBus with ROM/RAM and I/O"
+git add z80/IBus.cs z80/SimpleBus.cs z80.Tests/SimpleBusTests.cs
+git commit -m "feat: add IBus interface and SimpleBus for I/O and signals"
 ```
 
 ---
 
-### Task 3: Rewire Z80 to Use IBus
+### Task 3: Rewire Z80 to Use IMemory and IBus
 
-This is the core change. Replace `Memory mem` + `IPorts ports` with `IBus bus` inside Z80.cs. This is a mechanical substitution throughout the 3600+ line file.
+This is the core change. Replace `Memory mem` + `IPorts ports` with `IMemory mem` + `IBus bus` inside Z80.cs. Memory access syntax stays identical (`mem[address]`). I/O and interrupt reads change to use `bus`.
 
 **Files:**
 - Modify: `z80/Z80.cs`
@@ -235,43 +270,39 @@ This is the core change. Replace `Memory mem` + `IPorts ports` with `IBus bus` i
 **Step 1: Change constructor and fields**
 
 In `z80/Z80.cs`, replace:
-- `private readonly Memory mem;` → `private readonly IBus bus;`
-- `private readonly IPorts ports;` → remove
+- `private readonly Memory mem;` → `private readonly IMemory mem;`
+- `private readonly IPorts ports;` → `private readonly IBus bus;`
 - `private DateTime _clock = DateTime.UtcNow;` → remove
-- Constructor: `public Z80(Memory memory, IPorts ports)` → `public Z80(IBus bus)`
-- Constructor body: replace null checks and assignments
+- Constructor signature: `public Z80(Memory memory, IPorts ports)` → `public Z80(IMemory memory, IBus bus)`
+- Constructor body:
 
-The constructor becomes:
 ```csharp
-public Z80(IBus bus)
+public Z80(IMemory memory, IBus bus)
 {
+    if (memory == null) throw new ArgumentNullException(nameof(memory));
     if (bus == null) throw new ArgumentNullException(nameof(bus));
+    mem = memory;
     this.bus = bus;
     Reset();
 }
 ```
 
-**Step 2: Replace all `mem[address]` reads with `bus.MemoryRead(address)`**
+**Step 2: Replace all I/O port calls**
 
-There are ~158 occurrences of `mem[` in Z80.cs. Each `mem[addr]` on the right side of an assignment or in an expression becomes `bus.MemoryRead(addr)`. Each `mem[addr] = value` becomes `bus.MemoryWrite(addr, value)`.
-
-Specific patterns:
-- `mem[addr]` (read) → `bus.MemoryRead(addr)`
-- `mem[addr] = value` → `bus.MemoryWrite(addr, value)`
-- `mem[Pc]` in `Fetch()` → `bus.MemoryRead(Pc)`
-
-**Step 3: Replace all `ports.ReadPort`/`ports.WritePort` calls**
-
-There are ~12 occurrences:
+There are ~12 occurrences in Z80.cs:
 - `ports.ReadPort(addr)` → `bus.IoRead(addr)`
 - `ports.WritePort(addr, value)` → `bus.IoWrite(addr, value)`
 
-**Step 4: Replace interrupt signal reads**
+**Step 3: Replace interrupt signal reads**
 
 There are ~4 occurrences:
 - `ports.NMI` → `bus.NMI`
-- `ports.MI` → `bus.INT`  (rename MI to INT)
+- `ports.MI` → `bus.INT` (rename MI to INT)
 - `ports.Data` → `bus.Data`
+
+**Step 4: Memory access stays the same**
+
+All `mem[address]` reads and writes remain unchanged — the indexer on `IMemory` has the same syntax as the indexer on the old `Memory` class.
 
 **Step 5: Change `Parse()` to return int**
 
@@ -281,21 +312,11 @@ Add a private field `private int _tStates;` to accumulate T-states within a sing
 
 At the start of `Parse()`, set `_tStates = 0;`.
 At the end of `Parse()`, `return _tStates;`.
-Each `return;` statement inside Parse that exits early (interrupts, HALT) must also return `_tStates`.
+Each `return;` inside Parse that exits early (interrupts, HALT) becomes `return _tStates;`.
 
 **Step 6: Change `Wait(int t)` to accumulate instead of sleeping**
 
-Replace:
-```csharp
-private void Wait(int t)
-{
-    registers[R] += (byte)((t + 3) / 4);
-    const int realTicksPerTick = 250;
-    // ... Thread.Sleep logic ...
-}
-```
-
-With:
+Replace the entire Wait method with:
 ```csharp
 private void Wait(int t)
 {
@@ -323,27 +344,33 @@ public byte DataBus { get; private set; }
 ```
 
 Set `M1 = true` at the start of the opcode fetch in `Parse()`, and `M1 = false` after fetching.
-Set `AddressBus` and `DataBus` whenever bus operations occur (in `Fetch()` and around `bus.MemoryRead`/`bus.MemoryWrite` calls — at minimum in the `Fetch()` method).
-Set `RFSH = true` / `RFSH = false` around the R-register increment in Wait() (optional — can be deferred).
-
-Note: Full signal tracking for every bus access throughout 3600 lines would be invasive. For this task, set them in `Fetch()` (the opcode fetch path). Further granularity can be added later.
+Set `AddressBus` and `DataBus` in the `Fetch()` method (the main opcode fetch hot path). Further granularity for every bus access can be added later.
 
 **Step 9: Add public register properties**
 
-Add after the output pin properties:
-```csharp
-public new byte A => registers[Z80.A];
-public new byte F => registers[Z80.F];
-public new byte B => registers[Z80.B];
-// ... etc for all registers
-```
+The internal constants `A`, `B`, `C`, etc. are `private const byte` that conflict with public property names. Rename all internal constants to have an `r` prefix:
 
-Note: The internal constants `A`, `B`, `C`, etc. are `private const byte` fields that conflict with public property names. The simplest resolution is to rename the internal constants to have a prefix (e.g., `rA`, `rB`, `rC`, etc.) or use a different naming scheme. This requires a find-and-replace across Z80.cs:
+- `const byte B = 0;` → `const byte rB = 0;`
+- `const byte C = 1;` → `const byte rC = 1;`
+- ... and so on for all register constants
 
-- `const byte B = 0;` → `const byte rB = 0;` etc.
-- All `registers[B]` → `registers[rB]` etc.
+Then update all `registers[B]` → `registers[rB]`, etc. throughout the file.
 
-Then the public properties become:
+Similarly rename private helper properties to avoid conflicts:
+- `private ushort Hl` → `private ushort _hl`
+- `private ushort Sp` → `private ushort _sp`
+- `private ushort Ix` → `private ushort _ix`
+- `private ushort Iy` → `private ushort _iy`
+- `private ushort Bc` → `private ushort _bc`
+- `private ushort De` → `private ushort _de`
+- `private ushort Pc` → `private ushort _pc`
+
+Rename private fields:
+- `private bool IFF1;` → `private bool _iff1;`
+- `private bool IFF2;` → `private bool _iff2;`
+- `private int interruptMode;` → `private int _interruptMode;`
+
+Then add public properties:
 ```csharp
 public byte A => registers[rA];
 public byte F => registers[rF];
@@ -382,20 +409,6 @@ public bool IFF2 => _iff2;
 public int InterruptMode => _interruptMode;
 ```
 
-The private fields `IFF1`/`IFF2`/`interruptMode` need renaming to avoid conflict with the new public properties:
-- `private bool IFF1;` → `private bool _iff1;`
-- `private bool IFF2;` → `private bool _iff2;`
-- `private int interruptMode;` → `private int _interruptMode;`
-
-Similarly, internal helper properties `Hl`, `Sp`, `Ix`, `Iy`, `Bc`, `De`, `Pc` conflict with the new public ones. Rename them:
-- `private ushort Hl` → `private ushort _hl`
-- `private ushort Sp` → `private ushort _sp`
-- `private ushort Ix` → `private ushort _ix`
-- `private ushort Iy` → `private ushort _iy`
-- `private ushort Bc` → `private ushort _bc`
-- `private ushort De` → `private ushort _de`
-- `private ushort Pc` → `private ushort _pc`
-
 **Step 10: Verify it compiles**
 
 Run: `dotnet build z80/z80.csproj --verbosity quiet`
@@ -405,7 +418,7 @@ Expected: Build succeeded. The test project will NOT build yet (next task fixes 
 
 ```bash
 git add z80/Z80.cs
-git commit -m "feat: rewire Z80 to use IBus, return T-states from Parse(), add register properties"
+git commit -m "feat: rewire Z80 to use IMemory+IBus, return T-states from Parse(), add register properties"
 ```
 
 ---
@@ -415,19 +428,10 @@ git commit -m "feat: rewire Z80 to use IBus, return T-states from Parse(), add r
 **Files:**
 - Modify: `z80.Tests/TestSystem.cs`
 - Delete: `z80.Tests/TestPorts.cs`
-- Modify: `z80.Tests/OpCodeTestBase.cs`
 - Modify: `z80.Tests/MemoryTests.cs`
-- Modify: `z80.Tests/InterruptsTests.cs`
 
-**Step 1: Rewrite TestSystem to use SimpleBus**
+**Step 1: Rewrite TestSystem to use SimpleMemory + SimpleBus**
 
-TestSystem currently creates `new Z80(new Memory(ram, 0), TestPorts)`. Replace with `new Z80(new SimpleBus(ram, 0))`.
-
-The register access properties (`A`, `B`, `C`, `AF`, `BC`, etc.) currently go through `GetState()` byte indexing. Replace them to read directly from the Z80 instance's new public properties. This eliminates all the `_B`, `_C`, `_D`, etc. constants and the `Reg8`/`Reg16` methods.
-
-The `RaiseInterrupt` method currently sets `TestPorts.MI`/`TestPorts.NMI`/`TestPorts.Data`. It should now access the `SimpleBus` instance to set `INT`/`NMI`/`Data`.
-
-New TestSystem:
 ```csharp
 using System;
 
@@ -438,7 +442,6 @@ namespace z80.Tests
         private readonly byte[] _ram;
         private readonly Z80 _myZ80;
         private readonly SimpleBus _bus;
-        private bool _hasDump;
 
         public ushort AF => _myZ80.AF;
         public ushort BC => _myZ80.BC;
@@ -488,8 +491,8 @@ namespace z80.Tests
         public TestSystem(byte[] ram)
         {
             _ram = ram;
-            _bus = new SimpleBus(ram, 0);
-            _myZ80 = new Z80(_bus);
+            _bus = new SimpleBus();
+            _myZ80 = new Z80(new SimpleMemory(ram), _bus);
         }
 
         public void Run()
@@ -501,20 +504,17 @@ namespace z80.Tests
                 _myZ80.Parse();
                 bailout--;
             }
-            _hasDump = true;
             if (!_myZ80.HALT) Console.WriteLine("BAILOUT!");
         }
 
         public bool Step()
         {
             _myZ80.Parse();
-            _hasDump = true;
             return _myZ80.HALT;
         }
 
         public void Reset()
         {
-            _hasDump = false;
             _myZ80.Reset();
         }
 
@@ -567,9 +567,9 @@ namespace z80.Tests
 git rm z80.Tests/TestPorts.cs
 ```
 
-**Step 3: Update MemoryTests.cs to test SimpleBus**
+**Step 3: Update MemoryTests.cs to test SimpleMemory**
 
-Replace `new Memory(ram, ...)` with `new SimpleBus(ram, ...)` and use `bus.MemoryRead(i)` / `bus.MemoryWrite(i, value)` instead of `sut[i]`.
+Replace `new Memory(ram, ...)` with `new SimpleMemory(ram)` and use `mem[i]` indexer.
 
 ```csharp
 using NUnit.Framework;
@@ -583,66 +583,47 @@ namespace z80.Tests
         public void ReadInRam()
         {
             var ram = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var sut = new SimpleBus(ram, 0);
+            var sut = new SimpleMemory(ram);
 
             for (ushort i = 0; i < ram.Length; i++)
-                Assert.AreEqual(i, sut.MemoryRead(i));
-        }
-
-        [Test]
-        public void ReadInRom()
-        {
-            var ram = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var sut = new SimpleBus(ram, 10);
-
-            for (ushort i = 0; i < ram.Length; i++)
-                Assert.AreEqual(i, sut.MemoryRead(i));
+                Assert.AreEqual(i, sut[i]);
         }
 
         [Test]
         public void WriteInRam()
         {
             var ram = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var sut = new SimpleBus(ram, 0);
+            var sut = new SimpleMemory(ram);
 
             for (ushort i = 0; i < ram.Length; i++)
             {
-                sut.MemoryWrite(i, (byte)(0xFF ^ i));
-                Assert.AreEqual((byte)(0xFF ^ i), sut.MemoryRead(i));
-            }
-        }
-
-        [Test]
-        public void WriteInRom()
-        {
-            var ram = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var sut = new SimpleBus(ram, 10);
-
-            for (ushort i = 0; i < ram.Length; i++)
-            {
-                sut.MemoryWrite(i, (byte)(0xFF ^ i));
-                Assert.AreEqual(i, sut.MemoryRead(i));
+                sut[i] = (byte)(0xFF ^ i);
+                Assert.AreEqual((byte)(0xFF ^ i), sut[i]);
             }
         }
     }
 }
 ```
 
-**Step 4: Update InterruptsTests.cs**
+Note: The old `ReadInRom`/`WriteInRom` tests tested the ROM protection boundary in `Memory`. Since `SimpleMemory` doesn't have ROM protection (that's the caller's responsibility or a future `IMemory` implementation), those tests are removed. The ROM protection concept is tested in `SimpleMemoryTests` if a `RomRamMemory` implementation is added later.
 
-No changes needed to test logic — `RaiseInterrupt` on TestSystem handles the mapping. Just verify it compiles.
+**Step 4: Check if any tests reference TestPorts directly**
+
+Search for `TestPorts` in test files. The `InterruptsTests.cs` uses `en.RaiseInterrupt(...)` which goes through `TestSystem`, not `TestPorts` directly. `OpCodeTestBase.cs` only creates `TestSystem`. So no other test files need changes.
+
+However, check `InputOutputGroupTests.cs` — it may access `en.TestPorts` to call `SetInput`/`GetOutput`. If so, change `en.TestPorts.SetInput(...)` → `en.Bus.SetInput(...)` and `en.TestPorts.GetOutput(...)` → `en.Bus.GetOutput(...)`.
 
 **Step 5: Run all tests**
 
 Run: `dotnet test --verbosity quiet`
-Expected: All 2306+ tests pass (plus 8 new SimpleBus tests).
+Expected: All 2306+ tests pass (plus new SimpleMemory and SimpleBus tests).
 
 **Step 6: Commit**
 
 ```bash
-git add z80.Tests/TestSystem.cs z80.Tests/MemoryTests.cs z80.Tests/OpCodeTestBase.cs
+git add z80.Tests/TestSystem.cs z80.Tests/MemoryTests.cs
 git rm z80.Tests/TestPorts.cs
-git commit -m "refactor: update test infrastructure to use SimpleBus and IBus"
+git commit -m "refactor: update test infrastructure to use SimpleMemory, SimpleBus, and IBus"
 ```
 
 ---
@@ -667,7 +648,7 @@ Expected: All tests pass. No references to `Memory` or `IPorts` remain.
 **Step 3: Commit**
 
 ```bash
-git commit -m "refactor: remove Memory and IPorts, replaced by IBus and SimpleBus"
+git commit -m "refactor: remove Memory and IPorts, replaced by IMemory and IBus"
 ```
 
 ---
@@ -697,8 +678,9 @@ namespace z80Sample
 
             Array.Copy(inp, ram, 16384);
 
-            var bus = new SampleBus(ram, 16384);
-            var cpu = new Z80(bus);
+            var mem = new SimpleMemory(ram);
+            var bus = new SampleBus();
+            var cpu = new Z80(mem, bus);
 
             while (!cpu.HALT)
             {
@@ -726,8 +708,6 @@ namespace z80Sample
 
     class SampleBus : SimpleBus
     {
-        public SampleBus(byte[] memory, ushort ramStart) : base(memory, ramStart) { }
-
         public new byte IoRead(ushort address)
         {
             Console.WriteLine($"IN 0x{address:X4}");
@@ -742,24 +722,41 @@ namespace z80Sample
 }
 ```
 
-Note: The `new` keyword hides the base SimpleBus methods, but since IBus calls go through the interface, the SampleBus overrides won't be called via the Z80. To make this work properly, the IoRead/IoWrite methods in SimpleBus should be `virtual`, or SampleBus should implement IBus directly. The simplest fix: make `IoRead` and `IoWrite` virtual in SimpleBus. Alternatively, SampleBus can just implement IBus directly inheriting from SimpleBus for the memory part. The cleanest approach is to make the four bus operation methods in SimpleBus `virtual`.
+Note: Since `SimpleBus` is `sealed`, `SampleBus` cannot inherit from it. Two options:
+1. Un-seal `SimpleBus` and make `IoRead`/`IoWrite` virtual — but that hurts devirtualization.
+2. Have `SampleBus` implement `IBus` directly with its own I/O logic.
 
-Update SimpleBus to mark bus operations as virtual:
+Option 2 is cleaner:
+
 ```csharp
-public virtual byte MemoryRead(ushort address) => _memory[address];
-public virtual void MemoryWrite(ushort address, byte data) { ... }
-public virtual byte IoRead(ushort address) => _inputs[address];
-public virtual void IoWrite(ushort address, byte data) => _outputs[address] = data;
-```
+class SampleBus : IBus
+{
+    public byte IoRead(ushort address)
+    {
+        Console.WriteLine($"IN 0x{address:X4}");
+        return 0;
+    }
 
-Then SampleBus uses `override` instead of `new`.
+    public void IoWrite(ushort address, byte data)
+    {
+        Console.WriteLine($"OUT 0x{address:X4}, 0x{data:X2}");
+    }
+
+    public bool INT => false;
+    public bool NMI => false;
+    public byte Data => 0x00;
+    public bool WAIT => false;
+    public bool BUSRQ => false;
+    public bool RESET => false;
+}
+```
 
 **Step 2: Verify it compiles**
 
 Run: `dotnet build --verbosity quiet`
 Expected: Build succeeded.
 
-**Step 3: Run all tests (to make sure SimpleBus virtual didn't break anything)**
+**Step 3: Run all tests**
 
 Run: `dotnet test --verbosity quiet`
 Expected: All tests pass.
@@ -767,8 +764,8 @@ Expected: All tests pass.
 **Step 4: Commit**
 
 ```bash
-git add z80sample/Program.cs z80/SimpleBus.cs
-git commit -m "refactor: update sample app to use SimpleBus and IBus"
+git add z80sample/Program.cs
+git commit -m "refactor: update sample app to use SimpleMemory and IBus"
 ```
 
 ---
@@ -783,7 +780,7 @@ Expected: All tests pass.
 **Step 2: Verify the public API surface**
 
 Manually check that the Z80 class exposes:
-- `Z80(IBus bus)` constructor
+- `Z80(IMemory memory, IBus bus)` constructor
 - `int Parse()` returns T-states
 - `void Reset()`
 - `bool HALT`, `bool M1`, `bool RFSH`, `bool BUSACK`

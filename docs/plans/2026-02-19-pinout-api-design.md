@@ -6,16 +6,36 @@ Redesign the Z80 emulator's public API to closely mirror the real Z80 chip's 40-
 
 ## Approach
 
-Unified IBus interface with semantic methods. A single `IBus` replaces both `Memory` and `IPorts`. The Z80 constructor takes just `IBus`. A `SimpleBus` helper class ships with the library to keep simple use cases trivial.
+Split into two interfaces for performance: `IMemory` (hot path, indexer-based) and `IBus` (cold path: I/O and signals). The Z80 constructor takes both. `SimpleMemory` and `SimpleBus` helper classes ship with the library.
 
-## IBus Interface
+## IMemory Interface (Hot Path)
+
+```csharp
+public interface IMemory
+{
+    byte this[ushort address] { get; set; }
+}
+
+public sealed class SimpleMemory : IMemory
+{
+    public SimpleMemory(byte[] memory);
+
+    public byte this[ushort address]
+    {
+        get => _memory[address];
+        set => _memory[address] = value;
+    }
+}
+```
+
+`IMemory` uses an indexer so the Z80 code reads `memory[address]` — identical syntax to today. `SimpleMemory` is sealed so the JIT can devirtualize. For future bank switching, implement `IMemory` directly.
+
+## IBus Interface (Cold Path)
 
 ```csharp
 public interface IBus
 {
-    // Data transfer (active bus operations)
-    byte MemoryRead(ushort address);              // /MREQ + /RD
-    void MemoryWrite(ushort address, byte data);   // /MREQ + /WR
+    // I/O operations
     byte IoRead(ushort address);                   // /IORQ + /RD
     void IoWrite(ushort address, byte data);        // /IORQ + /WR
 
@@ -39,7 +59,7 @@ Positive logic throughout: `true` = asserted, even though real pins are active-l
 public class Z80
 {
     // Constructor
-    public Z80(IBus bus);
+    public Z80(IMemory memory, IBus bus);
 
     // Execution
     public int Parse();       // Execute one instruction, return T-states consumed
@@ -77,13 +97,13 @@ public class Z80
 ## SimpleBus Helper
 
 ```csharp
-public class SimpleBus : IBus
+public sealed class SimpleBus : IBus
 {
-    public SimpleBus(byte[] memory, ushort ramStart);
+    public SimpleBus();
 
-    // IBus implementation
-    // Memory: ROM below ramStart (writes ignored), RAM above
     // I/O: 64K port space backed by arrays
+    public byte IoRead(ushort address);
+    public void IoWrite(ushort address, byte data);
 
     // Interrupt signals — settable by caller
     public bool INT { get; set; }
@@ -106,9 +126,9 @@ public class SimpleBus : IBus
 | Real Z80 Pin | Direction | API Mapping |
 |---|---|---|
 | A0-A15 | Output | `Z80.AddressBus` |
-| D0-D7 | Bidir | `Z80.DataBus` / `IBus` method args |
-| /MREQ + /RD | Output | `IBus.MemoryRead()` |
-| /MREQ + /WR | Output | `IBus.MemoryWrite()` |
+| D0-D7 | Bidir | `Z80.DataBus` / `IMemory` indexer / `IBus` method args |
+| /MREQ + /RD | Output | `IMemory[address]` (get) |
+| /MREQ + /WR | Output | `IMemory[address]` (set) |
 | /IORQ + /RD | Output | `IBus.IoRead()` |
 | /IORQ + /WR | Output | `IBus.IoWrite()` |
 | /M1 | Output | `Z80.M1` |
@@ -124,7 +144,7 @@ public class SimpleBus : IBus
 
 ## What Gets Removed
 
-- `Memory` class — replaced by `SimpleBus`
+- `Memory` class — replaced by `SimpleMemory`
 - `IPorts` interface — absorbed into `IBus`
 - `TestPorts` class — replaced by `SimpleBus` in tests
 - `Thread.Sleep` pacing in `Wait()` — removed entirely
@@ -138,6 +158,7 @@ public class SimpleBus : IBus
 - `Z80Asm` helper
 - Internal `byte[26]` register storage
 - Interrupt handling logic flow
+- Memory access syntax: `memory[address]` (indexer on IMemory instead of Memory)
 
 ## Sample App (after redesign)
 
@@ -146,8 +167,9 @@ var rom = File.ReadAllBytes("48.rom");
 var memory = new byte[0x10000];
 Array.Copy(rom, memory, rom.Length);
 
-var bus = new SimpleBus(memory, (ushort)rom.Length);
-var cpu = new Z80(bus);
+var mem = new SimpleMemory(memory);
+var bus = new SimpleBus();
+var cpu = new Z80(mem, bus);
 
 while (!cpu.HALT)
 {
