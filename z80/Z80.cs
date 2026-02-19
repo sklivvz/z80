@@ -35,6 +35,8 @@ namespace z80
         private bool _iff2;
         private int _interruptMode;
         private int _tStates;
+        private int _remainingTStates;
+        private long _totalTStates;
 
         private readonly IBus bus;
 
@@ -96,6 +98,38 @@ namespace z80
         public bool IFF1 => _iff1;
         public bool IFF2 => _iff2;
         public int InterruptMode => _interruptMode;
+
+        public long TStates => _totalTStates;
+
+        public bool Tick()
+        {
+            _totalTStates++;
+
+            if (_remainingTStates > 0)
+            {
+                _remainingTStates--;
+                return _remainingTStates == 0;
+            }
+
+            var cost = Parse();
+            if (cost == 0)
+            {
+                _remainingTStates = 3;
+                return false;
+            }
+            _remainingTStates = cost - 1;
+            return _remainingTStates == 0;
+        }
+
+        public int Tick(int budget)
+        {
+            var completed = 0;
+            for (var i = 0; i < budget; i++)
+            {
+                if (Tick()) completed++;
+            }
+            return completed;
+        }
 
         public int Parse()
         {
@@ -197,6 +231,7 @@ namespace z80
 #if(DEBUG)
                     Log("HALT");
 #endif
+                    Wait(4);
                     HALT = true;
                     return _tStates;
                 }
@@ -1434,6 +1469,7 @@ namespace z80
             Log($"{mc:X2}: {hi:X} {r:X} {lo:X}");
             //throw new InvalidOperationException("Invalid Opcode: "+mc.ToString("X2"));
 #endif
+            Wait(4);
             HALT = true;
             return _tStates;
         }
@@ -2653,6 +2689,7 @@ namespace z80
 #if (DEBUG)
             Log($"ED {mc:X2}: {r:X2}");
 #endif
+            Wait(4);
             HALT = true;
         }
 
@@ -3009,6 +3046,7 @@ namespace z80
 #if (DEBUG)
             Log($"DD {mc:X2}: {hi:X} {mid:X} {lo:X}");
 #endif
+            Wait(4);
             HALT = true;
         }
 
@@ -3362,6 +3400,7 @@ namespace z80
 #if (DEBUG)
             Log($"FD {mc:X2}: {hi:X2} {lo:X2} {r:X2}");
 #endif
+            Wait(4);
             HALT = true;
         }
 
@@ -3610,6 +3649,9 @@ namespace z80
             //A CPU reset forces both the IFF1 and IFF2 to the reset state, which disables interrupts
             _iff1 = false;
             _iff2 = false;
+
+            _totalTStates = 0;
+            _remainingTStates = 0;
         }
 
         public byte[] GetState()

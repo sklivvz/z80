@@ -79,6 +79,12 @@ namespace z80.Tests
             if (!_myZ80.HALT) Console.WriteLine("BAILOUT!");
         }
 
+        public bool Tick() => _myZ80.Tick();
+        public int Tick(int budget) => _myZ80.Tick(budget);
+        public long TStates => _myZ80.TStates;
+
+        public int Parse() => _myZ80.Parse();
+
         public bool Step()
         {
             _myZ80.Parse();

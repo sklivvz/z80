@@ -514,8 +514,8 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            //R is incremented by 3 machine cycles by the end.
-            Assert.AreEqual(69, en.R);
+            //R is incremented by 4 machine cycles by the end (LD A,n + LD R,A + HALT).
+            Assert.AreEqual(70, en.R);
         }
 
         [Test]
