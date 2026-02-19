@@ -225,7 +225,8 @@ namespace z80.Tests
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(rest, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(rest, en.FlagZ, "Flag Z contained the wrong value");
-            Assert.AreEqual(rest, en.FlagH, "Flag H contained the wrong value");
+            // CCF sets H to previous C value per Z80 spec
+            Assert.AreEqual(carry, en.FlagH, "Flag H should be set to previous carry value");
             Assert.AreEqual(rest, en.FlagP, "Flag P contained the wrong value");
             Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
             Assert.AreEqual(!carry, en.FlagC, "Flag C contained the wrong value");
