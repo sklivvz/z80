@@ -488,7 +488,7 @@ namespace z80.Tests
 
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(0x0010, en.SP);
-            Assert.AreEqual(0x4219, en.AF);
+            Assert.AreEqual(0x1942, en.AF);
         }
 
         [Test]

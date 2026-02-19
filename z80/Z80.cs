@@ -498,8 +498,8 @@ namespace z80
                 case 0xEB:
                     {
                         // EX DE, HL
-                        SwapReg8(D, H);
-                        SwapReg8(E, L);
+                        SwapReg8(rD, rH);
+                        SwapReg8(rE, rL);
 #if (DEBUG)
                         Log("EX DE, HL");
 #endif
@@ -509,8 +509,8 @@ namespace z80
                 case 0x08:
                     {
                         // EX AF, AF'
-                        SwapReg8(Ap, A);
-                        SwapReg8(Fp, F);
+                        SwapReg8(rAp, rA);
+                        SwapReg8(rFp, rF);
 #if (DEBUG)
                         Log("EX AF, AF'");
 #endif
@@ -520,12 +520,12 @@ namespace z80
                 case 0xD9:
                     {
                         // EXX
-                        SwapReg8(B, Bp);
-                        SwapReg8(C, Cp);
-                        SwapReg8(D, Dp);
-                        SwapReg8(E, Ep);
-                        SwapReg8(H, Hp);
-                        SwapReg8(L, Lp);
+                        SwapReg8(rB, rBp);
+                        SwapReg8(rC, rCp);
+                        SwapReg8(rD, rDp);
+                        SwapReg8(rE, rEp);
+                        SwapReg8(rH, rHp);
+                        SwapReg8(rL, rLp);
 #if (DEBUG)
                         Log("EXX");
 #endif

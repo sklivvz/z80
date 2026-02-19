@@ -31,12 +31,12 @@ namespace z80.Tests
         }
 
         [Test]
-        public void INT_DoesNotAutoClear()
+        public void INT_AutoClearsOnRead()
         {
             var bus = new SimpleBus();
             bus.INT = true;
             Assert.IsTrue(bus.INT);
-            Assert.IsTrue(bus.INT);
+            Assert.IsFalse(bus.INT);
         }
 
         [Test]

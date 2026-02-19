@@ -11,7 +11,13 @@ namespace z80
 
         public void IoWrite(ushort address, byte data) => _outputs[address] = data;
 
-        public bool INT { get; set; }
+        private bool _int;
+
+        public bool INT
+        {
+            get { var ret = _int; _int = false; return ret; }
+            set { _int = value; }
+        }
 
         public bool NMI
         {
