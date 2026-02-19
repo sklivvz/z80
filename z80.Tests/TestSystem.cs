@@ -1,135 +1,92 @@
-﻿using System;
+using System;
 
 namespace z80.Tests
 {
     public class TestSystem
     {
-        private const byte _B = 0;
-        private const byte _C = 1;
-        private const byte _D = 2;
-        private const byte _E = 3;
-        private const byte _H = 4;
-        private const byte _L = 5;
-        private const byte _F = 6;
-        private const byte _A = 7;
-        private const byte _Bp = 8;
-        private const byte _Cp = 9;
-        private const byte _Dp = 10;
-        private const byte _Ep = 11;
-        private const byte _Hp = 12;
-        private const byte _Lp = 13;
-        private const byte _Fp = 14;
-        private const byte _Ap = 15;
-        private const byte _I = 16;
-        private const byte _R = 17;
-        private const byte _IX = 18;
-        private const byte _IY = 20;
-        private const byte _SP = 22;
-        private const byte _PC = 24;
-        private const byte _IFF1 = 26;
-        private const byte _IFF2 = 27;
-
         private readonly byte[] _ram;
-        private byte[] _dumpedState;
-        private bool _hasDump;
         private readonly Z80 _myZ80;
+        private readonly SimpleBus _bus;
 
-        public ushort AF => Reg16(_F);
-        public ushort BC => Reg16(_B);
-        public ushort DE => Reg16(_D);
-        public ushort HL => Reg16(_H);
-        public ushort IX => Reg16(_IX);
-        public ushort IY => Reg16(_IY);
-        public ushort SP => Reg16(_SP);
-        public ushort PC => Reg16(_PC);
-        public ushort AFp => Reg16(_Fp);
-        public ushort BCp => Reg16(_Bp);
-        public ushort DEp => Reg16(_Dp);
-        public ushort HLp => Reg16(_Hp);
+        public ushort AF => _myZ80.AF;
+        public ushort BC => _myZ80.BC;
+        public ushort DE => _myZ80.DE;
+        public ushort HL => _myZ80.HL;
+        public ushort IX => _myZ80.IX;
+        public ushort IY => _myZ80.IY;
+        public ushort SP => _myZ80.SP;
+        public ushort PC => _myZ80.PC;
+        public ushort AFp => _myZ80.AFp;
+        public ushort BCp => _myZ80.BCp;
+        public ushort DEp => _myZ80.DEp;
+        public ushort HLp => _myZ80.HLp;
 
-        public byte A => Reg8(_A);
-        public byte B => Reg8(_B);
-        public byte C => Reg8(_C);
-        public byte D => Reg8(_D);
-        public byte E => Reg8(_E);
-        public byte F => Reg8(_F);
-        public byte H => Reg8(_H);
-        public byte L => Reg8(_L);
-        public byte I => Reg8(_I);
-        public byte R => Reg8(_R);
+        public byte A => _myZ80.A;
+        public byte B => _myZ80.B;
+        public byte C => _myZ80.C;
+        public byte D => _myZ80.D;
+        public byte E => _myZ80.E;
+        public byte F => _myZ80.F;
+        public byte H => _myZ80.H;
+        public byte L => _myZ80.L;
+        public byte I => _myZ80.I;
+        public byte R => _myZ80.R;
 
-        public byte Ap => Reg8(_Ap);
-        public byte Bp => Reg8(_Bp);
-        public byte Cp => Reg8(_Cp);
-        public byte Dp => Reg8(_Dp);
-        public byte Ep => Reg8(_Ep);
-        public byte Fp => Reg8(_Fp);
-        public byte Hp => Reg8(_Hp);
-        public byte Lp => Reg8(_Lp);
+        public byte Ap => _myZ80.Ap;
+        public byte Bp => _myZ80.Bp;
+        public byte Cp => _myZ80.Cp;
+        public byte Dp => _myZ80.Dp;
+        public byte Ep => _myZ80.Ep;
+        public byte Fp => _myZ80.Fp;
+        public byte Hp => _myZ80.Hp;
+        public byte Lp => _myZ80.Lp;
 
+        public bool FlagS => (F & 0x80) > 0;
+        public bool FlagZ => (F & 0x40) > 0;
+        public bool FlagH => (F & 0x10) > 0;
+        public bool FlagP => (F & 0x04) > 0;
+        public bool FlagN => (F & 0x02) > 0;
+        public bool FlagC => (F & 0x01) > 0;
 
+        public bool Iff1 => _myZ80.IFF1;
+        public bool Iff2 => _myZ80.IFF2;
 
-        // SZ-H-PNC
-        public bool FlagS => (Reg8(_F) & 0x80) > 0;
-        public bool FlagZ => (Reg8(_F) & 0x40) > 0;
-        public bool FlagH => (Reg8(_F) & 0x10) > 0;
-        public bool FlagP => (Reg8(_F) & 0x04) > 0;
-        public bool FlagN => (Reg8(_F) & 0x02) > 0;
-        public bool FlagC => (Reg8(_F) & 0x01) > 0;
+        public SimpleBus Bus => _bus;
 
-        public bool Iff1 => Reg8(_IFF1) > 0;
-        public bool Iff2 => Reg8(_IFF2) > 0;
-
-        public TestPorts TestPorts { get; } = new TestPorts();
-
-        public byte Reg8(int reg)
+        public byte Reg8(int reg) => reg switch
         {
-            if (!_hasDump) throw new InvalidOperationException("Don't have a state!");
-            return _dumpedState[reg];
-        }
-        private ushort Reg16(byte reg)
-        {
-            if (!_hasDump) throw new InvalidOperationException("Don't have a state!");
-            var ret = _dumpedState[reg + 1] + _dumpedState[reg] * 256;
-            return (ushort)ret;
-        }
+            0 => B, 1 => C, 2 => D, 3 => E,
+            4 => H, 5 => L, 6 => F, 7 => A,
+            _ => throw new ArgumentOutOfRangeException(nameof(reg))
+        };
 
         public TestSystem(byte[] ram)
         {
             _ram = ram;
-            _myZ80 = new Z80(new Memory(ram, 0), TestPorts);
+            _bus = new SimpleBus();
+            _myZ80 = new Z80(new SimpleMemory(ram), _bus);
         }
 
         public void Run()
         {
             int bailout = 1000;
 
-            while (!_myZ80.Halt && bailout > 0)
+            while (!_myZ80.HALT && bailout > 0)
             {
                 _myZ80.Parse();
                 bailout--;
-                //Console.WriteLine(_myZ80.DumpState());
-                //DumpRam();
             }
-            _dumpedState = _myZ80.GetState();
-            _hasDump = true;
-            if (!_myZ80.Halt) Console.WriteLine("BAILOUT!");
+            if (!_myZ80.HALT) Console.WriteLine("BAILOUT!");
         }
 
         public bool Step()
         {
             _myZ80.Parse();
-            _dumpedState = _myZ80.GetState();
-            _hasDump = true;
-            return _myZ80.Halt;
+            return _myZ80.HALT;
         }
-
-
 
         public void Reset()
         {
-            _dumpedState = null;
-            _hasDump = false;
             _myZ80.Reset();
         }
 
@@ -140,7 +97,6 @@ namespace z80.Tests
 
         public void DumpRam()
         {
-
             for (var i = 0; i < 0x80; i++)
             {
                 if (i % 16 == 0) Console.Write("{0:X4} | ", i);
@@ -156,22 +112,21 @@ namespace z80.Tests
                 if (i % 8 == 7) Console.Write("  ");
                 if (i % 16 == 15) Console.WriteLine();
             }
-
         }
 
         public void RaiseInterrupt(bool maskable, byte data = 0x00)
         {
             if (maskable)
             {
-                TestPorts.MI = true;
-                TestPorts.NMI = false;
-                TestPorts.Data = data;
+                _bus.INT = true;
+                _bus.NMI = false;
+                _bus.Data = data;
             }
             else
             {
-                TestPorts.MI = false;
-                TestPorts.NMI = true;
-                TestPorts.Data = data;
+                _bus.INT = false;
+                _bus.NMI = true;
+                _bus.Data = data;
             }
         }
     }
