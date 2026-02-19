@@ -14,7 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\z80\z80.csproj" />
+    <ProjectReference Include="..\ula\ula.csproj" />
   </ItemGroup>
 
 </Project>
