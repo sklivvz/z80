@@ -501,6 +501,7 @@ namespace z80.Tests
             Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
             Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagP, "Flag P/V should reflect IFF2 (disabled by default)");
             Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
         }
 
@@ -538,7 +539,38 @@ namespace z80.Tests
             Assert.AreEqual(sign, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(zero, en.FlagZ, "Flag Z contained the wrong value");
             Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagP, "Flag P/V should reflect IFF2 (disabled by default)");
             Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+        }
+
+        [Test]
+        public void Test_LD_A_I_PV_ReflectsIFF2()
+        {
+            asm.Ei();
+            asm.LoadRegVal(7, 0x42);
+            asm.LoadIA();
+            asm.LoadRegVal(7, 0xC9);
+            asm.LoadAI();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.IsTrue(en.FlagP, "Flag P/V should be set when IFF2 is enabled");
+        }
+
+        [Test]
+        public void Test_LD_A_R_PV_ReflectsIFF2()
+        {
+            asm.Ei();
+            asm.LoadRegVal(7, 0x42);
+            asm.LoadRA();
+            asm.LoadRegVal(7, 0xC9);
+            asm.LoadAR();
+            asm.Halt();
+
+            en.Run();
+
+            Assert.IsTrue(en.FlagP, "Flag P/V should be set when IFF2 is enabled");
         }
     }
 }

@@ -379,6 +379,31 @@ namespace z80.Tests
             Assert.IsTrue(en.Iff2);
         }
 
+        [Test]
+        public void Test_EI_DelaysInterruptByOneInstruction()
+        {
+            // EI + NOP + HALT
+            // IM 1 handler at 0x38
+            asm.Im1();
+            asm.Ei();
+            asm.Noop();
+            asm.Halt();
+
+            asm.Position = 0x38;
+            asm.Halt();
+
+            en.Step(); // IM 1
+            en.Step(); // EI — interrupts should NOT be recognized until after next instruction
+
+            // Raise interrupt immediately after EI
+            en.RaiseInterrupt(maskable: true);
+
+            en.Step(); // NOP — this must execute before interrupt is taken
+
+            // After the NOP, PC should be 0x04 (past NOP), not 0x38 (handler)
+            // The interrupt should be serviced on the NEXT Step()
+            Assert.AreEqual(0x04, en.PC, "NOP after EI must execute before interrupt is recognized");
+        }
     }
 }
 

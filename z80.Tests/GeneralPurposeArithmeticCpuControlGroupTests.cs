@@ -250,13 +250,13 @@ namespace z80.Tests
             Assert.AreEqual(asm.Position, en.PC);
             Assert.AreEqual(rest, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(rest, en.FlagZ, "Flag Z contained the wrong value");
-            Assert.AreEqual(rest, en.FlagH, "Flag H contained the wrong value");
+            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
             Assert.AreEqual(rest, en.FlagP, "Flag P contained the wrong value");
             Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
             Assert.AreEqual(true, en.FlagC, "Flag C contained the wrong value");
         }
 
-        [Test, Ignore("Not implemented yet")]
+        [Test]
         public void Test_IM_0()
         {
             asm.Im0();
@@ -265,10 +265,10 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.Fail("Interrupts are not implemented yet.");
+            Assert.AreEqual(0, en.InterruptMode);
         }
 
-        [Test, Ignore("Not implemented yet")]
+        [Test]
         public void Test_IM_1()
         {
             asm.Im1();
@@ -277,10 +277,10 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.Fail("Interrupts are not implemented yet.");
+            Assert.AreEqual(1, en.InterruptMode);
         }
 
-        [Test, Ignore("Not implemented yet")]
+        [Test]
         public void Test_IM_2()
         {
             asm.Im2();
@@ -289,7 +289,7 @@ namespace z80.Tests
             en.Run();
 
             Assert.AreEqual(asm.Position, en.PC);
-            Assert.Fail("Interrupts are not implemented yet.");
+            Assert.AreEqual(2, en.InterruptMode);
         }
 
     }

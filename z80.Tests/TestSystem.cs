@@ -50,6 +50,7 @@ namespace z80.Tests
 
         public bool Iff1 => _myZ80.IFF1;
         public bool Iff2 => _myZ80.IFF2;
+        public int InterruptMode => _myZ80.InterruptMode;
 
         public SimpleBus Bus => _bus;
 

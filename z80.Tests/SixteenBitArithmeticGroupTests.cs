@@ -192,7 +192,7 @@ namespace z80.Tests
             Assert.AreEqual((sixteenBitDiff & 0x8000) > 0, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(sixteenBitDiff == 0, en.FlagZ, "Flag Z contained the wrong value");
             Assert.AreEqual(halfcarry, en.FlagH, "Flag H contained the wrong value");
-            Assert.AreEqual(false, en.FlagN, "Flag N contained the wrong value");
+            Assert.AreEqual(true, en.FlagN, "Flag N contained the wrong value");
             Assert.AreEqual(carry, en.FlagC, "Flag C contained the wrong value");
         }
 

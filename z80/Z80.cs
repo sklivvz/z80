@@ -33,6 +33,7 @@ namespace z80
         private readonly byte[] registers = new byte[26];
         private bool _iff1;
         private bool _iff2;
+        private bool _eiPending;
         private int _interruptMode;
         private int _tStates;
         private int _remainingTStates;
@@ -134,6 +135,13 @@ namespace z80
         public int Parse()
         {
             _tStates = 0;
+            var skipInt = _eiPending;
+            if (_eiPending)
+            {
+                _iff1 = true;
+                _iff2 = true;
+                _eiPending = false;
+            }
             if (bus.NMI)
             {
                 var stack = _sp;
@@ -143,7 +151,6 @@ namespace z80
                 registers[rSP + 1] = (byte)(stack);
                 registers[rPC] = 0x00;
                 registers[rPC + 1] = 0x66;
-                _iff1 = _iff2;
                 _iff1 = false;
 #if (DEBUG)
                 Log("NMI");
@@ -152,7 +159,7 @@ namespace z80
                 HALT = false;
                 return _tStates;
             }
-            if (_iff1 && bus.INT)
+            if (!skipInt && _iff1 && bus.INT)
             {
                 _iff1 = false;
                 _iff2 = false;
@@ -862,9 +869,8 @@ namespace z80
                     }
                 case 0xFB:
                     {
-                        // EI
-                        _iff1 = true;
-                        _iff2 = true;
+                        // EI — delayed: interrupts enabled after the NEXT instruction
+                        _eiPending = true;
 #if (DEBUG)
                         Log("EI");
 #endif
@@ -1033,7 +1039,7 @@ namespace z80
                 case 0x37:
                     {
                         // SCF
-                        registers[rF] &= (byte)~(Fl.N);
+                        registers[rF] &= (byte)~(Fl.N | Fl.H);
                         registers[rF] |= (byte)(Fl.C);
 #if (DEBUG)
                         Log("SCF");
@@ -1771,6 +1777,7 @@ namespace z80
                 f |= (byte)Fl.PV;
             if ((ushort)diff > value1)
                 f |= (byte)Fl.C;
+            f |= (byte)Fl.N;
             registers[rF] = f;
             return (ushort)diff;
         }
@@ -3649,6 +3656,7 @@ namespace z80
             //A CPU reset forces both the IFF1 and IFF2 to the reset state, which disables interrupts
             _iff1 = false;
             _iff2 = false;
+            _eiPending = false;
 
             _totalTStates = 0;
             _remainingTStates = 0;

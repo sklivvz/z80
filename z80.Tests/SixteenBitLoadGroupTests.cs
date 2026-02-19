@@ -416,7 +416,7 @@ namespace z80.Tests
         public void Test_PUSH_IY()
         {
             asm.LoadReg16Val(3, 0x0010);
-            asm.LoadIxVal(0x1942);
+            asm.LoadIyVal(0x1942);
             asm.PushIy();
             asm.Halt();
 
