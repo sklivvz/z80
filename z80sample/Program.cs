@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using z80;
 
@@ -15,22 +15,12 @@ namespace z80Sample
 
             Array.Copy(inp, ram, 16384);
 
-            var myZ80 = new Z80(new Memory(ram, 16384), new SamplePorts());
+            var myZ80 = new Z80(new SimpleMemory(ram), new SampleBus());
             Console.Clear();
-            //var counter = 0;
-            while (!myZ80.Halt)
+            while (!myZ80.HALT)
             {
                 myZ80.Parse();
-                //counter++;
-                //if (counter % 1000 == 1)
-                //{
-                //    if (Console.KeyAvailable)
-                //        break;
-                //    var registers = myZ80.GetState();
-                //    Console.WriteLine($"0x{(ushort)(registers[25] + (registers[24] << 8)):X4}");
-                //}
             }
-
 
             Console.WriteLine(Environment.NewLine + myZ80.DumpState());
             for (var i = 0; i < 0x80; i++)
@@ -51,19 +41,22 @@ namespace z80Sample
         }
     }
 
-    class SamplePorts : IPorts
+    class SampleBus : IBus
     {
-        public byte ReadPort(ushort port)
+        public byte IoRead(ushort address)
         {
-            Console.WriteLine($"IN 0x{port:X4}");
+            Console.WriteLine($"IN 0x{address:X4}");
             return 0;
         }
-        public void WritePort(ushort port, byte value)
+        public void IoWrite(ushort address, byte data)
         {
-            Console.WriteLine($"OUT 0x{port:X4}, 0x{value:X2}");
+            Console.WriteLine($"OUT 0x{address:X4}, 0x{data:X2}");
         }
+        public bool INT => false;
         public bool NMI => false;
-        public bool MI => false;
         public byte Data => 0x00;
+        public bool WAIT => false;
+        public bool BUSRQ => false;
+        public bool RESET => false;
     }
 }
