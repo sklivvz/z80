@@ -54,13 +54,13 @@ namespace z80.Tests
             Assert.AreEqual(addr, en.PC);
         }
         [Test]
-        [TestCase(0xFF, 0x07)]
-        [TestCase(0x00, 0x09)]
+        [TestCase(0xFF, 0x08)]
+        [TestCase(0x00, 0x0A)]
         public void Test_JP_NC_nn(byte val, short addr)
         {
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
-            asm.JpNc(0x0008);
+            asm.AddAVal(1);
+            asm.JpNc(0x0009);
             asm.Halt();
             asm.Halt();
             asm.Halt();
@@ -70,13 +70,13 @@ namespace z80.Tests
             Assert.AreEqual(addr, en.PC);
         }
         [Test]
-        [TestCase(0xFF, 0x09)]
-        [TestCase(0x00, 0x07)]
+        [TestCase(0xFF, 0x0A)]
+        [TestCase(0x00, 0x08)]
         public void Test_JP_C_nn(byte val, short addr)
         {
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
-            asm.JpC(0x0008);
+            asm.AddAVal(1);
+            asm.JpC(0x0009);
             asm.Halt();
             asm.Halt();
             asm.Halt();
@@ -195,12 +195,12 @@ namespace z80.Tests
             Assert.AreEqual(addr, en.PC);
         }
         [Test]
-        [TestCase(0xFF, 0x06)]
-        [TestCase(0x00, 0x08)]
+        [TestCase(0xFF, 0x07)]
+        [TestCase(0x00, 0x09)]
         public void Test_JR_NC_nn(byte val, short addr)
         {
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
+            asm.AddAVal(1);
             asm.JrNc(0x04);
             asm.Halt();
             asm.Halt();
@@ -211,12 +211,12 @@ namespace z80.Tests
             Assert.AreEqual(addr, en.PC);
         }
         [Test]
-        [TestCase(0xFF, 0x08)]
-        [TestCase(0x00, 0x06)]
+        [TestCase(0xFF, 0x09)]
+        [TestCase(0x00, 0x07)]
         public void Test_JR_C_nn(byte val, short addr)
         {
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
+            asm.AddAVal(1);
             asm.JrC(0x04);
             asm.Halt();
             asm.Halt();
