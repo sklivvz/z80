@@ -79,13 +79,13 @@ namespace z80.Tests
             }
         }
         [Test]
-        [TestCase(0xFF, 0x07, false)]
-        [TestCase(0x00, 0x09, true)]
+        [TestCase(0xFF, 0x08, false)]
+        [TestCase(0x00, 0x0A, true)]
         public void Test_CALL_NC_nn(byte val, short addr, bool branch)
         {
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
-            asm.CallNc(0x0008);
+            asm.AddAVal(1);
+            asm.CallNc(0x0009);
             asm.Halt();
             asm.Halt();
             asm.Halt();
@@ -96,7 +96,7 @@ namespace z80.Tests
             if (branch)
             {
                 Assert.AreEqual(0xFFFD, en.SP);
-                Assert.AreEqual(0x06, _ram[0xFFFD]);
+                Assert.AreEqual(0x07, _ram[0xFFFD]);
                 Assert.AreEqual(0x00, _ram[0xFFFE]);
             }
             else
@@ -105,13 +105,13 @@ namespace z80.Tests
             }
         }
         [Test]
-        [TestCase(0xFF, 0x09, true)]
-        [TestCase(0x00, 0x07, false)]
+        [TestCase(0xFF, 0x0A, true)]
+        [TestCase(0x00, 0x08, false)]
         public void Test_CALL_C_nn(byte val, short addr, bool branch)
         {
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
-            asm.CallC(0x0008);
+            asm.AddAVal(1);
+            asm.CallC(0x0009);
             asm.Halt();
             asm.Halt();
             asm.Halt();
@@ -122,7 +122,7 @@ namespace z80.Tests
             if (branch)
             {
                 Assert.AreEqual(0xFFFD, en.SP);
-                Assert.AreEqual(0x06, _ram[0xFFFD]);
+                Assert.AreEqual(0x07, _ram[0xFFFD]);
                 Assert.AreEqual(0x00, _ram[0xFFFE]);
             }
             else
@@ -291,14 +291,14 @@ namespace z80.Tests
             }
         }
         [Test]
-        [TestCase(0xFF, 0x09, false)]
+        [TestCase(0xFF, 0x0A, false)]
         [TestCase(0x00, 0x04, true)]
         public void Test_RET_NC_nn(byte val, short addr, bool branch)
         {
             asm.Call(0x0004);
             asm.Halt();
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
+            asm.AddAVal(1);
             asm.RetNc();
             asm.Halt();
 
@@ -318,13 +318,13 @@ namespace z80.Tests
         }
         [Test]
         [TestCase(0xFF, 0x04, true)]
-        [TestCase(0x00, 0x09, false)]
+        [TestCase(0x00, 0x0A, false)]
         public void Test_RET_C_nn(byte val, short addr, bool branch)
         {
             asm.Call(0x0004);
             asm.Halt();
             asm.LoadRegVal(7, val);
-            asm.IncReg(7);
+            asm.AddAVal(1);
             asm.RetC();
             asm.Halt();
 

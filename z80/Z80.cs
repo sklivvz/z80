@@ -3285,7 +3285,7 @@ namespace z80
                 f |= (byte)Fl.S;
             if ((byte)sum == 0)
                 f |= (byte)Fl.Z;
-            if ((a & 0xF + b & 0xF) > 0xF)
+            if (((a & 0xF) + (b & 0xF)) > 0xF)
                 f |= (byte)Fl.H;
             if ((a >= 0x80 && b >= 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0))
                 f |= (byte)Fl.PV;
@@ -3305,7 +3305,7 @@ namespace z80
                 f |= (byte)Fl.S;
             if ((byte)sum == 0)
                 f |= (byte)Fl.Z;
-            if ((a & 0xF + b & 0xF) > 0xF)
+            if (((a & 0xF) + (b & 0xF) + c) > 0xF)
                 f |= (byte)Fl.H;
             if ((a >= 0x80 && b >= 0x80 && (sbyte)sum > 0) || (a < 0x80 && b < 0x80 && (sbyte)sum < 0))
                 f |= (byte)Fl.PV;
@@ -3326,7 +3326,7 @@ namespace z80
                 f |= (byte)Fl.Z;
             if ((a & 0xF) < (b & 0xF))
                 f |= (byte)Fl.H;
-            if ((a >= 0x80 && b >= 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0))
+            if ((a >= 0x80 && b < 0x80 && (sbyte)diff >= 0) || (a < 0x80 && b >= 0x80 && (sbyte)diff < 0))
                 f |= (byte)Fl.PV;
             f |= (byte)Fl.N;
             if (diff < 0)
@@ -3344,10 +3344,10 @@ namespace z80
             if ((diff & 0x80) > 0) f |= (byte)Fl.S;
             if (diff == 0) f |= (byte)Fl.Z;
             if ((a & 0xF) < (b & 0xF) + c) f |= (byte)Fl.H;
-            if ((a >= 0x80 && b >= 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0))
+            if ((a >= 0x80 && b < 0x80 && (sbyte)diff >= 0) || (a < 0x80 && b >= 0x80 && (sbyte)diff < 0))
                 f |= (byte)Fl.PV;
             f |= (byte)Fl.N;
-            if (diff > 0xFF) f |= (byte)Fl.C;
+            if (diff < 0) f |= (byte)Fl.C;
             registers[F] = f;
         }
 
@@ -3405,7 +3405,7 @@ namespace z80
                 f = (byte)(f | 0x40);
             if ((a & 0xF) < (b & 0xF))
                 f = (byte)(f | 0x10);
-            if ((a > 0x80 && b > 0x80 && (sbyte)diff > 0) || (a < 0x80 && b < 0x80 && (sbyte)diff < 0))
+            if ((a >= 0x80 && b < 0x80 && (sbyte)diff >= 0) || (a < 0x80 && b >= 0x80 && (sbyte)diff < 0))
                 f = (byte)(f | 0x04);
             f = (byte)(f | 0x02);
             if ((diff & 0x100) != 0)
@@ -3416,17 +3416,16 @@ namespace z80
         private byte Inc(byte b)
         {
             var sum = b + 1;
-            var f = (byte)(registers[F] & 0x28);
+            var f = (byte)(registers[F] & 0x29); // preserve carry flag
             if ((sum & 0x80) > 0)
                 f = (byte)(f | 0x80);
-            if (sum == 0)
+            if ((byte)sum == 0)
                 f = (byte)(f | 0x40);
             if ((b & 0xF) == 0xF)
                 f = (byte)(f | 0x10);
-            if ((b < 0x80 && (sbyte)sum < 0))
+            if (b == 0x7F)
                 f = (byte)(f | 0x04);
-            f = (byte)(f | 0x02);
-            if (sum > 0xFF) f = (byte)(f | 0x01);
+            // N is reset (not set) - INC is addition
             registers[F] = f;
 
             return (byte)sum;
@@ -3435,7 +3434,7 @@ namespace z80
         private byte Dec(byte b)
         {
             var sum = b - 1;
-            var f = (byte)(registers[F] & 0x28);
+            var f = (byte)(registers[F] & 0x29); // preserve carry flag
             if ((sum & 0x80) > 0)
                 f = (byte)(f | 0x80);
             if (sum == 0)
