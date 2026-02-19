@@ -12,9 +12,9 @@ namespace z80.Tests
         [Test]
         #region testcases
         [TestCase(0x01, 0x02, false)]
-        [TestCase(0x81, 0x02, true)]
+        [TestCase(0x81, 0x03, true)]  // Rotation: bit 7 goes to both carry AND bit 0
         [TestCase(0x42, 0x84, false)]
-        [TestCase(0x84, 0x08, true)]
+        [TestCase(0x84, 0x09, true)]  // Rotation: bit 7 goes to both carry AND bit 0
         #endregion
         public void Test_RLCA(byte reg, byte res, bool carry)
         {
@@ -59,9 +59,9 @@ namespace z80.Tests
         [Test]
         #region testcases
         [TestCase(0x80, 0x40, false)]
-        [TestCase(0x81, 0x40, true)]
+        [TestCase(0x81, 0xC0, true)]  // Rotation: bit 0 goes to both carry AND bit 7
         [TestCase(0x42, 0x21, false)]
-        [TestCase(0x21, 0x10, true)]
+        [TestCase(0x21, 0x90, true)]  // Rotation: bit 0 goes to both carry AND bit 7
         #endregion
         public void Test_RRCA(byte reg, byte res, bool carry)
         {

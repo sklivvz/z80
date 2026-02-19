@@ -76,10 +76,21 @@ namespace z80.Tests
             Assert.AreEqual(byteSum, en.A);
             Assert.AreEqual(sbyteSum < 0, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(en.A == 0x00, en.FlagZ, "Flag Z contained the wrong value");
-            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
-            var overflow = trueSum > 256;
-            Assert.AreEqual(overflow, en.FlagP, "Flag P contained the wrong value");
+            // H flag after DAA for addition: set if low nibble of A (after ADD, before DAA) >= 10
+            var preDaaA = (byte)(a + val);
+            var expectedH = (preDaaA & 0x0F) >= 10;
+            Assert.AreEqual(expectedH, en.FlagH, "Flag H contained the wrong value");
+            // P/V flag after DAA is parity, not overflow
+            var parity = EvenParity((byte)byteSum);
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
             Assert.AreEqual(trueSum > 0xFF, en.FlagC, "Flag C contained the wrong value");
+        }
+
+        private static bool EvenParity(byte b)
+        {
+            int count = 0;
+            while (b != 0) { count += b & 1; b >>= 1; }
+            return (count % 2) == 0;
         }
 
         [Test]
@@ -116,14 +127,14 @@ namespace z80.Tests
         }
 
         [Test]
-        [TestCase(1, 1, 0x00)]
-        [TestCase(2, 1, 0x01)]
-        [TestCase(10, 1, 0x09)]
-        [TestCase(16, 1, 0x15)]
+        [TestCase(0x01, 0x01, 0x00)]
+        [TestCase(0x02, 0x01, 0x01)]
+        [TestCase(0x10, 0x01, 0x09)]
+        [TestCase(0x16, 0x01, 0x15)]
         [TestCase(0xA0, 0x10, 0x90)]
         [TestCase(0xAA, 0x11, 0x99)]
-        [TestCase(10, 0, 0x10)]
-        [TestCase(100, 1, 99)]
+        [TestCase(0x10, 0x00, 0x10)]
+        [TestCase(0x99, 0x00, 0x99)]
         public void Test_DAA_Sub(byte a, byte val, int correct)
         {
             asm.LoadRegVal(7, a);
@@ -140,9 +151,14 @@ namespace z80.Tests
             Assert.AreEqual(byteSum, en.A);
             Assert.AreEqual(sbyteSum < 0, en.FlagS, "Flag S contained the wrong value");
             Assert.AreEqual(en.A == 0x00, en.FlagZ, "Flag Z contained the wrong value");
-            Assert.AreEqual(false, en.FlagH, "Flag H contained the wrong value");
-            var overflow = trueSum > 256;
-            Assert.AreEqual(overflow, en.FlagP, "Flag P contained the wrong value");
+            // H flag after DAA for subtraction: set if previous H was set and low nibble of A (after SUB) <= 5
+            var preDaaA = (byte)(a - val);
+            var subHadHalfBorrow = (a & 0x0F) < (val & 0x0F);
+            var expectedH = subHadHalfBorrow && ((preDaaA & 0x0F) <= 5);
+            Assert.AreEqual(expectedH, en.FlagH, "Flag H contained the wrong value");
+            // P/V flag after DAA is parity, not overflow
+            var parity = EvenParity((byte)byteSum);
+            Assert.AreEqual(parity, en.FlagP, "Flag P contained the wrong value");
             Assert.AreEqual(trueSum > 0xFF, en.FlagC, "Flag C contained the wrong value");
         }
 

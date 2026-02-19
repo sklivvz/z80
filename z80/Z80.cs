@@ -886,17 +886,41 @@ namespace z80
                 case 0x27:
                     {
                         // DAA
-                        var a = registers[A];
-                        var f = registers[F];
-                        if ((a & 0x0F) > 0x09 || (f & (byte)Fl.H) > 0)
+                        var origA = registers[A];
+                        int a = origA;
+                        bool n = (registers[F] & (byte)Fl.N) != 0;
+                        bool c = (registers[F] & (byte)Fl.C) != 0;
+                        bool h = (registers[F] & (byte)Fl.H) != 0;
+
+                        int correction = 0;
+                        bool newCarry = c;
+
+                        if (h || (!n && (a & 0x0F) > 0x09))
+                            correction = 0x06;
+
+                        if (c || (!n && a > 0x99))
                         {
-                            Add(0x06);
-                            a = registers[A];
+                            correction |= 0x60;
+                            newCarry = true;
                         }
-                        if ((a & 0xF0) > 0x90 || (f & (byte)Fl.C) > 0)
-                        {
-                            Add(0x60);
-                        }
+
+                        if (n)
+                            a -= correction;
+                        else
+                            a += correction;
+
+                        registers[A] = (byte)a;
+
+                        var f = (byte)0;
+                        if (((byte)a & 0x80) != 0) f |= (byte)Fl.S;
+                        if ((byte)a == 0) f |= (byte)Fl.Z;
+                        // H flag per Z80 spec: for add, H if low nibble >= 10; for sub, H if prev H and low nibble <= 5
+                        int lowNibble = origA & 0x0F;
+                        if (n ? (h && lowNibble <= 5) : (lowNibble >= 10)) f |= (byte)Fl.H;
+                        if (Parity((byte)a)) f |= (byte)Fl.PV;
+                        if (n) f |= (byte)Fl.N;
+                        if (newCarry) f |= (byte)Fl.C;
+                        registers[F] = f;
 #if (DEBUG)
                         Log("DAA");
 #endif
@@ -1066,6 +1090,7 @@ namespace z80
                         var a = registers[A];
                         var c = (byte)((a & 0x80) >> 7);
                         a <<= 1;
+                        a |= c; // bit 7 rotates to bit 0
                         registers[A] = a;
                         registers[F] &= (byte)~(Fl.H | Fl.N | Fl.C);
                         registers[F] |= c;
@@ -1097,6 +1122,7 @@ namespace z80
                         var a = registers[A];
                         var c = (byte)(a & 0x01);
                         a >>= 1;
+                        a |= (byte)(c << 7); // bit 0 rotates to bit 7
                         registers[A] = a;
                         registers[F] &= (byte)~(Fl.H | Fl.N | Fl.C);
                         registers[F] |= c;
