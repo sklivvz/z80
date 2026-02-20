@@ -1,54 +1,79 @@
 # z80
-A csharp emulator for the Zilog Z80 CPU.
+
+A C# emulator for the Zilog Z80 CPU and ZX Spectrum ULA.
 
 ## The project
 
-z80 a Z80 emulator that works in real time written in C#.
+This project contains a Z80 CPU emulator and a ZX Spectrum ULA (Uncommitted Logic Array), both written in C#. Together they can run a ZX Spectrum 48K.
 
-These are contained:
+```
+                  +-----------+
+                  |   Z80     |
+                  |   CPU     |
+                  +-----+-----+
+                        |
+                   IMemory  IBus
+                        |
+          +-------------+-------------+
+          |                           |
+    +-----+-----+             +------+------+
+    |  Memory   |             | SpectrumBus |
+    |  (64 KB)  |             |  (IBus)     |
+    +-----+-----+             +------+------+
+          |                           |
+          |                    +------+------+
+          +--------------------+    ULA      |
+                  IMemory      |  (IUlaBus)  |
+                               +------+------+
+                                      |
+                               +------+------+
+                               |  Keyboard   |
+                               |  (IUlaBus)  |
+                               +-------------+
+```
 
-* Z80 Emulator (`Z80`)
-* Z80 Assembler backend (`Z80Asm`)
-* Zilog-based Z80 tests (`z80.Tests`)
+The projects are:
 
-The tests are a translation of the documentation, the assembler backend is needed to write tests and stay sane and the emulator is the whole point. 
+* **z80** -- Z80 CPU emulator (`Z80`)
+* **z80asm** -- Z80 assembler backend (`Z80Asm`)
+* **ula** -- ZX Spectrum ULA video/IO chip (`Ula`, `ScreenRenderer`)
+* **z80.Tests** -- Zilog-documentation-based Z80 tests (NUnit)
+* **ula.Tests** -- ULA and screen renderer tests (NUnit)
+* **z80sample** -- ZX Spectrum 48K emulator wiring Z80 + ULA + MonoGame together
 
-There's a very basic step debugger in the tests (`TestSystem`) which basically came for free with them.
+The Z80 tests are a translation of the official Zilog documentation. The assembler backend exists to write tests readably. The ULA generates video output from the Z80's memory and handles keyboard/speaker I/O through port 0xFE.
 
 ## Usage example
 
 ```csharp
+// 64 KB RAM with 16 KB ROM write-protection
 var ram = new byte[65536];
-
-// Load a ROM image
-Array.Clear(ram, 0, ram.Length);
 Array.Copy(File.ReadAllBytes("48.rom"), ram, 16384);
 
-// Ports is something you supply to emulate I/O ports
-var ports = new SamplePorts();
+// Shared memory -- both CPU and ULA read/write the same RAM
+var memory = new SimpleMemory(ram, romSize: 16384);
 
-// Set up memory layout
-var myZ80 = new Z80(new Memory(ram, 16384), ports);
+// ULA setup: frame buffer + keyboard bus
+var frameBuffer = new uint[Ula.ScreenWidth * Ula.ScreenHeight];
+var keyboardBus = new SpectrumKeyboard();
+var spectrumUla = new Ula(memory, keyboardBus, frameBuffer);
 
-// Run
-while (!myZ80.Halt)
-{
-    myZ80.Parse();
-}
+// CPU bus routes I/O through the ULA
+var cpuBus = new SpectrumBus(spectrumUla);
 
-// Show the registers
-Console.WriteLine(myZ80.DumpState());
+// Z80 CPU
+var cpu = new Z80(memory, cpuBus);
+
+// Run one frame (69888 T-states at 3.5 MHz)
+cpu.Tick(69888);
+
+// Render the frame from current video RAM state
+spectrumUla.RenderFrame();
 ```
 
-## Status
-
-Test Coverage: **98.29%**  
-Spectrum ROM: **_Apparently_ it works**, but needs a ULA to work.
+## Z80 CPU
 
 ### Opcodes
-
-
-The following opcodes are supported
 
 * 8-bit load group (e.g. `LD A, 0x42`)
 * 16-bit load group (e.g. `POP HL`)
@@ -65,42 +90,71 @@ The following opcodes are supported
 
 ### Other features
 
-These other features are supported
-
 * Address and Data bus
 * R register counts machine cycles (approximately)
-* Interrupts
-* Other pins
+* Interrupt modes 0, 1, 2
+* EI delayed enable (one-instruction delay per Zilog spec)
+* LD A,I / LD A,R set P/V from IFF2
+* T-state counting via `Tick(int tStates)`
+* All bus pins (INT, NMI, WAIT, BUSRQ, RESET)
 
+## ULA
 
-## The future
+The ULA (Uncommitted Logic Array) generates the ZX Spectrum's video signal and handles I/O.
 
-The following opcodes are not done
+### Video
 
-* Undocumented opcodes (`DD`, `FD`)
-* Undocumented effects (`BIT`, Memory Block Instructions, I/O Block Instructions, 16 Bit I/O ports, Block Instructions, Bit Additions, DAA Instruction)
+* 352 x 288 pixel frame buffer (48px border + 256x192 display + 48px border)
+* Accurate ZX Spectrum screen memory address decoding (bit-shuffled layout)
+* 15-colour palette (8 normal + 7 bright, black has no bright variant)
+* Attribute-based colour: 8x8 character cells with ink, paper, bright, flash
+* FLASH toggle every 16 frames
+* Configurable screen base address (0x4000 for 48K, 0xC000 for 128K shadow screen)
 
-These new features are highly desirable
+### I/O (Port 0xFE)
 
-* An assembler frontend thus having a full z80 assembler
-* A disassembler based on the current CPU emulator code
+* Write: border colour (bits 0-2), MIC output (bit 3), speaker output (bit 4)
+* Read: keyboard state (bits 0-4, active low), EAR input (bit 6)
+* Keyboard half-row selection via high address byte
+* Interrupt request generation (set after each frame render)
 
-Also, the project should have NuGet packages at some point.
+## z80sample
+
+A complete ZX Spectrum 48K emulator using MonoGame for display, keyboard, and sound.
+
+* 50fps video output (352x288 scaled 2x) with accurate border colours
+* Full 40-key keyboard matrix mapped from PC keyboard (including arrow keys, backspace, escape)
+* 1-bit speaker audio at 48 kHz, sampled every ~73 T-states for accurate beeper sound
+* ROM write-protection (writes to 0x0000-0x3FFF silently ignored)
+
+## Build and test
+
+```bash
+dotnet build
+dotnet test
+```
+
+Run the sample emulator (requires `48.rom` in the z80sample directory):
+
+```bash
+dotnet run --project z80sample/
+```
 
 ## Bibliography
-
-The following resources have been useful documentation:
 
 * [Z80 CPU User Manual](http://www.zilog.com/manage_directlink.php?filepath=docs/z80/um0080) by Zilog
 * [ZEMU - Z80 Emulator](http://www.z80.info/zip/zemu.zip) by Joe Moore
 * [The Undocumented Z80 Documented](http://www.myquest.nl/z80undocumented/z80-documented-v0.91.pdf) by Sean Young
 * [comp.sys.sinclair FAQ](http://www.worldofspectrum.org/faq/reference/z80reference.htm)
 * [jsspeccy](https://github.com/gasman/jsspeccy) by Matt Westcott
-* [The Complete Spectrum ROM Disassembly](http://dac.escet.urjc.es/~csanchez/pfcs/zxspectrum/CompleteSpectrumROMDisassemblyThe.pdf) by Dr Ian Logan & Dr Frank O&apos;Hara
+* [The Complete Spectrum ROM Disassembly](http://dac.escet.urjc.es/~csanchez/pfcs/zxspectrum/CompleteSpectrumROMDisassemblyThe.pdf) by Dr Ian Logan & Dr Frank O'Hara
+* [World of Spectrum 48K Reference](https://worldofspectrum.org/faq/reference/48kreference.htm)
+* [ZX Spectrum ULA - Sinclair Wiki](https://sinclair.wiki.zxnet.co.uk/wiki/ZX_Spectrum_ULA)
+* [ZX Spectrum Screen Memory Layout](https://espamatica.com/zx-spectrum-screen/)
 
 ## License
 
-Copyright &copy; 2015, Marco Cecconi  
+Copyright &copy; 2015, Marco Cecconi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:

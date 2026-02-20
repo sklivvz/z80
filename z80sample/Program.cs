@@ -69,7 +69,7 @@ namespace z80Sample
             Array.Copy(rom, _ram, 16384);
 
             // Wire up Spectrum hardware
-            _memory = new SimpleMemory(_ram);
+            _memory = new SimpleMemory(_ram, 16384);
             _keyboard = new SpectrumKeyboard();
             _ula = new Ula(_memory, _keyboard, _frameBuffer);
             var cpuBus = new SpectrumBus(_ula);
