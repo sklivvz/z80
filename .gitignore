@@ -240,3 +240,7 @@ FakesAssemblies/
 *.opt
 z80.Tests/z80.Tests.v2.ncrunchproject
 z80.v2.ncrunchsolution
+
+# Claude Code
+.claude/
+CLAUDE.md
